@@ -18,7 +18,6 @@ export const GitHub = () => (
       username="csalinas-dev"
       colorScheme="dark"
       theme={explicitTheme}
-      style={{ color: "var(--comment)" }}
       blockSize={16}
     />
   </Section>
