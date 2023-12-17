@@ -2,14 +2,15 @@
 import React from "react";
 import {
   Comment,
-  String,
   Const,
   Function,
-  Parenthesis,
-  Numeric,
-  Var,
   Module,
-} from "./index";
+  Numeric,
+  Parenthesis,
+  Section,
+  String,
+  Var,
+} from "./";
 
 export const About = () => {
   const birthdate = new Date(1995, 7, 13);
@@ -17,7 +18,7 @@ export const About = () => {
   const age = Math.abs(ageDate.getUTCFullYear() - 1970);
 
   return (
-    <section>
+    <Section>
       <Comment as="h3">
         <strong>
           // Crafting Digital Experiences, One Line of Code at a Time
@@ -119,6 +120,6 @@ export const About = () => {
         journey as I continue to explore, create, and innovate, one project at a
         time.
       </p>
-    </section>
+    </Section>
   );
 };

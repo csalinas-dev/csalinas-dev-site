@@ -7,7 +7,6 @@
   --foreground: #cccccc;
 
   --selectionBackground: #add6ff26;
-  --inactiveSelectionBackground: #3a3d41;
 
   --vscode:      #0078d4;
   --comment:     #6a9955;
@@ -66,9 +65,3 @@ code {
 ::selection {
   background: #add6ff26;
 }
-
-/* body:not(:focus-within) *::-moz-selection, 
-body:not(:focus-within) *::selection {
-  color: inherit;
-  background: var(--inactiveSelectionBackground);
-} */
