@@ -1,13 +1,74 @@
-body {
+@import url("https://fonts.googleapis.com/css2?family=Sono:wght@300;400;600;700&display=swap");
+
+:root {
+  --font: "Sono", monospace;
+  --background: #1f1f1f;
+  --muted: rgba(255, 255, 255, 0.54);
+  --foreground: #cccccc;
+
+  --selectionBackground: #add6ff26;
+  --inactiveSelectionBackground: #3a3d41;
+
+  --vscode:      #0078d4;
+  --comment:     #6a9955;
+  --component:   #4FC1FF;
+  --const:       #569CD6;
+  --function:    #DCDCAA;
+  --invalid:     #F44747;
+  --module:      #C586C0;
+  --numeric:     #B5CEA8;
+  --parenthesis: #ffd700;
+  --regex:       #D16969;
+  --string:      #CE9178;
+  --type:        #4EC9B0;
+  --var:         #9CDCFE;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 1.5em;
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+}
+
+@media (min-width: 1296px) {
+  html, body {
+    font-size: 24px;
+  }
+}
+
+a, a:visited, a:active {
+  color: var(--const);
+  text-decoration-style: wavy;
+  text-decoration-thickness: 2px;
+  text-decoration-color: var(--invalid);
+  display: inline-block;
+}
+
+a:hover {
+  text-decoration-thickness: 1px;
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+  font-family: Consolas, "Courier New", monospace;
 }
+
+::-moz-selection {
+  background: #add6ff26;
+}
+
+::selection {
+  background: #add6ff26;
+}
+
+/* body:not(:focus-within) *::-moz-selection, 
+body:not(:focus-within) *::selection {
+  color: inherit;
+  background: var(--inactiveSelectionBackground);
+} */
