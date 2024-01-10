@@ -1,5 +1,6 @@
 @import url("https://fonts.googleapis.com/css2?family=Sono:wght@300;400;600;700&display=swap");
 
+/* Theme */
 :root {
   --font: "Sono", monospace;
   --background: #1f1f1f;
@@ -23,11 +24,13 @@
   --var:         #9CDCFE;
 }
 
+/* CSS Resets */
 *, *::before, *::after {
   box-sizing: border-box;
 }
 
-html, body {
+/* Body */
+body {
   background-color: var(--background);
   color: var(--foreground);
   font-family: var(--font);
@@ -37,11 +40,12 @@ html, body {
 }
 
 @media (min-width: 1296px) {
-  html, body {
+  body {
     font-size: 24px;
   }
 }
 
+/* Links */
 a, a:visited, a:active {
   color: var(--const);
   text-decoration-style: wavy;
@@ -54,10 +58,7 @@ a:hover {
   text-decoration-thickness: 1px;
 }
 
-code {
-  font-family: Consolas, "Courier New", monospace;
-}
-
+/* User Text Selection */
 ::-moz-selection {
   background: #add6ff26;
 }

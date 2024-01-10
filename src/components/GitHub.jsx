@@ -8,7 +8,7 @@ const explicitTheme = {
 };
 
 export const GitHub = () => (
-  <Section>
+  <Section id="github">
     <h3>
       <Comment>// I definitely don't have any </Comment>
       <Function>commit</Function>

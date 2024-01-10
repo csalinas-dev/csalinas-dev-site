@@ -18,7 +18,7 @@ export const About = () => {
   const age = Math.abs(ageDate.getUTCFullYear() - 1970);
 
   return (
-    <Section>
+    <Section id="about">
       <Comment as="h3">
         <strong>
           // Crafting Digital Experiences, One Line of Code at a Time
