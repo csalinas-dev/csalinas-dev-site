@@ -1,10 +1,14 @@
-import React from "react";
-import { Splash, About, GitHub } from "./components";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+
+import { Home } from "./pages";
+
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <Home />
+  }
+]);
 
 export const App = () => (
-  <>
-    <Splash />
-    <About />
-    <GitHub />
-  </>
-);
+  <RouterProvider router={router} />
+)
