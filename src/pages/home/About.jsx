@@ -51,14 +51,13 @@ export const About = () => {
         <Parenthesis>)</Parenthesis>, <Function>ReactJS</Function>{" "}
         <Parenthesis>(</Parenthesis>
         <Var>TypeScript</Var>
-        <Parenthesis>)</Parenthesis>, <Var>HTML</Var>, and <Var>CSS</Var>, is
+        <Parenthesis>)</Parenthesis>, <Var>GraphQL</Var>, and <Var>SQL</Var>, is
         complemented by my proficiency in essential tools such as{" "}
-        <Var>Sass</Var>, <Module>Git</Module>, <Module>GitHub</Module>,{" "}
-        <Module>Azure</Module>, <Module>Visual Studio</Module>, and{" "}
-        <Module>VS Code</Module>. Alongside these, I also skillfully navigate
-        the creative realms with the <Module>Adobe Suite</Module>. Each tool,
-        whether it's for coding efficiency or creative expression, is wielded
-        with a blend of precision and enthusiasm, reflecting my holistic
+        <Module>Git</Module>, <Module>GitHub</Module>, <Module>Azure</Module>,
+        and <Module>VS Code</Module>. Alongside these, I also skillfully
+        navigate the creative realms with the <Module>Adobe Suite</Module>. Each
+        tool, whether it's for coding efficiency or creative expression, is
+        wielded with a blend of precision and enthusiasm, reflecting my holistic
         approach to software development.
       </p>
 
