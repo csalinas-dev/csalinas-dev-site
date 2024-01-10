@@ -1,11 +1,16 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
-import { Home } from "./pages";
+import { Home, NotFound, Wordle } from "./pages";
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <Home />
+    element: <Home />,
+    errorElement: <NotFound />,
+  },
+  {
+    path: "/wordle",
+    element: <Wordle />
   }
 ]);
 

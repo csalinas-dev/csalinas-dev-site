@@ -1,5 +1,4 @@
 /* eslint-disable react/jsx-no-comment-textnodes */
-import React from "react";
 import GitHubCalendar from "react-github-calendar";
 import { Comment, Function, Section } from "../../components";
 

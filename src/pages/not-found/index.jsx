@@ -1,5 +1,5 @@
 import styled from "@emotion/styled";
-import { Var, String, Section } from "../../components";
+import { Invalid, Section } from "../../components";
 
 const Container = styled.h1`
   display: inline-block;
@@ -14,12 +14,12 @@ const Container = styled.h1`
   }
 `;
 
-export const Splash = () => (
-  <Section style={{ minHeight: "100vh" }}>
+export const NotFound = () => (
+  <Section style={{minHeight: "100vh"}}>
     <Container>
-      <Var>Hello, I'm</Var>
+      <Invalid>404 Error</Invalid>
       <br />
-      <String>Christopher Salinas Jr</String>
+      <span>Route not found</span>
     </Container>
   </Section>
 );
