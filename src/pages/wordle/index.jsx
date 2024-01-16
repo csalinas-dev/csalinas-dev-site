@@ -1,3 +1,9 @@
+/**
+ * References
+ *    https://kennethscoggins.medium.com/how-to-build-wordle-using-reactjs-and-about-200-lines-of-sloppy-code-3da3ef47013f
+ *    https://css-tricks.com/snippets/css/complete-guide-grid/
+ **/ 
+
 import { useEffect, useState } from "react";
 
 import { Section } from "../../components";
