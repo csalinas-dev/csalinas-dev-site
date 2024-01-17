@@ -55,6 +55,7 @@ export const Tile = styled.div`
   justify-content: center;
   min-height: 50px;
   min-width: 50px;
+  text-shadow: 1px 1px var(--background);
 
   @media (min-aspect-ratio: 2/3) {
     aspect-ratio: initial;
@@ -62,7 +63,7 @@ export const Tile = styled.div`
   }
 
   &.contains {
-    background-color: var(--parenthesis);
+    background-color: var(--selector);
     color: var(--background);
   }
 

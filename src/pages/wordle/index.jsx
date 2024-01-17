@@ -6,7 +6,7 @@
 
 import { useState } from "react";
 
-import { defaultBoard } from "./defaults";
+import { Status, defaultBoard } from "./defaults";
 import { Title, Board, Tile, Keyboard } from "./styles";
 import { useResponsiveTiles } from "./useResponsiveTiles";
 
@@ -35,8 +35,13 @@ export const Wordle = () => {
     };
     if (i === 0) {
       props.ref = tileRef;
+      props.className = Status.Contains;
     }
-    return <Tile {...props}>{c}</Tile>;
+    if (i === 1) {
+      props.className = Status.Correct;
+    }
+    const alphabet = ['a','b','c','d','e'];
+    return <Tile {...props}>{alphabet[i].toUpperCase()}</Tile>;
   };
 
   return (
