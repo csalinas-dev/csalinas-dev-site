@@ -50,6 +50,7 @@ export const Tile = styled.div`
   aspect-ratio: 1 / 1;
   background-color: var(--selectionBackground);
   border-radius: 10%;
+  box-shadow: .025rem .05rem .2rem rgba(0,0,0,0.5);
   display: flex;
   justify-content: center;
   min-height: 50px;
