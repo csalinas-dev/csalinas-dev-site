@@ -1,26 +1,28 @@
 import { range } from "lodash";
 import styled from "@emotion/styled";
-import { css } from "@emotion/react";
 
 const tileGrid = range(5)
   .map((_) => "tile")
   .join(" ");
 
-export const section = css`
-  overflow: none;
-  height: 100vh;
-`;
-
 export const Title = styled.h1`
-  font-size: 5rem;
+  align-self: center;
+  font-size: 3rem;
+  line-height: 3rem;
   grid-area: title;
+  justify-self: center;
+  margin: 2rem 0;
+
+  @media (min-width: 360px) {
+    font-size: 5rem;
+    line-height: 5rem;
+  }
 `;
 
 export const Board = styled.div`
+  align-content: stretch;
   display: grid;
   gap: 0.5rem;
-  grid-template-columns: repeat(5, 1fr);
-  grid-template-rows: min-content auto auto auto auto auto auto min-content;
   grid-template-areas:
     "title title title title title"
     "${tileGrid}"
@@ -30,19 +32,44 @@ export const Board = styled.div`
     "${tileGrid}"
     "${tileGrid}"
     "keyboard keyboard keyboard keyboard keyboard";
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows: auto repeat(6, min-content) auto;
+  height: 100vh;
+  justify-content: center;
+  justify-items: center;
+  max-width: 100%;
+
+  @media (min-aspect-ratio: 2/3) {
+    grid-template-columns: repeat(5, auto);
+    grid-template-rows: min-content repeat(6, 1fr) min-content;
+  }
 `;
 
 export const Tile = styled.div`
+  align-items: center;
   aspect-ratio: 1 / 1;
-  border-radius: 10%;
-  height: 100%;
   background-color: var(--selectionBackground);
+  border-radius: 10%;
+  display: flex;
+  justify-content: center;
+  min-height: 50px;
+  min-width: 50px;
+
+  @media (min-aspect-ratio: 2/3) {
+    aspect-ratio: initial;
+    height: 100%;
+  }
 
   &.contains {
     background-color: var(--parenthesis);
+    color: var(--background);
   }
 
-  &.contains {
+  &.correct {
     background-color: var(--comment);
   }
+`;
+
+export const Keyboard = styled.div`
+  grid-area: keyboard;
 `;

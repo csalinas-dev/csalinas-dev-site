@@ -6,6 +6,10 @@ export const Status = Object.freeze({
   Correct: "correct",
 });
 
-export const defaultBoard = range(6).map((_) =>
-  range(5).map((_) => ({ c: "", status: Status.Ignore }))
+export const defaultBoard = range(6).map((_, row) =>
+  range(5).map((_, col) => ({
+    key: `${row}${col}`,
+    c: "W",
+    status: Status.Ignore,
+  }))
 );

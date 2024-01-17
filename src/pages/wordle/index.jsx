@@ -2,31 +2,56 @@
  * References
  *    https://kennethscoggins.medium.com/how-to-build-wordle-using-reactjs-and-about-200-lines-of-sloppy-code-3da3ef47013f
  *    https://css-tricks.com/snippets/css/complete-guide-grid/
- **/ 
+ **/
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
-import { Section } from "../../components";
 import { defaultBoard } from "./defaults";
-import { Title, Board, Tile, section } from "./styles";
+import { Title, Board, Tile, Keyboard } from "./styles";
+import { useResponsiveTiles } from "./useResponsiveTiles";
 
-import words from "./words.json";
+// import words from "./words.json";
 
 export const Wordle = () => {
-  const [board, setBoard] = useState(defaultBoard);
-  const [currentRow, setCurrentRow] = useState(0);
-  const [currentWord, setCurrentWord] = useState("");
-  const [currentGuess, setCurrentGuess] = useState("");
-  const [gameOver, setGameOver] = useState(false);
+  const [tileRef, tileSize] = useResponsiveTiles();
+
+  // eslint-disable-next-line no-unused-vars
+  const [board, _] = useState(defaultBoard);
+  // const [currentRow, setCurrentRow] = useState(0);
+  // const [currentWord, setCurrentWord] = useState("");
+  // const [currentGuess, setCurrentGuess] = useState("");
+  // const [gameOver, setGameOver] = useState(false);
+
+  const letterToTile = ({ key, c, status: className }, i) => {
+    const font = tileSize * .75 + 'px';
+    const props = {
+      key,
+      className,
+      style: {
+        width: tileSize,
+        lineHeight: font,
+        fontSize: font,
+      },
+    };
+    if (i === 0) {
+      props.ref = tileRef;
+    }
+    return <Tile {...props}>{c}</Tile>;
+  };
 
   return (
-    <Section css={section}>
+    <Board>
       <Title>Wordle</Title>
-      <Board>
-        {board.map((word) =>
-          word.map(({ c, status }) => <Tile className={status}>{c}</Tile>)
-        )}
-      </Board>
-    </Section>
+      {board.map((word) => word.map(letterToTile))}
+      <Keyboard>
+        Keyboard
+        <br />
+        Keyboard
+        <br />
+        Keyboard
+        <br />
+        Keyboard
+      </Keyboard>
+    </Board>
   );
 };
