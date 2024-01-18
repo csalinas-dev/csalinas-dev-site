@@ -12,6 +12,7 @@ export const Title = styled.h1`
   grid-area: title;
   justify-self: center;
   margin: 2rem 0;
+  user-select: none;
 
   @media (min-width: 360px) {
     font-size: 5rem;
@@ -19,7 +20,7 @@ export const Title = styled.h1`
   }
 `;
 
-export const Board = styled.div`
+export const Wordle = styled.div`
   align-content: stretch;
   display: grid;
   gap: 0.5rem;
@@ -56,13 +57,14 @@ export const Tile = styled.div`
   min-height: 50px;
   min-width: 50px;
   text-shadow: 1px 1px var(--background);
+  user-select: none;
 
   @media (min-aspect-ratio: 2/3) {
     aspect-ratio: initial;
     height: 100%;
   }
 
-  &.contains {
+  &.present {
     background-color: var(--selector);
     color: var(--background);
   }
@@ -70,8 +72,4 @@ export const Tile = styled.div`
   &.correct {
     background-color: var(--comment);
   }
-`;
-
-export const Keyboard = styled.div`
-  grid-area: keyboard;
 `;

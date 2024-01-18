@@ -7,12 +7,13 @@
 import { useState } from "react";
 
 import { Status, defaultBoard } from "./defaults";
-import { Title, Board, Tile, Keyboard } from "./styles";
+import { Title, Wordle, Tile } from "./styles";
 import { useResponsiveTiles } from "./useResponsiveTiles";
+import { Keyboard } from './keyboard';
 
 // import words from "./words.json";
 
-export const Wordle = () => {
+export const WordleGame = () => {
   const [tileRef, tileSize] = useResponsiveTiles();
 
   // eslint-disable-next-line no-unused-vars
@@ -35,7 +36,7 @@ export const Wordle = () => {
     };
     if (i === 0) {
       props.ref = tileRef;
-      props.className = Status.Contains;
+      props.className = Status.Present;
     }
     if (i === 1) {
       props.className = Status.Correct;
@@ -45,18 +46,10 @@ export const Wordle = () => {
   };
 
   return (
-    <Board>
+    <Wordle>
       <Title>Wordle</Title>
       {board.map((word) => word.map(letterToTile))}
-      <Keyboard>
-        Keyboard
-        <br />
-        Keyboard
-        <br />
-        Keyboard
-        <br />
-        Keyboard
-      </Keyboard>
-    </Board>
+      <Keyboard />
+    </Wordle>
   );
 };
