@@ -1,8 +1,8 @@
-import styled from "@emotion/styled";
 import { useContext } from "react";
-import { Context } from "./context";
 import { slice, sortBy } from "lodash";
-import { addLetter } from "./context/actions";
+import styled from "@emotion/styled";
+
+import { Context, addLetter, removeLetter, submitGuess } from "./context";
 
 const Board = styled.div`
   align-self: end;
@@ -104,14 +104,13 @@ const Keyboard = () => {
     switch (label) {
       case "DELETE":
         label = <i>&lt;</i>;
+        props.onClick = () => dispatch(removeLetter());
         break;
       case "ENTER":
+        props.onClick = () => dispatch(submitGuess());
         break;
       default:
-        props.onClick = () => {
-          dispatch(addLetter(l));
-          console.log(`dispatch(addLetter(${l}));`);
-        };
+        props.onClick = () => dispatch(addLetter(l));
         break;
     }
 

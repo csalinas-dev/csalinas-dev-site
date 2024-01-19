@@ -4,6 +4,8 @@ const updateBoard = (board, row, guess) => {
   board[row] = board[row].map((l, i) => {
     if (i < guess.length) {
       l.letter = guess[i];
+    } else {
+      l.letter = "";
     }
     return l;
   });
@@ -28,7 +30,7 @@ const removeLetter = (state) => {
   if (guess.length === 0) {
     return state;
   }
-  const newGuess = take(guess, guess.length - 1);
+  const newGuess = take(guess, guess.length - 1).join("");
   return {
     ...state,
     guess: newGuess,
@@ -36,15 +38,31 @@ const removeLetter = (state) => {
   };
 };
 
+const submitGuess = (state) => {
+  const { guess } = state;
+  if (guess.length !== 5) {
+    return state;
+  }
+  state.row += 1;
+  state.guess = "";
+  return state;
+};
+
 export const reducer = (state, action) => {
+  let newState = state;
   switch (action.type) {
     case "ADD LETTER":
-      return addLetter(state, action.letter);
+      newState = addLetter(state, action.letter);
+      break;
     case "REMOVE LETTER":
-      return removeLetter(state);
+      newState = removeLetter(state);
+      break;
     case "SUBMIT GUESS":
-      return state;
+      newState = submitGuess(state);
+      break;
     default:
-      return state;
+      break;
   }
+  console.log(action.type, newState);
+  return newState;
 };
