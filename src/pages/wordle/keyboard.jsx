@@ -1,5 +1,8 @@
 import styled from "@emotion/styled";
-import { keyboardLetters } from "./defaults";
+import { useContext } from "react";
+import { Context } from "./context";
+import { slice, sortBy } from "lodash";
+import { addLetter } from "./context/actions";
 
 const Board = styled.div`
   align-self: end;
@@ -29,7 +32,7 @@ const Key = styled.span`
   display: flex;
   justify-content: center;
   max-width: 50px;
-  opacity: .78;
+  opacity: 0.78;
   overflow: hidden;
   text-shadow: 1px 1px var(--background);
   transition: opacity ease-in-out 100ms;
@@ -81,30 +84,44 @@ const Key = styled.span`
   }
 `;
 
-const letterToKeycap = ({ key, label: l, status: className }) => {
-  const props = {
-    key,
-    className,
-  };
-  let label = l;
-  if (l.length > 1) {
-    props.className = `${className} action`;
+const Keyboard = () => {
+  const {
+    state: { keyboard },
+    dispatch,
+  } = useContext(Context);
+
+  const letterToKeycap = ({ key, label: l, status: className }) => {
+    const props = {
+      key,
+      className,
+    };
+
+    let label = l;
+    if (l.length > 1) {
+      props.className = `${className} action`;
+    }
 
     switch (label) {
       case "DELETE":
-        label = <i>&lt;</i>
+        label = <i>&lt;</i>;
+        break;
+      case "ENTER":
         break;
       default:
+        props.onClick = () => {
+          dispatch(addLetter(l));
+          console.log(`dispatch(addLetter(${l}));`);
+        };
         break;
     }
-  }
-  return <Key {...props}>{label}</Key>;
-};
 
-export const Keyboard = () => {
-  const top = keyboardLetters[0];
-  const mid = keyboardLetters[1];
-  const bot = keyboardLetters[2];
+    return <Key {...props}>{label}</Key>;
+  };
+
+  const sorted = sortBy(keyboard, "key");
+  const top = slice(sorted, 0, 10);
+  const mid = slice(sorted, 10, 19);
+  const bot = slice(sorted, 19);
 
   return (
     <Board>
@@ -114,3 +131,5 @@ export const Keyboard = () => {
     </Board>
   );
 };
+
+export default Keyboard;

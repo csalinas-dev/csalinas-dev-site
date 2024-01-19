@@ -1,55 +1,57 @@
-/**
- * References
- *    https://kennethscoggins.medium.com/how-to-build-wordle-using-reactjs-and-about-200-lines-of-sloppy-code-3da3ef47013f
- *    https://css-tricks.com/snippets/css/complete-guide-grid/
- **/
+import styled from "@emotion/styled";
 
-import { useState } from "react";
+import { ContextProvider } from "./context";
 
-import { Status, defaultBoard } from "./defaults";
-import { Title, Wordle, Tile } from "./styles";
-import { useResponsiveTiles } from "./useResponsiveTiles";
-import { Keyboard } from './keyboard';
+import Gameboard from "./Gameboard";
+import Keyboard from "./Keyboard";
 
-// import words from "./words.json";
+const Container = styled.div`
+  align-content: stretch;
+  display: grid;
+  gap: 0.5rem;
+  grid-template-areas:
+    "title title title title title"
+    "tile tile tile tile tile"
+    "tile tile tile tile tile"
+    "tile tile tile tile tile"
+    "tile tile tile tile tile"
+    "tile tile tile tile tile"
+    "tile tile tile tile tile"
+    "keyboard keyboard keyboard keyboard keyboard";
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows: auto repeat(6, min-content) auto;
+  height: 100vh;
+  justify-content: center;
+  justify-items: center;
+  max-width: 100%;
 
-export const WordleGame = () => {
-  const [tileRef, tileSize] = useResponsiveTiles();
+  @media (min-aspect-ratio: 2/3) {
+    grid-template-columns: repeat(5, auto);
+    grid-template-rows: min-content repeat(6, 1fr) min-content;
+  }
+`;
 
-  // eslint-disable-next-line no-unused-vars
-  const [board, _] = useState(defaultBoard);
-  // const [currentRow, setCurrentRow] = useState(0);
-  // const [currentWord, setCurrentWord] = useState("");
-  // const [currentGuess, setCurrentGuess] = useState("");
-  // const [gameOver, setGameOver] = useState(false);
+const Title = styled.h1`
+  align-self: center;
+  font-size: 3rem;
+  line-height: 3rem;
+  grid-area: title;
+  justify-self: center;
+  margin: 2rem 0;
+  user-select: none;
 
-  const letterToTile = ({ key, c, status: className }, i) => {
-    const font = tileSize * .75 + 'px';
-    const props = {
-      key,
-      className,
-      style: {
-        width: tileSize,
-        lineHeight: font,
-        fontSize: font,
-      },
-    };
-    if (i === 0) {
-      props.ref = tileRef;
-      props.className = Status.Present;
-    }
-    if (i === 1) {
-      props.className = Status.Correct;
-    }
-    const alphabet = ['a','b','c','d','e'];
-    return <Tile {...props}>{alphabet[i].toUpperCase()}</Tile>;
-  };
+  @media (min-width: 360px) {
+    font-size: 5rem;
+    line-height: 5rem;
+  }
+`;
 
-  return (
-    <Wordle>
+export const Wordle = () => (
+  <ContextProvider>
+    <Container>
       <Title>Wordle</Title>
-      {board.map((word) => word.map(letterToTile))}
+      <Gameboard />
       <Keyboard />
-    </Wordle>
-  );
-};
+    </Container>
+  </ContextProvider>
+);

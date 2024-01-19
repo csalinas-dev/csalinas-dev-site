@@ -1,6 +1,6 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
-import { Home, NotFound, WordleGame } from "./pages";
+import { Home, NotFound, Wordle } from "./pages";
 
 const router = createBrowserRouter([
   {
@@ -10,7 +10,7 @@ const router = createBrowserRouter([
   },
   {
     path: "/wordle",
-    element: <WordleGame />
+    element: <Wordle />
   }
 ]);
 
