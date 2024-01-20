@@ -1,7 +1,7 @@
 import { useContext, Fragment, useEffect } from "react";
 import styled from "@emotion/styled";
 
-import { Context } from "./context";
+import { Context, dismissError } from "./context";
 import { useResponsiveTiles } from "./useResponsiveTiles";
 import { map } from "lodash";
 
@@ -59,9 +59,9 @@ const Gameboard = () => {
 
   useEffect(() => {
     if (error) {
-      setTimeout(dispatch());
+      setTimeout(() => dispatch(dismissError()), 1500);
     }
-  }, [error]);
+  }, [dispatch, error]);
 
   const letterToTile = ({ key, letter, status: className }, i) => {
     const font = tileSize * 0.75 + "px";

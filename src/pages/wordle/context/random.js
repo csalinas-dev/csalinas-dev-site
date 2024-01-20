@@ -18,4 +18,4 @@ const selectRandomItem = (array) => {
   return array[randomIndex];
 };
 
-export const getTodaysRandomWord = () => selectRandomItem(words).toUpperCase();
+export const getTodaysRandomWord = () => selectRandomItem(words);

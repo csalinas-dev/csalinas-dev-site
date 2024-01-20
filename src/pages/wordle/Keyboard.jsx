@@ -59,6 +59,10 @@ const Key = styled.span`
     opacity: 0.78;
   }
 
+  &.disabled {
+    pointer-events: none;
+  }
+
   &.action {
     aspect-ratio: 3 / 2 !important;
     font-size: 1rem;
@@ -86,7 +90,7 @@ const Key = styled.span`
 
 const Keyboard = () => {
   const {
-    state: { keyboard },
+    state: { keyboard, win },
     dispatch,
   } = useContext(Context);
 
@@ -96,11 +100,15 @@ const Keyboard = () => {
       className,
     };
 
-    let label = l;
-    if (l.length > 1) {
-      props.className = `${className} action`;
+    if (win) {
+      props.className += ` disabled`;
     }
 
+    if (l.length > 1) {
+      props.className += ` action`;
+    }
+
+    let label = l;
     switch (label) {
       case "DELETE":
         label = <i>&lt;</i>;

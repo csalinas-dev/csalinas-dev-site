@@ -1,4 +1,3 @@
-
 export const addLetter = (letter) => ({
   type: "ADD LETTER",
   letter,
@@ -9,5 +8,9 @@ export const removeLetter = () => ({
 });
 
 export const submitGuess = () => ({
-  type: "SUBMIT GUESS"
+  type: "SUBMIT GUESS",
+});
+
+export const dismissError = () => ({
+  type: "DISMISS ERROR",
 });

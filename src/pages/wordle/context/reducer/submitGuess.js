@@ -25,9 +25,10 @@ export const submitGuess = (state) => {
   // Check for win
   const correct = filter(
     newState.board[newState.row],
-    (l) => l.state === Status.Correct
+    (l) => l.status === Status.Correct
   );
   if (correct.length === 5) {
+    console.log("WIN!");
     return {
       ...newState,
       win: true,
