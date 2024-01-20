@@ -28,14 +28,18 @@ export const submitGuess = (state) => {
     (l) => l.status === Status.Correct
   );
   if (correct.length === 5) {
-    return {
-      ...newState,
-      win: true,
-    };
+    newState.win = true;
+    return newState;
   }
 
   // Move to Next Row
   newState.row += 1;
   newState.guess = "";
+
+  // Check for loss
+  if (newState.row > 5) {
+    newState.win = false;
+  }
+
   return newState;
 };

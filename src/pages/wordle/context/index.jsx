@@ -52,7 +52,7 @@ export const initialState = {
   guess: "",
   word: getTodaysRandomWord(),
   error: null,
-  win: false,
+  win: null,
 };
 
 export const Context = createContext({

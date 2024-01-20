@@ -5,16 +5,30 @@ import { Context } from "./context";
 import { useError, useKeyboardInput, useResponsiveTiles } from "./hooks";
 import { map } from "lodash";
 
-const Error = styled.div`
-  background-color: var(--invalid);
+const Alert = styled.div`
   border-radius: 1rem;
   box-shadow: 0.025rem 0.05rem 0.2rem rgba(0, 0, 0, 0.5);
-  color: rgba(255, 255, 255, 0.87);
+  font-size: 2rem;
   margin: 1rem;
   max-width: 100%;
-  padding: 1rem;
+  padding: 2rem 4rem;
   position: absolute;
   top: 25vh;
+
+  &.error {
+    background-color: var(--invalid);
+    color: rgba(255, 255, 255, 0.87);
+  }
+
+  &.loss {
+    background-color: var(--module);
+    color: rgba(0, 0, 0, 0.87);
+  }
+
+  &.win {
+    background-color: var(--vscode);
+    color: rgba(0, 0, 0, 0.87);
+  }
 `;
 
 const Tile = styled.div`
@@ -52,7 +66,7 @@ const Tile = styled.div`
 
 const Gameboard = () => {
   const {
-    state: { board },
+    state: { board, word, win },
   } = useContext(Context);
   const [tileRef, tileSize] = useResponsiveTiles();
   const error = useError();
@@ -78,7 +92,9 @@ const Gameboard = () => {
   return (
     <Fragment>
       {map(board, (word) => map(word, letterToTile))}
-      {error && <Error>{error}</Error>}
+      {error && <Alert className="error">{error}</Alert>}
+      {win === false && <Alert className="loss">{word}</Alert>}
+      {win === true && <Alert className="win">YOU WON!</Alert>}
     </Fragment>
   );
 };
