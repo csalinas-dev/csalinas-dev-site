@@ -1,8 +1,21 @@
-import { useContext, Fragment } from "react";
+import { useContext, Fragment, useEffect } from "react";
 import styled from "@emotion/styled";
 
 import { Context } from "./context";
 import { useResponsiveTiles } from "./useResponsiveTiles";
+import { map } from "lodash";
+
+const Error = styled.div`
+  background-color: var(--invalid);
+  border-radius: 1rem;
+  box-shadow: 0.025rem 0.05rem 0.2rem rgba(0, 0, 0, 0.5);
+  color: rgba(255, 255, 255, 0.87);
+  margin: 1rem;
+  max-width: 100%;
+  padding: 1rem;
+  position: absolute;
+  top: 25vh;
+`;
 
 const Tile = styled.div`
   align-items: center;
@@ -22,6 +35,11 @@ const Tile = styled.div`
     height: 100%;
   }
 
+  &.absent {
+    background-color: var(--absentBackground);
+    color: rgba(204, 204, 204, 0.54);
+  }
+
   &.present {
     background-color: var(--selector);
     color: var(--background);
@@ -34,7 +52,7 @@ const Tile = styled.div`
 
 const Gameboard = () => {
   const {
-    state: { board },
+    state: { board, error },
   } = useContext(Context);
   const [tileRef, tileSize] = useResponsiveTiles();
 
@@ -55,7 +73,12 @@ const Gameboard = () => {
     return <Tile {...props}>{letter}</Tile>;
   };
 
-  return <Fragment>{board.map((word) => word.map(letterToTile))}</Fragment>;
+  return (
+    <Fragment>
+      {map(board, (word) => map(word, letterToTile))}
+      {error && <Error>{error}</Error>}
+    </Fragment>
+  );
 };
 
 export default Gameboard;

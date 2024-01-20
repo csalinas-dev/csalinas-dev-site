@@ -1,8 +1,10 @@
 import { createContext, useReducer } from "react";
 import { range } from "lodash";
 
-import { reducer } from "./reducer";
 import Status from "../Status";
+
+import { reducer } from "./reducer";
+import { getTodaysRandomWord } from "./random";
 
 const board = range(6).map((_, row) =>
   range(5).map((_, col) => ({
@@ -48,7 +50,9 @@ export const initialState = {
   keyboard,
   row: 0,
   guess: "",
-  word: "",
+  word: getTodaysRandomWord(),
+  error: null,
+  win: false,
 };
 
 export const Context = createContext({
@@ -63,4 +67,4 @@ export const ContextProvider = ({ children }) => {
   );
 };
 
-export * from './actions';
+export * from "./actions";

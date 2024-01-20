@@ -32,7 +32,7 @@ const Key = styled.span`
   display: flex;
   justify-content: center;
   max-width: 50px;
-  opacity: 0.78;
+  opacity: 1;
   overflow: hidden;
   text-shadow: 1px 1px var(--background);
   transition: opacity ease-in-out 100ms;
@@ -56,7 +56,7 @@ const Key = styled.span`
   }
 
   &:hover {
-    opacity: 1;
+    opacity: 0.78;
   }
 
   &.action {

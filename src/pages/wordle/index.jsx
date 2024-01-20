@@ -24,6 +24,7 @@ const Container = styled.div`
   justify-content: center;
   justify-items: center;
   max-width: 100%;
+  position: relative;
 
   @media (min-aspect-ratio: 2/3) {
     grid-template-columns: repeat(5, auto);
