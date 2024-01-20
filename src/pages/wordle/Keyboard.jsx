@@ -12,47 +12,52 @@ const Board = styled.div`
   grid-area: keyboard;
   max-width: 100%;
   padding: 1rem;
-  width: auto;
+  width: fit-content;
 `;
 
 const Row = styled.div`
   display: flex;
-  align-items: center;
+  align-items: stretch;
   justify-content: center;
+  flex-flow: row nowrap;
   gap: 0.5rem;
 `;
 
 const Key = styled.span`
   align-items: center;
-  aspect-ratio: 3 / 4;
   background-color: var(--selectionBackground);
   border-radius: 10%;
   box-shadow: 0.025rem 0.05rem 0.2rem rgba(0, 0, 0, 0.5);
   cursor: pointer;
   display: flex;
   justify-content: center;
-  max-width: 50px;
   opacity: 1;
-  overflow: hidden;
   text-shadow: 1px 1px var(--background);
   transition: opacity ease-in-out 100ms;
   user-select: none;
-  width: 9vw;
 
+  // Sizing
+  aspect-ratio: 3 / 4;
+  height: 6vh;
+
+  &.action {
+    aspect-ratio: 6 / 5;
+    font-size: 1rem;
+    line-height: 1rem;
+  }
+
+  // Fonts
   font-size: 1rem;
   line-height: 1rem;
-  min-height: 1rem;
 
   @media (min-width: 360px) {
     font-size: 1.5rem;
     line-height: 1.5rem;
-    min-height: 1.5rem;
   }
 
   @media (min-width: 600px) {
     font-size: 2rem;
     line-height: 2rem;
-    min-height: 2rem;
   }
 
   &:hover {
@@ -61,15 +66,6 @@ const Key = styled.span`
 
   &.disabled {
     pointer-events: none;
-  }
-
-  &.action {
-    aspect-ratio: 3 / 2 !important;
-    font-size: 1rem;
-    height: 100%;
-    line-height: 1rem;
-    max-width: initial !important;
-    width: initial !important;
   }
 
   &.absent {
