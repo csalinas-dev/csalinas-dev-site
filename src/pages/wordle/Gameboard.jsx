@@ -53,8 +53,15 @@ const Tile = styled.div`
 const Gameboard = () => {
   const {
     state: { board, error },
+    dispatch,
   } = useContext(Context);
   const [tileRef, tileSize] = useResponsiveTiles();
+
+  useEffect(() => {
+    if (error) {
+      setTimeout(dispatch());
+    }
+  }, [error]);
 
   const letterToTile = ({ key, letter, status: className }, i) => {
     const font = tileSize * 0.75 + "px";

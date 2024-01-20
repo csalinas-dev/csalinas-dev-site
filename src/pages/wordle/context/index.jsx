@@ -3,7 +3,7 @@ import { range } from "lodash";
 
 import Status from "../Status";
 
-import { reducer } from "./reducer";
+import reducer from "./reducer";
 import { getTodaysRandomWord } from "./random";
 
 const board = range(6).map((_, row) =>
