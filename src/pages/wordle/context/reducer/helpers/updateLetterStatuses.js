@@ -1,26 +1,43 @@
 import { findIndex } from "lodash";
-import { getLetterStatus } from "./";
+import { getLetterStatuses } from "./";
+import Status from "../../../Status";
 
 export const updateLetterStatuses = (state) => {
-  const { board, keyboard, row, word } = state;
+  const { board, keyboard, row, word, guess } = state;
 
-  board[row] = board[row].map((l, i) => {
-    // Get New Letter Status
-    const status = getLetterStatus(word, i, l.letter);
+  const statuses = getLetterStatuses(word, guess);
 
-    // Update Keyboard Letter
-    // TODO: Handle double letters
-    const keyIdx = findIndex(keyboard, (k) => k.label === l.letter);
+  // Update board tile statuses
+  board[row] = board[row].map((l, i) => ({ ...l, status: statuses[i] }));
+
+  // Get corresponding letter using the status of the tile
+  const getLetterByStatus = (status) =>
+    statuses.map((s, i) => (s === status ? guess[i] : null));
+
+  // Update Keyboard Letter with Status
+  const updateLetter = (letter, status) => {
+    if (!letter) return;
+    const keyIdx = findIndex(keyboard, (k) => k.label === letter);
     const key = keyboard[keyIdx];
-    keyboard[keyIdx] = {
-      ...key,
-      status,
-    };
+    if (key.status !== Status.Correct) {
+      keyboard[keyIdx] = { ...key, status };
+    }
+  };
 
-    // Update Board Letter
-    l.status = status;
-    return l;
-  });
+  // Update KB Absent Letters
+  getLetterByStatus(Status.Absent).forEach((l) =>
+    updateLetter(l, Status.Absent)
+  );
+
+  // Update KB Present Letters
+  getLetterByStatus(Status.Present).forEach((l) =>
+    updateLetter(l, Status.Present)
+  );
+
+  // Update KB Correct Letters
+  getLetterByStatus(Status.Correct).forEach((l) =>
+    updateLetter(l, Status.Correct)
+  );
 
   return {
     ...state,

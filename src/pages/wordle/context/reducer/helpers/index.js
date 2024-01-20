@@ -1,3 +1,3 @@
-export * from "./getLetterStatus";
+export * from "./getLetterStatuses";
 export * from "./updateBoard";
 export * from "./updateLetterStatuses";
