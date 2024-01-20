@@ -1,8 +1,8 @@
-import { useContext, Fragment, useEffect } from "react";
+import { useContext, Fragment } from "react";
 import styled from "@emotion/styled";
 
-import { Context, dismissError } from "./context";
-import { useResponsiveTiles } from "./useResponsiveTiles";
+import { Context } from "./context";
+import { useError, useKeyboardInput, useResponsiveTiles } from "./hooks";
 import { map } from "lodash";
 
 const Error = styled.div`
@@ -52,16 +52,11 @@ const Tile = styled.div`
 
 const Gameboard = () => {
   const {
-    state: { board, error },
-    dispatch,
+    state: { board },
   } = useContext(Context);
   const [tileRef, tileSize] = useResponsiveTiles();
-
-  useEffect(() => {
-    if (error) {
-      setTimeout(() => dispatch(dismissError()), 1500);
-    }
-  }, [dispatch, error]);
+  const error = useError();
+  useKeyboardInput();
 
   const letterToTile = ({ key, letter, status: className }, i) => {
     const font = tileSize * 0.75 + "px";

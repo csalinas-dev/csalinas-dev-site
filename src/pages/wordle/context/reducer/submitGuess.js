@@ -28,7 +28,6 @@ export const submitGuess = (state) => {
     (l) => l.status === Status.Correct
   );
   if (correct.length === 5) {
-    console.log("WIN!");
     return {
       ...newState,
       win: true,
