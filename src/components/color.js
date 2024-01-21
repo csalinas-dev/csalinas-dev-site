@@ -51,3 +51,7 @@ export const Type = styled.span`
 export const Var = styled.span`
   color: var(--var);
 `;
+
+export const Selector = styled.span`
+  color: var(--selector);
+`;
