@@ -5,4 +5,5 @@ import { initialState } from "..";
 export const playAgain = () => ({
   ...cloneDeep(initialState),
   word: words[random(words.length)],
+  title: "Random Word",
 });

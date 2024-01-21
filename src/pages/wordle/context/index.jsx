@@ -51,6 +51,7 @@ export const initialState = {
   row: 0,
   guess: "",
   word: getTodaysRandomWord(),
+  title: null,
   error: null,
   win: null,
 };
