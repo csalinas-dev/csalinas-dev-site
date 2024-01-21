@@ -3,7 +3,7 @@ import styled from "@emotion/styled";
 
 import { Context } from "./context";
 import { useError } from "./hooks";
-import { PlayAgain } from "./components";
+import { Clipboard, PlayAgain } from "./components";
 
 const Alert = styled.div`
   align-items: center;
@@ -63,6 +63,7 @@ const Alerts = () => {
             time!
           </div>
           <div style={{ fontSize: "4rem" }}>{word}</div>
+          <Clipboard />
           <PlayAgain />
         </Alert>
       )}
@@ -71,6 +72,7 @@ const Alerts = () => {
           <div>
             <i className="fa-solid fa-trophy"></i>YOU WON!
           </div>
+          <Clipboard />
           <PlayAgain />
         </Alert>
       )}
