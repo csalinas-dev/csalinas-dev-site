@@ -44,7 +44,7 @@ const Alert = styled.div`
 
 const Alerts = () => {
   const {
-    state: { word, win },
+    state: { word, win, title },
   } = useContext(Context);
 
   const error = useError();
@@ -63,7 +63,7 @@ const Alerts = () => {
             time!
           </div>
           <div style={{ fontSize: "4rem" }}>{word}</div>
-          <Clipboard />
+          {title === null && <Clipboard />}
           <PlayAgain />
         </Alert>
       )}
@@ -72,7 +72,7 @@ const Alerts = () => {
           <div>
             <i className="fa-solid fa-trophy"></i>YOU WON!
           </div>
-          <Clipboard />
+          {title === null && <Clipboard />}
           <PlayAgain />
         </Alert>
       )}
