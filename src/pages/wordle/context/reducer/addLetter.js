@@ -1,5 +1,5 @@
-import { findIndex } from "lodash";
-import Status from "../../Status";
+// import { findIndex } from "lodash";
+// import Status from "../../Status";
 import { updateBoard } from "./helpers";
 
 export const addLetter = (state, letter) => {
@@ -11,11 +11,11 @@ export const addLetter = (state, letter) => {
   }
 
   // Check if letter is valid
-  const keyIdx = findIndex(keyboard, (k) => k.label === letter);
-  const key = keyboard[keyIdx];
-  if (key.status === Status.Absent) {
-    return state;
-  }
+  // const keyIdx = findIndex(keyboard, (k) => k.label === letter);
+  // const key = keyboard[keyIdx];
+  // if (key.status === Status.Absent) {
+  //   return state;
+  // }
 
   // Update Guess
   const newGuess = guess + letter;

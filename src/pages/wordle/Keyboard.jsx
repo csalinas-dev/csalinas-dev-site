@@ -69,7 +69,6 @@ const Key = styled.span`
   &.absent {
     background-color: var(--absentBackground);
     color: rgba(204, 204, 204, 0.54);
-    pointer-events: none;
   }
 
   &.present {
