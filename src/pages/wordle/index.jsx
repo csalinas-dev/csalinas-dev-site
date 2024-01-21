@@ -1,7 +1,7 @@
 import styled from "@emotion/styled";
-
 import { ContextProvider } from "./context";
 
+import Header from "./Header";
 import Gameboard from "./Gameboard";
 import Keyboard from "./Keyboard";
 
@@ -10,7 +10,7 @@ const Container = styled.div`
   display: grid;
   gap: 0.5rem;
   grid-template-areas:
-    "title title title title title"
+    "header header header header header"
     "tile tile tile tile tile"
     "tile tile tile tile tile"
     "tile tile tile tile tile"
@@ -32,25 +32,10 @@ const Container = styled.div`
   }
 `;
 
-const Title = styled.h1`
-  align-self: center;
-  font-size: 3rem;
-  line-height: 3rem;
-  grid-area: title;
-  justify-self: center;
-  margin: 2rem 0;
-  user-select: none;
-
-  @media (min-width: 360px) {
-    font-size: 5rem;
-    line-height: 5rem;
-  }
-`;
-
 export const Wordle = () => (
   <ContextProvider>
     <Container>
-      <Title>Wordle</Title>
+      <Header />
       <Gameboard />
       <Keyboard />
     </Container>
