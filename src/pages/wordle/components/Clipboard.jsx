@@ -33,7 +33,8 @@ const convertWordleToText = (board) => {
   // Title
   const now = new Date();
   const date = dateFormat(now, "mmmm dS, yyyy");
-  let result = `${date}\nWordle ${isWin ? attemptCount : "X"}/6\n\n`;
+  let result = `${date}\n`;
+  result += `Wordleverse ${isWin ? attemptCount : "X"}/6\n\n`;
 
   // Convert statuses to symbols
   result += map(grid, (row) =>

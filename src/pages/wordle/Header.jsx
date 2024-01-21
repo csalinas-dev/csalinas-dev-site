@@ -53,7 +53,7 @@ const Header = () => {
 
   return (
     <Container>
-      <Title>Wordle</Title>
+      <Title>Wordleverse</Title>
       {titleContent}
     </Container>
   );
