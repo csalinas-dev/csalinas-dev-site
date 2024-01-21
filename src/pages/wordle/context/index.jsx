@@ -34,7 +34,7 @@ const keyboard = [
   { key: "16", label: "J", status: Status.Default },
   { key: "17", label: "K", status: Status.Default },
   { key: "18", label: "L", status: Status.Default },
-  { key: "20", label: "ENTER", status: Status.Default },
+  { key: "20", label: "DELETE", status: Status.Default },
   { key: "21", label: "Z", status: Status.Default },
   { key: "22", label: "X", status: Status.Default },
   { key: "23", label: "C", status: Status.Default },
@@ -42,7 +42,7 @@ const keyboard = [
   { key: "25", label: "B", status: Status.Default },
   { key: "26", label: "N", status: Status.Default },
   { key: "27", label: "M", status: Status.Default },
-  { key: "28", label: "DELETE", status: Status.Default },
+  { key: "28", label: "ENTER", status: Status.Default },
 ];
 
 export const initialState = {

@@ -42,8 +42,6 @@ const Key = styled.span`
 
   &.action {
     aspect-ratio: 6 / 5;
-    font-size: 1rem;
-    line-height: 1rem;
   }
 
   // Fonts
@@ -107,10 +105,11 @@ const Keyboard = () => {
     let label = l;
     switch (label) {
       case "DELETE":
-        label = <i>&lt;</i>;
+        label = <i className="fa-solid fa-delete-left" />;
         props.onClick = () => dispatch(removeLetter());
         break;
       case "ENTER":
+        label = <i className="fa-solid fa-play" />;
         props.onClick = () => dispatch(submitGuess());
         break;
       default:

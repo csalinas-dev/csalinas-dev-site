@@ -6,9 +6,12 @@ import { useError, useKeyboardInput, useResponsiveTiles } from "./hooks";
 import { map } from "lodash";
 
 const Alert = styled.div`
+  align-items: center;
   border-radius: 1rem;
-  box-shadow: 0.025rem 0.05rem 0.2rem rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.5);
+  display: flex;
   font-size: 2rem;
+  justify-content: center;
   margin: 1rem;
   max-width: 100%;
   padding: 2rem 4rem;
@@ -23,12 +26,22 @@ const Alert = styled.div`
   &.loss {
     background-color: var(--module);
     color: rgba(0, 0, 0, 0.87);
+    flex-flow: column nowrap;
+    gap: 2rem;
   }
 
   &.win {
     background-color: var(--vscode);
     color: rgba(0, 0, 0, 0.87);
   }
+
+  svg {
+    margin-right: 1rem;
+  }
+`;
+
+const Word = styled.div`
+  font-size: 4rem;
 `;
 
 const Tile = styled.div`
@@ -92,9 +105,25 @@ const Gameboard = () => {
   return (
     <Fragment>
       {map(board, (word) => map(word, letterToTile))}
-      {error && <Alert className="error">{error}</Alert>}
-      {win === false && <Alert className="loss">{word}</Alert>}
-      {win === true && <Alert className="win">YOU WON!</Alert>}
+      {error && (
+        <Alert className="error">
+          <i className="fa-solid fa-triangle-exclamation"></i> {error}
+        </Alert>
+      )}
+      {win === false && (
+        <Alert className="loss">
+          <div>
+            <i className="fa-solid fa-face-frown-open"></i>Better luck next
+            time!
+          </div>
+          <Word>{word}</Word>
+        </Alert>
+      )}
+      {win === true && (
+        <Alert className="win">
+          <i className="fa-solid fa-trophy"></i>YOU WON!
+        </Alert>
+      )}
     </Fragment>
   );
 };
