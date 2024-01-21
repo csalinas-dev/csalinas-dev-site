@@ -1,50 +1,9 @@
 import { useContext, Fragment } from "react";
 import styled from "@emotion/styled";
 
-import { Context, playAgain } from "./context";
-import { useError, useKeyboardInput, useResponsiveTiles } from "./hooks";
+import { Context } from "./context";
+import { useKeyboardInput, useResponsiveTiles } from "./hooks";
 import { map } from "lodash";
-
-const Alert = styled.div`
-  align-items: center;
-  border-radius: 1rem;
-  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.5);
-  display: flex;
-  font-size: 2rem;
-  justify-content: center;
-  margin: 1rem;
-  max-width: 100%;
-  padding: 2rem 4rem;
-  position: absolute;
-  top: 25vh;
-
-  &.error {
-    background-color: var(--invalid);
-    color: rgba(255, 255, 255, 0.87);
-  }
-
-  &.loss {
-    background-color: var(--module);
-    color: rgba(0, 0, 0, 0.87);
-    flex-flow: column nowrap;
-    gap: 2rem;
-  }
-
-  &.win {
-    background-color: var(--vscode);
-    color: rgba(0, 0, 0, 0.87);
-    flex-flow: column nowrap;
-    gap: 2rem;
-  }
-
-  svg {
-    margin-right: 1rem;
-  }
-`;
-
-const Word = styled.div`
-  font-size: 4rem;
-`;
 
 const Tile = styled.div`
   align-items: center;
@@ -79,21 +38,11 @@ const Tile = styled.div`
   }
 `;
 
-const PlayAgain = styled.span`
-  background-color: var(--background);
-  border-radius: 0.5rem;
-  color: var(--foreground);
-  cursor: pointer;
-  padding: 0.5rem 1rem;
-`;
-
 const Gameboard = () => {
   const {
-    state: { board, word, win },
-    dispatch,
+    state: { board },
   } = useContext(Context);
   const [tileRef, tileSize] = useResponsiveTiles();
-  const error = useError();
   useKeyboardInput();
 
   const letterToTile = ({ key, letter, status: className }, i) => {
@@ -113,38 +62,7 @@ const Gameboard = () => {
     return <Tile {...props}>{letter}</Tile>;
   };
 
-  return (
-    <Fragment>
-      {map(board, (word) => map(word, letterToTile))}
-      {error && (
-        <Alert className="error">
-          <i className="fa-solid fa-triangle-exclamation"></i> {error}
-        </Alert>
-      )}
-      {win === false && (
-        <Alert className="loss">
-          <div>
-            <i className="fa-solid fa-face-frown-open"></i>Better luck next
-            time!
-          </div>
-          <Word>{word}</Word>
-          <PlayAgain onClick={() => dispatch(playAgain())}>
-            Play again!
-          </PlayAgain>
-        </Alert>
-      )}
-      {win === true && (
-        <Alert className="win">
-          <div>
-            <i className="fa-solid fa-trophy"></i>YOU WON!
-          </div>
-          <PlayAgain onClick={() => dispatch(playAgain())}>
-            Play again!
-          </PlayAgain>
-        </Alert>
-      )}
-    </Fragment>
-  );
+  return <Fragment>{map(board, (word) => map(word, letterToTile))}</Fragment>;
 };
 
 export default Gameboard;

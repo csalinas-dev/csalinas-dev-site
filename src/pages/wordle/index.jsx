@@ -4,6 +4,7 @@ import { ContextProvider } from "./context";
 import Header from "./Header";
 import Gameboard from "./Gameboard";
 import Keyboard from "./Keyboard";
+import Alerts from "./Alerts";
 
 const Container = styled.div`
   align-content: stretch;
@@ -35,6 +36,7 @@ const Container = styled.div`
 export const Wordle = () => (
   <ContextProvider>
     <Container>
+      <Alerts />
       <Header />
       <Gameboard />
       <Keyboard />
