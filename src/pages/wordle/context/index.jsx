@@ -1,5 +1,5 @@
 import { createContext, useReducer } from "react";
-import { range } from "lodash";
+import { cloneDeep, range } from "lodash";
 
 import Status from "../Status";
 
@@ -61,7 +61,7 @@ export const Context = createContext({
 });
 
 export const ContextProvider = ({ children }) => {
-  const [state, dispatch] = useReducer(reducer, initialState);
+  const [state, dispatch] = useReducer(reducer, cloneDeep(initialState));
   return (
     <Context.Provider value={{ state, dispatch }}>{children}</Context.Provider>
   );

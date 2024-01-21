@@ -1,7 +1,7 @@
 import { useContext, Fragment } from "react";
 import styled from "@emotion/styled";
 
-import { Context } from "./context";
+import { Context, playAgain } from "./context";
 import { useError, useKeyboardInput, useResponsiveTiles } from "./hooks";
 import { map } from "lodash";
 
@@ -33,6 +33,8 @@ const Alert = styled.div`
   &.win {
     background-color: var(--vscode);
     color: rgba(0, 0, 0, 0.87);
+    flex-flow: column nowrap;
+    gap: 2rem;
   }
 
   svg {
@@ -77,9 +79,18 @@ const Tile = styled.div`
   }
 `;
 
+const PlayAgain = styled.span`
+  background-color: var(--background);
+  border-radius: 0.5rem;
+  color: var(--foreground);
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+`;
+
 const Gameboard = () => {
   const {
     state: { board, word, win },
+    dispatch,
   } = useContext(Context);
   const [tileRef, tileSize] = useResponsiveTiles();
   const error = useError();
@@ -117,11 +128,19 @@ const Gameboard = () => {
             time!
           </div>
           <Word>{word}</Word>
+          <PlayAgain onClick={() => dispatch(playAgain())}>
+            Play again!
+          </PlayAgain>
         </Alert>
       )}
       {win === true && (
         <Alert className="win">
-          <i className="fa-solid fa-trophy"></i>YOU WON!
+          <div>
+            <i className="fa-solid fa-trophy"></i>YOU WON!
+          </div>
+          <PlayAgain onClick={() => dispatch(playAgain())}>
+            Play again!
+          </PlayAgain>
         </Alert>
       )}
     </Fragment>

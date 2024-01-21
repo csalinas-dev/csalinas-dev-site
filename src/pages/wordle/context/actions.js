@@ -14,3 +14,7 @@ export const submitGuess = () => ({
 export const dismissError = () => ({
   type: "DISMISS ERROR",
 });
+
+export const playAgain = () => ({
+  type: "PLAY AGAIN",
+});
