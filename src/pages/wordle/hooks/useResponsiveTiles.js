@@ -8,9 +8,6 @@ export const useResponsiveTiles = () => {
     const updateTileSize = () => {
       if (tileRef.current) {
         let tileHeight = tileRef.current.offsetHeight;
-        if (window.innerWidth < tileHeight * 6) {
-          tileHeight = window.innerWidth / 6;
-        }
         setTileSize(tileHeight);
       }
     };

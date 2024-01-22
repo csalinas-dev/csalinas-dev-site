@@ -1,9 +1,27 @@
-import { useContext, Fragment } from "react";
+import { useContext } from "react";
 import styled from "@emotion/styled";
 
 import { Context } from "./context";
 import { useKeyboardInput, useResponsiveTiles } from "./hooks";
 import { map } from "lodash";
+
+const Container = styled.main`
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  grid-area: gameboard;
+  justify-content: center;
+  place-self: stretch;
+`;
+
+const Board = styled.div`
+  aspect-ratio: 5 / 6;
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows: repeat(6, 1fr);
+  max-width: 100vw;
+`;
 
 const Tile = styled.div`
   align-items: center;
@@ -13,15 +31,8 @@ const Tile = styled.div`
   box-shadow: 0.025rem 0.05rem 0.2rem rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
-  min-height: 50px;
-  min-width: 50px;
   text-shadow: 1px 1px var(--background);
   user-select: none;
-
-  @media (min-aspect-ratio: 2/3) {
-    aspect-ratio: initial;
-    height: 100%;
-  }
 
   &.absent {
     background-color: var(--absentBackground);
@@ -51,7 +62,6 @@ const Gameboard = () => {
       key,
       className,
       style: {
-        width: tileSize,
         lineHeight: font,
         fontSize: font,
       },
@@ -62,7 +72,11 @@ const Gameboard = () => {
     return <Tile {...props}>{letter}</Tile>;
   };
 
-  return <Fragment>{map(board, (word) => map(word, letterToTile))}</Fragment>;
+  return (
+    <Container>
+      <Board>{map(board, (word) => map(word, letterToTile))}</Board>
+    </Container>
+  );
 };
 
 export default Gameboard;

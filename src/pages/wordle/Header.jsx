@@ -12,18 +12,22 @@ const Container = styled.header`
   gap: 1rem;
   grid-area: header;
   justify-content: center;
-  margin: 1rem 0;
 `;
 
 const Title = styled.h1`
   align-self: center;
-  font-size: 3rem;
-  line-height: 3rem;
+  font-size: 2rem;
+  line-height: 2rem;
   justify-self: center;
   user-select: none;
   margin: 0;
 
   @media (min-width: 360px) {
+    font-size: 3rem;
+    line-height: 3rem;
+  }
+
+  @media (min-width: 768px) {
     font-size: 5rem;
     line-height: 5rem;
   }
