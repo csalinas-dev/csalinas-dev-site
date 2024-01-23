@@ -43,8 +43,9 @@ const Gameboard = ({ width, height }) => {
   const {
     state: { board },
   } = useContext(Context);
-  const [tileRef, tileSize] = useResponsiveTiles();
   useKeyboardInput();
+
+  const tileSize = (width - 32) / 5; // subtract gap from width, divide by columns
 
   const letterToTile = ({ key, letter, status: className }, i) => {
     const font = tileSize * 0.75 + "px";
@@ -56,9 +57,6 @@ const Gameboard = ({ width, height }) => {
         fontSize: font,
       },
     };
-    if (i === 0) {
-      props.ref = tileRef;
-    }
     return <Tile {...props}>{letter}</Tile>;
   };
 
