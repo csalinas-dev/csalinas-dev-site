@@ -5,22 +5,12 @@ import { Context } from "./context";
 import { useKeyboardInput, useResponsiveTiles } from "./hooks";
 import { map } from "lodash";
 
-const Container = styled.main`
-  display: flex;
-  flex-direction: column;
-  flex-wrap: nowrap;
-  grid-area: gameboard;
-  justify-content: center;
-  place-self: stretch;
-`;
-
 const Board = styled.div`
-  aspect-ratio: 5 / 6;
+  aspect-ratio: 365 / 438;
   display: grid;
   gap: 0.5rem;
   grid-template-columns: repeat(5, 1fr);
   grid-template-rows: repeat(6, 1fr);
-  max-width: 100vw;
 `;
 
 const Tile = styled.div`
@@ -49,7 +39,7 @@ const Tile = styled.div`
   }
 `;
 
-const Gameboard = () => {
+const Gameboard = ({ width, height }) => {
   const {
     state: { board },
   } = useContext(Context);
@@ -73,9 +63,9 @@ const Gameboard = () => {
   };
 
   return (
-    <Container>
-      <Board>{map(board, (word) => map(word, letterToTile))}</Board>
-    </Container>
+    <Board style={{ width, height }}>
+      {map(board, (word) => map(word, letterToTile))}
+    </Board>
   );
 };
 
