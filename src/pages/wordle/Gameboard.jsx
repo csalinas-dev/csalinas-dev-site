@@ -21,6 +21,7 @@ const Tile = styled.div`
   box-shadow: 0.025rem 0.05rem 0.2rem rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
+  overflow: hidden;
   text-shadow: 1px 1px var(--background);
   user-select: none;
 
