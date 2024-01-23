@@ -45,10 +45,10 @@ const Gameboard = ({ width, height }) => {
   } = useContext(Context);
   useKeyboardInput();
 
-  const tileSize = (width - 32) / 5; // subtract gap from width, divide by columns
+  const tileSize = width ? (width - 32) / 5 : (height - 40) / 6;
+  const font = tileSize * 0.75;
 
   const letterToTile = ({ key, letter, status: className }, i) => {
-    const font = tileSize * 0.75 + "px";
     const props = {
       key,
       className,
