@@ -10,28 +10,31 @@
   --selectionBackground: #add6ff26;
   --absentBackground: #28405826;
 
-  --vscode:      #0078d4;
-  --comment:     #6a9955;
-  --component:   #4FC1FF;
-  --const:       #569CD6;
-  --function:    #DCDCAA;
-  --invalid:     #F44747;
-  --module:      #C586C0;
-  --numeric:     #B5CEA8;
+  --vscode: #0078d4;
+  --comment: #6a9955;
+  --component: #4fc1ff;
+  --const: #569cd6;
+  --function: #dcdcaa;
+  --invalid: #f44747;
+  --module: #c586c0;
+  --numeric: #b5cea8;
   --parenthesis: #ffd700;
-  --selector:    #d7ac57;
-  --regex:       #D16969;
-  --string:      #CE9178;
-  --type:        #4EC9B0;
-  --var:         #9CDCFE;
+  --selector: #d7ac57;
+  --regex: #d16969;
+  --string: #ce9178;
+  --type: #4ec9b0;
+  --var: #9cdcfe;
 }
 
 /* CSS Resets */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
 /* Body */
+html,
 body {
   background-color: var(--background);
   color: var(--foreground);
@@ -48,7 +51,9 @@ body {
 }
 
 /* Links */
-a, a:visited, a:active {
+a,
+a:visited,
+a:active {
   color: var(--const);
   text-decoration-style: wavy;
   text-decoration-thickness: 2px;

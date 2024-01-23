@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext } from "react";
 import { slice, sortBy } from "lodash";
 import styled from "@emotion/styled";
 
@@ -8,21 +8,18 @@ const gap = 0.5;
 const g = 16 * gap;
 
 const Board = styled.footer`
-  align-self: end;
+  aspect-ratio: 365 / 133;
   display: flex;
   flex-flow: column nowrap;
   gap: ${gap}rem;
-  grid-area: keyboard;
-  max-width: 100%;
-  width: fit-content;
 `;
 
 const Row = styled.div`
-  display: flex;
   align-items: stretch;
-  justify-content: center;
+  display: flex;
   flex-flow: row nowrap;
   gap: ${gap}rem;
+  justify-content: center;
 `;
 
 const Key = styled.span`
@@ -34,12 +31,11 @@ const Key = styled.span`
   display: flex;
   justify-content: center;
   opacity: 1;
+  overflow: hidden;
   text-shadow: 1px 1px var(--background);
   transition: opacity ease-in-out 100ms;
   user-select: none;
-  overflow: hidden;
 
-  // Sizing
   aspect-ratio: 3 / 4;
 
   &.action {
@@ -69,30 +65,16 @@ const Key = styled.span`
   }
 `;
 
-const Keyboard = () => {
+const Keyboard = ({ width, height }) => {
   const {
     state: { keyboard, win },
     dispatch,
   } = useContext(Context);
-  const [width, setWidth] = useState(0);
 
-  useEffect(() => {
-    const update = () => setWidth(window.innerWidth);
-    update();
-    window.addEventListener("resize", update);
-    return () => window.removeEventListener("resize", update);
-  });
+  const w = !width ? (365 * height) / 133 : width;
 
   const letterToKeycap = ({ key, label: l, status: className }) => {
-    const getHeight = (w) => ((w - 32 - 9 * g) / 10) * (4 / 3);
-    let tileSize = getHeight(280);
-    if (width > 600) {
-      tileSize = getHeight(600);
-    } else if (width > 500) {
-      tileSize = getHeight(500);
-    } else if (width > 360) {
-      tileSize = getHeight(360);
-    }
+    const tileSize = ((w - 9 * g) / 10) * (4 / 3);
     const font = tileSize * 0.75;
     const props = {
       key,
@@ -138,7 +120,7 @@ const Keyboard = () => {
   const bot = slice(sorted, 19);
 
   return (
-    <Board>
+    <Board style={{ width, height }}>
       <Row>{top.map(letterToKeycap)}</Row>
       <Row>{mid.map(letterToKeycap)}</Row>
       <Row>{bot.map(letterToKeycap)}</Row>

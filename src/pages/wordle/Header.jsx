@@ -12,6 +12,7 @@ const Container = styled.header`
   gap: 1rem;
   grid-area: header;
   justify-content: center;
+  padding-bottom: 1rem;
 `;
 
 const Title = styled.h1`

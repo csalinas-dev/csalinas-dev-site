@@ -12,11 +12,14 @@ const Alert = styled.div`
   display: flex;
   font-size: 2rem;
   justify-content: center;
+  left: 50vw;
   margin: 1rem;
   max-width: 100%;
   padding: 2rem 4rem;
   position: absolute;
   top: 25vh;
+  transform: translateX(-50%);
+  z-index: 100;
 
   svg {
     margin-right: 1rem;
