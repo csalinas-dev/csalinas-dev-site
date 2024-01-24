@@ -6,11 +6,23 @@ import { filter, map } from "lodash";
 import Status from "../Status";
 
 const Button = styled.span`
+  align-items: center;
   background-color: var(--background);
   border-radius: 0.5rem;
   color: var(--foreground);
   cursor: pointer;
+  display: flex;
+  flex-flow: row nowrap;
+  font-size: 1rem;
+  justify-content: center;
+  line-height: 1rem;
   padding: 0.5rem 1rem;
+
+  @media (min-width: 768px) {
+    font-size: 1.25rem;
+    line-height: 1.25rem;
+    padding: 1rem 2rem;
+  }
 `;
 
 const symbols = {
