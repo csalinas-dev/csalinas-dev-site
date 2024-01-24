@@ -1,7 +1,7 @@
 import styled from "@emotion/styled";
 
 import { ContextProvider } from "./context";
-import { useResponsiveBoards } from "./hooks/useResponsiveBoards";
+import { useResponsiveBoards } from "./hooks";
 
 import Alerts from "./Alerts";
 import Header from "./Header";
