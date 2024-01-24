@@ -2,7 +2,7 @@ import { useContext } from "react";
 import styled from "@emotion/styled";
 
 import { Context } from "./context";
-import { useKeyboardInput, useResponsiveTiles } from "./hooks";
+import { useKeyboardInput } from "./hooks";
 import { map } from "lodash";
 
 const Board = styled.div`

@@ -8,6 +8,7 @@ const Button = styled.span`
   color: var(--foreground);
   cursor: pointer;
   padding: 0.5rem 1rem;
+  font-size: 1rem;
 `;
 
 export const PlayAgain = () => {
