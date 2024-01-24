@@ -25,6 +25,11 @@ const Button = styled.span`
   }
 `;
 
+const Copied = styled.span`
+  font-size: 0.75em;
+  user-select: none;
+`;
+
 const symbols = {
   correct: "🟩",
   present: "🟨",
@@ -75,10 +80,10 @@ export const Clipboard = () => {
 
   if (copied) {
     return (
-      <span style={{ fontSize: "0.75em" }}>
+      <Copied>
         <i className="fa-solid fa-check" />
         Copied to Clipboard!
-      </span>
+      </Copied>
     );
   }
 
