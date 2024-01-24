@@ -7,6 +7,7 @@ import Alerts from "./Alerts";
 import Header from "./Header";
 import Gameboard from "./Gameboard";
 import Keyboard from "./Keyboard";
+import { useEffect } from "react";
 
 const Grid = styled.div`
   align-items: center;
@@ -57,6 +58,10 @@ export const Wordle = () => {
     hGB = unit * 438;
     hKB = unit * 133;
   }
+
+  useEffect(() => {
+    document.title = "Wordleverse | Christopher Salinas Jr.";
+  });
 
   return (
     <ContextProvider>
