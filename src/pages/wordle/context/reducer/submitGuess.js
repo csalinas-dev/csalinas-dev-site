@@ -1,7 +1,27 @@
 import { filter } from "lodash";
+import dateFormat from "dateformat";
+
 import words from "../words.json";
 import { updateLetterStatuses } from "./helpers";
 import Status from "../../Status";
+
+const saveGame = (state) => {
+  const { board, row, win, word, title, keyboard } = state;
+
+  if (title !== null) {
+    return;
+  }
+
+  const game = {
+    board,
+    keyboard,
+    row,
+    win,
+    word,
+  };
+  const today = dateFormat(new Date(), "yyyy-mm-dd");
+  localStorage.setItem(today, JSON.stringify(game));
+};
 
 export const submitGuess = (state) => {
   const { guess } = state;
@@ -29,6 +49,7 @@ export const submitGuess = (state) => {
   );
   if (correct.length === 5) {
     newState.win = true;
+    saveGame(newState);
     return newState;
   }
 
@@ -41,5 +62,6 @@ export const submitGuess = (state) => {
     newState.win = false;
   }
 
+  saveGame(newState);
   return newState;
 };
