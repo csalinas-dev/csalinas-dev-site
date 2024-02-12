@@ -80,9 +80,9 @@ const Keyboard = ({ width, height }) => {
       key,
       className,
       style: {
-        fontSize: font,
-        lineHeight: font,
-        height: tileSize,
+        fontSize: font + "px",
+        lineHeight: font + "px",
+        height: tileSize + "px",
       },
     };
 
@@ -92,8 +92,8 @@ const Keyboard = ({ width, height }) => {
 
     if (l.length > 1) {
       props.className += ` action`;
-      props.style.fontSize = font * 0.75;
-      props.style.lineHeight = font * 0.75;
+      props.style.fontSize = font * 0.75 + "px";
+      props.style.lineHeight = font * 0.75 + "px";
     }
 
     let label = l;

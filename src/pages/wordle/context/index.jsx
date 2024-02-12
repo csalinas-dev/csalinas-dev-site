@@ -1,5 +1,6 @@
 import { createContext, useReducer } from "react";
 import { cloneDeep, range } from "lodash";
+import dateFormat from "dateformat";
 
 import Status from "../Status";
 
@@ -50,7 +51,7 @@ export const initialState = {
   keyboard,
   row: 0,
   guess: "",
-  word: getTodaysRandomWord(),
+  word: "",
   title: null,
   error: null,
   win: null,
@@ -61,8 +62,28 @@ export const Context = createContext({
   dispatch: () => {},
 });
 
+// Get initial state (load or create new game)
+const getInitialState = () => {
+  const state = cloneDeep(initialState);
+  state.word = getTodaysRandomWord();
+
+  // Get Today's Play
+  const today = dateFormat(new Date(), "yyyy-mm-dd");
+  const saved = localStorage.getItem(today);
+  if (saved) {
+    const game = JSON.parse(saved);
+    state.board = game.board;
+    state.keyboard = game.keyboard;
+    state.row = game.row;
+    state.win = game.win;
+    state.word = game.word;
+  }
+
+  return state;
+};
+
 export const ContextProvider = ({ children }) => {
-  const [state, dispatch] = useReducer(reducer, cloneDeep(initialState));
+  const [state, dispatch] = useReducer(reducer, getInitialState());
   return (
     <Context.Provider value={{ state, dispatch }}>{children}</Context.Provider>
   );

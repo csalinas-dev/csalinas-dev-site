@@ -54,8 +54,8 @@ const Gameboard = ({ width, height }) => {
       key,
       className,
       style: {
-        lineHeight: font,
-        fontSize: font,
+        lineHeight: font + "px",
+        fontSize: font + "px",
       },
     };
     return <Tile {...props}>{letter}</Tile>;
