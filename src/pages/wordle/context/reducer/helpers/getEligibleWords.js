@@ -13,27 +13,40 @@ export const getEligibleWords = (state) => {
   board.forEach((guess) => {
     guess.forEach((l, i) => {
       const { letter, status } = l;
-      // Add absent letters to absent array
-      if (status === Status.Absent) {
-        if (present[letter] || correct[letter]) {
-          present[letter].add(i);
-        } else {
-          absent.push(letter);
-        }
+
+      if (status === Status.Default || letter === null || letter === "") {
+        return;
       }
 
-      if (status === Status.Correct) {
-        if (!correct[letter]) {
-          correct[letter] = new Set();
-        }
-        correct[letter].add(i);
-      }
-
-      if (status === Status.Present) {
+      const addPresent = () => {
         if (!present[letter]) {
           present[letter] = new Set();
         }
         present[letter].add(i);
+      };
+
+      const addCorrect = () => {
+        if (!correct[letter]) {
+          correct[letter] = new Set();
+        }
+        correct[letter].add(i);
+      };
+
+      // Add absent letters to absent array
+      switch (status) {
+        case Status.Absent:
+          if (present[letter] || correct[letter]) {
+            addPresent();
+          } else {
+            absent.push(letter);
+          }
+          return;
+        case Status.Correct:
+          return addCorrect();
+        case Status.Present:
+          return addPresent();
+        default:
+          return;
       }
     });
   });

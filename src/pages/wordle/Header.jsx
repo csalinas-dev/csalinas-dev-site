@@ -55,7 +55,12 @@ const Header = () => {
 
   let titleContent;
   if (title) {
-    titleContent = <Numeric>{title}</Numeric>;
+    titleContent = (
+      <Comment>
+        {"// "}
+        {title}
+      </Comment>
+    );
   } else {
     const now = new Date();
     const month = dateFormat(now, "mmmm");
