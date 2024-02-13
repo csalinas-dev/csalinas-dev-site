@@ -5,6 +5,7 @@ import dateFormat from "dateformat";
 import Status from "../Status";
 
 import reducer from "./reducer";
+import words from "./words.json";
 import { getTodaysRandomWord } from "./random";
 
 const board = range(6).map((_, row) =>
@@ -52,6 +53,7 @@ export const initialState = {
   row: 0,
   guess: "",
   word: "",
+  remaining: words.length,
   title: null,
   error: null,
   win: null,

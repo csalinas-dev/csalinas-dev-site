@@ -1,9 +1,34 @@
-import { filter } from "lodash";
+import { filter, forEach } from "lodash";
 import dateFormat from "dateformat";
 
 import words from "../words.json";
 import { updateLetterStatuses } from "./helpers";
 import Status from "../../Status";
+
+const countEligibleWords = (state) => {
+  const { board, keyboard } = state;
+
+  const getCorrectLetter = (idx) =>
+    board.find((guess) => guess[idx].status === Status.Correct)?.[idx]?.letter;
+  const correctLetters = {
+    0: getCorrectLetter(0),
+    1: getCorrectLetter(1),
+    2: getCorrectLetter(2),
+    3: getCorrectLetter(3),
+    4: getCorrectLetter(4),
+  };
+
+  const presentLetters = keyboard
+    .filter((l) => l.status === Status.Present)
+    .map((l) => l.label);
+  const absentLetters = keyboard
+    .filter((l) => l.status === Status.Absent)
+    .map((l) => l.label);
+
+  console.log(correctLetters, presentLetters, absentLetters);
+
+  return words.length;
+};
 
 const saveGame = (state) => {
   const { board, row, win, word, title, keyboard } = state;
@@ -41,6 +66,9 @@ export const submitGuess = (state) => {
 
   // Update State
   var newState = updateLetterStatuses(state);
+
+  // Count Eligible Words
+  newState.remaining = countEligibleWords(newState);
 
   // Check for win
   const correct = filter(
