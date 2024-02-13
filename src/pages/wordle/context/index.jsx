@@ -68,8 +68,7 @@ export const Context = createContext({
 // Get initial state (load or create new game)
 const getInitialState = () => {
   const state = cloneDeep(initialState);
-  // state.word = getTodaysRandomWord();
-  state.word = "AMASS";
+  state.word = getTodaysRandomWord();
   state.expert = localStorage.getItem("expert") === "true";
 
   // Get Today's Play
