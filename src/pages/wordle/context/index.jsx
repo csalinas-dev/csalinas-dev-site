@@ -68,7 +68,7 @@ export const Context = createContext({
 const getInitialState = () => {
   const state = cloneDeep(initialState);
   // state.word = getTodaysRandomWord();
-  state.word = "AMASS";
+  state.word = "ALIVE";
 
   // Get Today's Play
   const today = dateFormat(new Date(), "yyyy-mm-dd");
