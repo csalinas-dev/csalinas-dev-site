@@ -1,33 +1,78 @@
-import { filter, forEach } from "lodash";
+import { filter } from "lodash";
 import dateFormat from "dateformat";
 
 import words from "../words.json";
 import { updateLetterStatuses } from "./helpers";
 import Status from "../../Status";
 
-const countEligibleWords = (state) => {
-  const { board, keyboard } = state;
+const getEligibleWords = (state) => {
+  const { keyboard } = state;
 
-  const getCorrectLetter = (idx) =>
-    board.find((guess) => guess[idx].status === Status.Correct)?.[idx]?.letter;
-  const correctLetters = {
-    0: getCorrectLetter(0),
-    1: getCorrectLetter(1),
-    2: getCorrectLetter(2),
-    3: getCorrectLetter(3),
-    4: getCorrectLetter(4),
+  const absentLetters = filter(keyboard, (l) => l.status === Status.Absent).map(
+    (l) => l.label
+  );
+
+  const correctPositions = {};
+  const correctLetters = filter(keyboard, (l) => l.status === Status.Correct);
+  correctLetters.forEach((l) => {
+    correctPositions[l.label] = [];
+    state.board.forEach((row) => {
+      row.forEach((cell, j) => {
+        if (cell.letter === l.label && cell.status === Status.Correct) {
+          correctPositions[l.label].push(j);
+        }
+      });
+    });
+  });
+
+  const presentPositions = {};
+  const presentLetters = filter(keyboard, (l) => l.status === Status.Present);
+  presentLetters.forEach((l) => {
+    presentPositions[l.label] = [];
+    state.board.forEach((row) => {
+      row.forEach((cell, j) => {
+        if (cell.letter === l.label && cell.status === Status.Present) {
+          presentPositions[l.label].push(j);
+        }
+      });
+    });
+  });
+
+  const isEligible = (word) => {
+    if (word.length !== 5) {
+      return false;
+    }
+
+    const letters = word.split("");
+    const isAbsent = letters.some((l) => absentLetters.includes(l));
+    if (isAbsent) {
+      return false;
+    }
+
+    // For each correctPosition letter, check if this word has the correct letter in the correct positions
+    const hasAllCorrectLetters = correctLetters.every((l) => {
+      return correctPositions[l.label].every((i) => {
+        return letters[i] === l.label;
+      });
+    });
+    if (!hasAllCorrectLetters) {
+      return false;
+    }
+
+    // For each presentPosition letter, check if this word does not have the present letter in any of the present positions
+    const hasPresentLetters = presentLetters.every((l) => {
+      return presentPositions[l.label].some((i) => {
+        return letters[i] !== l.label && letters.includes(l.label);
+      });
+    });
+    if (!hasPresentLetters) {
+      return false;
+    }
+
+    return true;
   };
 
-  const presentLetters = keyboard
-    .filter((l) => l.status === Status.Present)
-    .map((l) => l.label);
-  const absentLetters = keyboard
-    .filter((l) => l.status === Status.Absent)
-    .map((l) => l.label);
-
-  console.log(correctLetters, presentLetters, absentLetters);
-
-  return words.length;
+  return filter(words, isEligible);
 };
 
 const saveGame = (state) => {
@@ -68,7 +113,8 @@ export const submitGuess = (state) => {
   var newState = updateLetterStatuses(state);
 
   // Count Eligible Words
-  newState.remaining = countEligibleWords(newState);
+  newState.wordsRemaining = getEligibleWords(newState);
+  console.log(newState.wordsRemaining);
 
   // Check for win
   const correct = filter(

@@ -53,7 +53,7 @@ export const initialState = {
   row: 0,
   guess: "",
   word: "",
-  remaining: words.length,
+  wordsRemaining: [],
   title: null,
   error: null,
   win: null,
@@ -67,7 +67,8 @@ export const Context = createContext({
 // Get initial state (load or create new game)
 const getInitialState = () => {
   const state = cloneDeep(initialState);
-  state.word = getTodaysRandomWord();
+  // state.word = getTodaysRandomWord();
+  state.word = "AMASS";
 
   // Get Today's Play
   const today = dateFormat(new Date(), "yyyy-mm-dd");
