@@ -9,14 +9,14 @@ import {
   Parenthesis,
   Var,
 } from "../../components";
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 import { Context, toggleExpert } from "./context";
 
 const Container = styled.header`
   align-items: center;
   display: flex;
   flex-flow: column nowrap;
-  gap: 1rem;
+  gap: 0.25rem;
   grid-area: header;
   justify-content: center;
   padding-bottom: 1rem;
@@ -28,7 +28,8 @@ const Title = styled.h1`
   line-height: 2rem;
   justify-self: center;
   user-select: none;
-  margin: 0;
+  margin-top: 0;
+  margin-bottom: 0.75rem;
 
   @media (min-width: 360px) {
     font-size: 3rem;
@@ -69,6 +70,13 @@ const Header = () => {
       </Comment>
     );
   }
+
+  useEffect(() => {
+    if (wordsRemaining.length > 0) {
+      var event = new Event("dispatch");
+      window.dispatchEvent(event);
+    }
+  }, [wordsRemaining]);
 
   const expertString = expert ? "true" : "false";
   return (

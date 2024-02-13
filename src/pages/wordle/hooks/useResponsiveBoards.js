@@ -14,7 +14,11 @@ export const useResponsiveBoards = () => {
     };
     resize();
     window.addEventListener("resize", resize);
-    return () => window.removeEventListener("resize", resize);
+    window.addEventListener("dispatch", resize);
+    return () => {
+      window.removeEventListener("resize", resize);
+      window.removeEventListener("dispatch", resize);
+    };
   }, [container, setHeight, setWidth]);
 
   return { container, width, height };
