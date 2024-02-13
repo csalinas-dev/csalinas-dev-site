@@ -6,7 +6,7 @@ import Status from "../../Status";
 import { getEligibleWords, saveGame, updateLetterStatuses } from "./helpers";
 
 export const submitGuess = (state) => {
-  const { guess } = state;
+  const { expert, guess, row, wordsRemaining } = state;
 
   // Check if guess is ready to submit
   if (guess.length !== 5) {
@@ -14,10 +14,11 @@ export const submitGuess = (state) => {
   }
 
   // Check if guess is in list of words
-  if (!words.includes(guess)) {
+  const list = row > 0 && expert ? wordsRemaining : words;
+  if (!list.includes(guess)) {
     return {
       ...state,
-      error: "NOT IN LIST",
+      error: "INVALID WORD",
     };
   }
 

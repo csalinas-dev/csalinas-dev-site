@@ -1,9 +1,16 @@
 import styled from "@emotion/styled";
 import dateFormat from "dateformat";
 
-import { Comment, Const, Numeric, Var } from "../../components";
+import {
+  Comment,
+  Const,
+  Function,
+  Numeric,
+  Parenthesis,
+  Var,
+} from "../../components";
 import { useContext } from "react";
-import { Context } from "./context";
+import { Context, toggleExpert } from "./context";
 
 const Container = styled.header`
   align-items: center;
@@ -34,9 +41,15 @@ const Title = styled.h1`
   }
 `;
 
+const Toggle = styled.span`
+  cursor: pointer;
+  user-select: none;
+`;
+
 const Header = () => {
   const {
-    state: { title, wordsRemaining },
+    state: { expert, row, title, wordsRemaining },
+    dispatch,
   } = useContext(Context);
 
   let titleContent;
@@ -57,13 +70,29 @@ const Header = () => {
     );
   }
 
+  const expertString = expert ? "true" : "false";
   return (
     <Container>
       <Title>Wordleverse</Title>
       {titleContent}
+      {row === 0 && (
+        <Toggle onClick={() => dispatch(toggleExpert())}>
+          <Function>expertMode</Function>
+          <Parenthesis>{"("}</Parenthesis>
+          <span>{expertString}</span>
+          <Parenthesis>{")"}</Parenthesis>
+        </Toggle>
+      )}
+      {row > 0 && (
+        <span>
+          <Const>const</Const> <Var>expertMode</Var> <span>=</span>{" "}
+          <Numeric>{expertString}</Numeric>
+          <span>;</span>
+        </span>
+      )}
       {wordsRemaining.length > 0 && (
         <span>
-          <Const>let</Const> <Var> wordsRemaining</Var> <span>=</span>{" "}
+          <Const>let</Const> <Var>wordsRemaining</Var> <span>=</span>{" "}
           <Numeric>{wordsRemaining.length}</Numeric>
           <span>;</span>
         </span>

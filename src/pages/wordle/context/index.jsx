@@ -54,6 +54,7 @@ export const initialState = {
   guess: "",
   word: "",
   wordsRemaining: [],
+  expert: false,
   title: null,
   error: null,
   win: null,
@@ -67,7 +68,9 @@ export const Context = createContext({
 // Get initial state (load or create new game)
 const getInitialState = () => {
   const state = cloneDeep(initialState);
-  state.word = getTodaysRandomWord();
+  // state.word = getTodaysRandomWord();
+  state.word = "AMASS";
+  state.expert = localStorage.getItem("expert") === "true";
 
   // Get Today's Play
   const today = dateFormat(new Date(), "yyyy-mm-dd");
