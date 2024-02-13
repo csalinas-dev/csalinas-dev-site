@@ -18,7 +18,7 @@ const reducer = (state, action) => {
     case "DISMISS ERROR":
       return dismissError(state);
     case "PLAY AGAIN":
-      return playAgain();
+      return playAgain(state);
     default:
       return state;
   }
