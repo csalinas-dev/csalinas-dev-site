@@ -75,19 +75,12 @@ const getEligibleWords = (state) => {
 };
 
 const saveGame = (state) => {
-  const { board, row, win, word, title, keyboard } = state;
+  const { error, guess, title, word, wordsRemaining, ...game } = state;
 
   if (title !== null) {
     return;
   }
 
-  const game = {
-    board,
-    keyboard,
-    row,
-    win,
-    word,
-  };
   const today = dateFormat(new Date(), "yyyy-mm-dd");
   localStorage.setItem(today, JSON.stringify(game));
 };
@@ -113,7 +106,6 @@ export const submitGuess = (state) => {
 
   // Count Eligible Words
   newState.wordsRemaining = getEligibleWords(newState);
-  console.log(newState.wordsRemaining);
 
   // Check for win
   const correct = filter(

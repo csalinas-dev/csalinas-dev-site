@@ -1,7 +1,7 @@
 import styled from "@emotion/styled";
 import dateFormat from "dateformat";
 
-import { Numeric } from "../../components";
+import { Comment, Const, Numeric, Var } from "../../components";
 import { useContext } from "react";
 import { Context } from "./context";
 
@@ -36,7 +36,7 @@ const Title = styled.h1`
 
 const Header = () => {
   const {
-    state: { title },
+    state: { title, wordsRemaining },
   } = useContext(Context);
 
   let titleContent;
@@ -49,10 +49,11 @@ const Header = () => {
     const suffix = dateFormat(now, "S");
     const year = dateFormat(now, "yyyy");
     titleContent = (
-      <Numeric>
+      <Comment>
+        {"// "}
         {month} {day}
         <sup>{suffix}</sup>, {year}
-      </Numeric>
+      </Comment>
     );
   }
 
@@ -60,6 +61,13 @@ const Header = () => {
     <Container>
       <Title>Wordleverse</Title>
       {titleContent}
+      {wordsRemaining.length > 0 && (
+        <span>
+          <Const>let</Const> <Var> wordsRemaining</Var> <span>=</span>{" "}
+          <Numeric>{wordsRemaining.length}</Numeric>
+          <span>;</span>
+        </span>
+      )}
     </Container>
   );
 };
