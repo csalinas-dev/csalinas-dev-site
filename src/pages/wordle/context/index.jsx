@@ -5,6 +5,7 @@ import dateFormat from "dateformat";
 import Status from "../Status";
 
 import reducer from "./reducer";
+import { getEligibleWords } from "./reducer/helpers";
 import { getTodaysRandomWord } from "./random";
 
 const board = range(6).map((_, row) =>
@@ -66,23 +67,22 @@ export const Context = createContext({
 // Get initial state (load or create new game)
 const getInitialState = () => {
   const state = cloneDeep(initialState);
-  const newState = {
-    ...state,
-    word: getTodaysRandomWord(),
-  };
+  state.word = getTodaysRandomWord();
 
   // Get Today's Play
   const today = dateFormat(new Date(), "yyyy-mm-dd");
   const saved = localStorage.getItem(today);
   if (!saved) {
-    return newState;
+    return state;
   }
 
   const game = JSON.parse(saved);
-  return {
-    ...newState,
+  const newState = {
+    ...state,
     ...game,
   };
+  newState.wordsRemaining = getEligibleWords(newState);
+  return newState;
 };
 
 export const ContextProvider = ({ children }) => {
