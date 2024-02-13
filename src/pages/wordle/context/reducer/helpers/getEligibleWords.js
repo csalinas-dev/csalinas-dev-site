@@ -6,29 +6,34 @@ import words from "../../words.json";
 export const getEligibleWords = (state) => {
   const { board, wordsRemaining } = state;
 
-  const absent = [];
+  let absent = [];
   const correct = {};
   const present = {};
 
   board.forEach((guess) => {
-    guess.forEach((letter, i) => {
+    guess.forEach((l, i) => {
+      const { letter, status } = l;
       // Add absent letters to absent array
-      if (letter.status === Status.Absent) {
-        absent.push(letter.letter);
+      if (status === Status.Absent) {
+        if (present[letter] || correct[letter]) {
+          present[letter].add(i);
+        } else {
+          absent.push(letter);
+        }
       }
 
-      if (letter.status === Status.Correct) {
-        if (!correct[letter.letter]) {
-          correct[letter.letter] = new Set();
+      if (status === Status.Correct) {
+        if (!correct[letter]) {
+          correct[letter] = new Set();
         }
-        correct[letter.letter].add(i);
+        correct[letter].add(i);
       }
 
-      if (letter.status === Status.Present) {
-        if (!present[letter.letter]) {
-          present[letter.letter] = new Set();
+      if (status === Status.Present) {
+        if (!present[letter]) {
+          present[letter] = new Set();
         }
-        present[letter.letter].add(i);
+        present[letter].add(i);
       }
     });
   });
@@ -46,21 +51,19 @@ export const getEligibleWords = (state) => {
     }
 
     // For each correct letter, check if this word has the correct letter in all the correct positions
-    const hasAllCorrectLetters = Object.keys(correct).every((l) => {
-      return Array.from(correct[l]).every((i) => {
-        return letters[i] === l;
-      });
-    });
+    const hasAllCorrectLetters = Object.keys(correct).every((l) =>
+      Array.from(correct[l]).every((i) => letters[i] === l)
+    );
     if (!hasAllCorrectLetters) {
       return false;
     }
 
     // For each presentPosition letter, check if this word does not have the present letter in any of the present positions
-    const hasPresentLetters = Object.keys(present).every((l) => {
-      return Array.from(present[l]).some((i) => {
-        return letters[i] !== l && letters.includes(l);
-      });
-    });
+    const hasPresentLetters = Object.keys(present).every(
+      (l) =>
+        Array.from(present[l]).every((i) => letters[i] !== l) &&
+        letters.includes(l)
+    );
     if (!hasPresentLetters) {
       return false;
     }
@@ -69,5 +72,7 @@ export const getEligibleWords = (state) => {
   };
 
   const list = wordsRemaining.length ? wordsRemaining : words;
-  return filter(list, isEligible);
+  const filtered = filter(list, isEligible);
+  console.log(filtered);
+  return filtered;
 };
