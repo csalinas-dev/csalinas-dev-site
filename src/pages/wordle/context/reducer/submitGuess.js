@@ -6,35 +6,32 @@ import { updateLetterStatuses } from "./helpers";
 import Status from "../../Status";
 
 const getEligibleWords = (state) => {
-  const { keyboard } = state;
+  const { board, wordsRemaining } = state;
 
-  const absentLetters = filter(keyboard, (l) => l.status === Status.Absent).map(
-    (l) => l.label
-  );
+  const absent = [];
+  const correct = {};
+  const present = {};
 
-  const correctPositions = {};
-  const correctLetters = filter(keyboard, (l) => l.status === Status.Correct);
-  correctLetters.forEach((l) => {
-    correctPositions[l.label] = [];
-    state.board.forEach((row) => {
-      row.forEach((cell, j) => {
-        if (cell.letter === l.label && cell.status === Status.Correct) {
-          correctPositions[l.label].push(j);
+  board.forEach((guess) => {
+    guess.forEach((letter, i) => {
+      // Add absent letters to absent array
+      if (letter.status === Status.Absent) {
+        absent.push(letter.letter);
+      }
+
+      if (letter.status === Status.Correct) {
+        if (!correct[letter.letter]) {
+          correct[letter.letter] = new Set();
         }
-      });
-    });
-  });
+        correct[letter.letter].add(i);
+      }
 
-  const presentPositions = {};
-  const presentLetters = filter(keyboard, (l) => l.status === Status.Present);
-  presentLetters.forEach((l) => {
-    presentPositions[l.label] = [];
-    state.board.forEach((row) => {
-      row.forEach((cell, j) => {
-        if (cell.letter === l.label && cell.status === Status.Present) {
-          presentPositions[l.label].push(j);
+      if (letter.status === Status.Present) {
+        if (!present[letter.letter]) {
+          present[letter.letter] = new Set();
         }
-      });
+        present[letter.letter].add(i);
+      }
     });
   });
 
@@ -44,15 +41,16 @@ const getEligibleWords = (state) => {
     }
 
     const letters = word.split("");
-    const isAbsent = letters.some((l) => absentLetters.includes(l));
+
+    const isAbsent = letters.some((l) => absent.includes(l));
     if (isAbsent) {
       return false;
     }
 
-    // For each correctPosition letter, check if this word has the correct letter in the correct positions
-    const hasAllCorrectLetters = correctLetters.every((l) => {
-      return correctPositions[l.label].every((i) => {
-        return letters[i] === l.label;
+    // For each correct letter, check if this word has the correct letter in all the correct positions
+    const hasAllCorrectLetters = Object.keys(correct).every((l) => {
+      return Array.from(correct[l]).every((i) => {
+        return letters[i] === l;
       });
     });
     if (!hasAllCorrectLetters) {
@@ -60,9 +58,9 @@ const getEligibleWords = (state) => {
     }
 
     // For each presentPosition letter, check if this word does not have the present letter in any of the present positions
-    const hasPresentLetters = presentLetters.every((l) => {
-      return presentPositions[l.label].some((i) => {
-        return letters[i] !== l.label && letters.includes(l.label);
+    const hasPresentLetters = Object.keys(present).every((l) => {
+      return Array.from(present[l]).some((i) => {
+        return letters[i] !== l && letters.includes(l);
       });
     });
     if (!hasPresentLetters) {
@@ -72,7 +70,8 @@ const getEligibleWords = (state) => {
     return true;
   };
 
-  return filter(words, isEligible);
+  const list = wordsRemaining.length ? wordsRemaining : words;
+  return filter(list, isEligible);
 };
 
 const saveGame = (state) => {
