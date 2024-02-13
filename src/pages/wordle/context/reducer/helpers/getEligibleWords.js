@@ -45,12 +45,13 @@ export const getEligibleWords = (state) => {
 
     const letters = word.split("");
 
+    // Ensure this word does not include any absent letters
     const isAbsent = letters.some((l) => absent.includes(l));
     if (isAbsent) {
       return false;
     }
 
-    // For each correct letter, check if this word has the correct letter in all the correct positions
+    // Ensure this word has every correct letter in every correct position
     const hasAllCorrectLetters = Object.keys(correct).every((l) =>
       Array.from(correct[l]).every((i) => letters[i] === l)
     );
@@ -58,7 +59,7 @@ export const getEligibleWords = (state) => {
       return false;
     }
 
-    // For each presentPosition letter, check if this word does not have the present letter in any of the present positions
+    // Ensure this word includes the present letter, but not in any of their present positions
     const hasPresentLetters = Object.keys(present).every(
       (l) =>
         Array.from(present[l]).every((i) => letters[i] !== l) &&
@@ -68,11 +69,11 @@ export const getEligibleWords = (state) => {
       return false;
     }
 
+    // This is an elgible word
     return true;
   };
 
   const list = wordsRemaining.length ? wordsRemaining : words;
   const filtered = filter(list, isEligible);
-  console.log(filtered);
   return filtered;
 };

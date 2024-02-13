@@ -36,7 +36,7 @@ const symbols = {
   absent: "⬛",
 };
 
-const convertWordleToText = (board) => {
+const convertWordleToText = (board, expert) => {
   // Convert current board to grid of statuses
   const grid = filter(
     map(board, (row) => map(row, (cell) => cell.status)),
@@ -51,7 +51,11 @@ const convertWordleToText = (board) => {
   const now = new Date();
   const date = dateFormat(now, "mmmm dS, yyyy");
   let result = `${date}\n`;
-  result += `Wordleverse ${isWin ? attemptCount : "X"}/6\n\n`;
+  result += "Wordleverse ";
+  result += isWin ? attemptCount : "X";
+  result += "/6";
+  result += expert ? "*" : "";
+  result += "\n\n";
 
   // Convert statuses to symbols
   result += map(grid, (row) =>
@@ -63,7 +67,7 @@ const convertWordleToText = (board) => {
 
 export const Clipboard = () => {
   const {
-    state: { board },
+    state: { board, expert },
   } = useContext(Context);
   const [copied, setCopied] = useState(null);
 
@@ -74,7 +78,7 @@ export const Clipboard = () => {
   };
 
   const handleShare = () => {
-    const wordleText = convertWordleToText(board);
+    const wordleText = convertWordleToText(board, expert);
     copyToClipboard(wordleText);
   };
 
