@@ -18,3 +18,7 @@ export const dismissError = () => ({
 export const playAgain = () => ({
   type: "PLAY AGAIN",
 });
+
+export const toggleExpert = () => ({
+  type: "TOGGLE EXPERT",
+});

@@ -5,6 +5,7 @@ import dateFormat from "dateformat";
 import Status from "../Status";
 
 import reducer from "./reducer";
+import { getEligibleWords } from "./reducer/helpers";
 import { getTodaysRandomWord } from "./random";
 
 const board = range(6).map((_, row) =>
@@ -35,7 +36,7 @@ const keyboard = [
   { key: "16", label: "J", status: Status.Default },
   { key: "17", label: "K", status: Status.Default },
   { key: "18", label: "L", status: Status.Default },
-  { key: "20", label: "DELETE", status: Status.Default },
+  { key: "20", label: "ENTER", status: Status.Default },
   { key: "21", label: "Z", status: Status.Default },
   { key: "22", label: "X", status: Status.Default },
   { key: "23", label: "C", status: Status.Default },
@@ -43,7 +44,7 @@ const keyboard = [
   { key: "25", label: "B", status: Status.Default },
   { key: "26", label: "N", status: Status.Default },
   { key: "27", label: "M", status: Status.Default },
-  { key: "28", label: "ENTER", status: Status.Default },
+  { key: "28", label: "DELETE", status: Status.Default },
 ];
 
 export const initialState = {
@@ -52,6 +53,8 @@ export const initialState = {
   row: 0,
   guess: "",
   word: "",
+  wordsRemaining: [],
+  expert: false,
   title: null,
   error: null,
   win: null,
@@ -66,20 +69,22 @@ export const Context = createContext({
 const getInitialState = () => {
   const state = cloneDeep(initialState);
   state.word = getTodaysRandomWord();
+  state.expert = localStorage.getItem("expert") === "true";
 
   // Get Today's Play
   const today = dateFormat(new Date(), "yyyy-mm-dd");
   const saved = localStorage.getItem(today);
-  if (saved) {
-    const game = JSON.parse(saved);
-    state.board = game.board;
-    state.keyboard = game.keyboard;
-    state.row = game.row;
-    state.win = game.win;
-    state.word = game.word;
+  if (!saved) {
+    return state;
   }
 
-  return state;
+  const game = JSON.parse(saved);
+  const newState = {
+    ...state,
+    ...game,
+  };
+  newState.wordsRemaining = getEligibleWords(newState);
+  return newState;
 };
 
 export const ContextProvider = ({ children }) => {

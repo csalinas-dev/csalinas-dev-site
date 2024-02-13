@@ -1,30 +1,12 @@
 import { filter } from "lodash";
-import dateFormat from "dateformat";
 
 import words from "../words.json";
-import { updateLetterStatuses } from "./helpers";
 import Status from "../../Status";
 
-const saveGame = (state) => {
-  const { board, row, win, word, title, keyboard } = state;
-
-  if (title !== null) {
-    return;
-  }
-
-  const game = {
-    board,
-    keyboard,
-    row,
-    win,
-    word,
-  };
-  const today = dateFormat(new Date(), "yyyy-mm-dd");
-  localStorage.setItem(today, JSON.stringify(game));
-};
+import { getEligibleWords, saveGame, updateLetterStatuses } from "./helpers";
 
 export const submitGuess = (state) => {
-  const { guess } = state;
+  const { expert, guess, row, wordsRemaining } = state;
 
   // Check if guess is ready to submit
   if (guess.length !== 5) {
@@ -32,15 +14,19 @@ export const submitGuess = (state) => {
   }
 
   // Check if guess is in list of words
-  if (!words.includes(guess)) {
+  const list = row > 0 && expert ? wordsRemaining : words;
+  if (!list.includes(guess)) {
     return {
       ...state,
-      error: "NOT IN LIST",
+      error: "INVALID WORD",
     };
   }
 
   // Update State
   var newState = updateLetterStatuses(state);
+
+  // Count Eligible Words
+  newState.wordsRemaining = getEligibleWords(newState);
 
   // Check for win
   const correct = filter(
