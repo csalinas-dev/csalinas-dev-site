@@ -11,6 +11,7 @@ import {
 } from "../../components";
 import { useContext, useEffect } from "react";
 import { Context, toggleExpert } from "./context";
+import words from "./context/words.json";
 
 const Container = styled.header`
   align-items: center;
@@ -103,13 +104,13 @@ const Header = () => {
           <span>;</span>
         </span>
       )}
-      {wordsRemaining.length > 0 && (
-        <span>
-          <Const>let</Const> <Var>wordsRemaining</Var> <span>=</span>{" "}
-          <Numeric>{wordsRemaining.length}</Numeric>
-          <span>;</span>
-        </span>
-      )}
+      <span>
+        <Const>let</Const> <Var>wordsRemaining</Var> <span>=</span>{" "}
+        <Numeric>
+          {wordsRemaining.length > 0 ? wordsRemaining.length : words.length}
+        </Numeric>
+        <span>;</span>
+      </span>
     </Container>
   );
 };
