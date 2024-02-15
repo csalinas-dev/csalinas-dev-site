@@ -1,6 +1,10 @@
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import {
+  createBrowserRouter,
+  Navigate,
+  RouterProvider,
+} from "react-router-dom";
 
-import { Home, NotFound, Wordle } from "./pages";
+import { Home, NotFound, Wordleverse } from "./pages";
 
 const router = createBrowserRouter([
   {
@@ -10,10 +14,12 @@ const router = createBrowserRouter([
   },
   {
     path: "/wordle",
-    element: <Wordle />
-  }
+    element: <Navigate to="/wordleverse" replace />,
+  },
+  {
+    path: "/wordleverse",
+    element: <Wordleverse />,
+  },
 ]);
 
-export const App = () => (
-  <RouterProvider router={router} />
-)
+export const App = () => <RouterProvider router={router} />;

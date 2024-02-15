@@ -46,7 +46,7 @@ const Boards = styled.div`
   top: 0;
 `;
 
-export const Wordle = () => {
+export const Wordleverse = () => {
   const { container, width, height } = useResponsiveBoards();
   const actualHeight = height - 16;
   const isPortrait = width / actualHeight < 0.6298020955;
