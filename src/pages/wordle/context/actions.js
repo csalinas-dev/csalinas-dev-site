@@ -11,6 +11,10 @@ export const submitGuess = () => ({
   type: "SUBMIT GUESS",
 });
 
+export const dismissAlert = () => ({
+  type: "DISMISS ALERT",
+});
+
 export const dismissError = () => ({
   type: "DISMISS ERROR",
 });

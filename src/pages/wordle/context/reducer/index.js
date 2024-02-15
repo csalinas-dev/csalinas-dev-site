@@ -1,4 +1,5 @@
 import { addLetter } from "./addLetter";
+import { dismissAlert } from "./dismissAlert";
 import { dismissError } from "./dismissError";
 import { playAgain } from "./playAgain";
 import { removeLetter } from "./removeLetter";
@@ -15,6 +16,8 @@ const reducer = (state, action) => {
       return submitGuess(state);
     case "TOGGLE EXPERT":
       return toggleExpert(state);
+    case "DISMISS ALERT":
+      return dismissAlert(state);
     case "DISMISS ERROR":
       return dismissError(state);
     case "PLAY AGAIN":

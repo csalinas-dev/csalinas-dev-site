@@ -1,7 +1,7 @@
 import { useContext, Fragment } from "react";
 import styled from "@emotion/styled";
 
-import { Context } from "./context";
+import { Context, dismissAlert } from "./context";
 import { useError } from "./hooks";
 import { Clipboard, PlayAgain } from "./components";
 
@@ -23,11 +23,12 @@ const Alert = styled.div`
   display: flex;
   flex-flow: row nowrap;
   font-size: 1.25rem;
+  gap: 1rem;
   justify-content: center;
   line-height: 1rem;
   max-width: 100vw;
   padding: 1rem 2rem;
-  gap: 1rem;
+  position: relative;
 
   @media (min-width: 768px) {
     font-size: 2rem;
@@ -57,6 +58,31 @@ const Alert = styled.div`
   }
 `;
 
+const DismissContainer = styled.span`
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  cursor: pointer;
+  font-size: 1.5rem;
+  line-height: 1.5rem;
+  height: 1.5rem;
+
+  svg {
+    margin: 0;
+    padding: 0 3px;
+  }
+`;
+
+const Dismiss = () => {
+  const { dispatch } = useContext(Context);
+  const onClick = () => dispatch(dismissAlert());
+  return (
+    <DismissContainer onClick={onClick}>
+      <i className="fas fa-times" />
+    </DismissContainer>
+  );
+};
+
 const Alerts = () => {
   const {
     state: { word, win, title },
@@ -75,6 +101,7 @@ const Alerts = () => {
           )}
           {win === false && (
             <Alert className="loss">
+              <Dismiss />
               <div>
                 <i className="fa-solid fa-face-frown-open"></i>Better luck next
                 time!
@@ -86,6 +113,7 @@ const Alerts = () => {
           )}
           {win === true && (
             <Alert className="win">
+              <Dismiss />
               <div>
                 <i className="fa-solid fa-trophy"></i>YOU WON!
               </div>
