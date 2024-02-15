@@ -14,11 +14,18 @@ export const submitGuess = (state) => {
   }
 
   // Check if guess is in list of words
-  const list = row > 0 && expert ? wordsRemaining : words;
-  if (!list.includes(guess)) {
+  if (!words.includes(guess)) {
     return {
       ...state,
-      error: "INVALID WORD",
+      error: "NOT IN DICTIONARY",
+    };
+  }
+
+  // Check if expert mode is on and this is an invalid guess
+  if (row > 0 && expert && !wordsRemaining.includes(guess)) {
+    return {
+      ...state,
+      error: "USE PREVIOUS CLUES",
     };
   }
 
