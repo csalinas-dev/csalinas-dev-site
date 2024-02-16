@@ -4,7 +4,7 @@ import {
   RouterProvider,
 } from "react-router-dom";
 
-import { Projects, Home, NotFound, Wordleverse } from "./pages";
+import { Project, Projects, Home, NotFound, Wordleverse } from "./pages";
 
 const router = createBrowserRouter([
   {
@@ -23,6 +23,10 @@ const router = createBrowserRouter([
   {
     path: "/projects",
     element: <Projects />,
+  },
+  {
+    path: "/projects/:slug",
+    element: <Project />,
   },
 ]);
 

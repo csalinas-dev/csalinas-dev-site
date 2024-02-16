@@ -2,7 +2,7 @@ import { useQuery, gql } from "@apollo/client";
 import styled from "@emotion/styled";
 import { Link } from "react-router-dom";
 
-import { FormattedDate, Section } from "../../components";
+import { FormattedDate, Section, Title } from "../../components";
 
 const PROJECTS = gql`
   {
@@ -24,27 +24,7 @@ const Container = styled(Section)`
   gap: 2rem;
 `;
 
-const Header = styled.h1`
-  align-self: center;
-  font-size: 2rem;
-  line-height: 2rem;
-  justify-self: center;
-  user-select: none;
-  margin-top: 0;
-  margin-bottom: 0.75rem;
-
-  @media (min-width: 360px) {
-    font-size: 3rem;
-    line-height: 3rem;
-  }
-
-  @media (min-width: 768px) {
-    font-size: 5rem;
-    line-height: 5rem;
-  }
-`;
-
-const Title = styled.h1`
+const Name = styled.h1`
   color: white;
   font-size: 3rem;
   line-height: 3rem;
@@ -100,18 +80,37 @@ const Project = styled(Link)`
 export const Projects = () => {
   const { loading, error, data } = useQuery(PROJECTS);
 
-  if (loading) return <Section>Loading...</Section>;
-  if (error) return <Section>Error :(</Section>;
+  let content;
+
+  if (loading) {
+    content = (
+      <Project to="#">
+        <Name>Loading...</Name>
+      </Project>
+    );
+  } else if (error) {
+    content = (
+      <Project to="#">
+        <Name>Error :(</Name>
+      </Project>
+    );
+  } else {
+    content = data.posts.map(
+      ({ id, slug, title, updatedAt, image: { url } }) => (
+        <Project key={id} to={`${slug}`} src={url}>
+          <Name>{title}</Name>
+          <FormattedDate date={Date.parse(updatedAt)} />
+        </Project>
+      )
+    );
+  }
 
   return (
     <Container>
-      <Header>Projects</Header>
-      {data.posts.map(({ id, slug, title, updatedAt, image: { url } }) => (
-        <Project key={id} to={`${slug}`} src={url}>
-          <Title>{title}</Title>
-          <FormattedDate date={Date.parse(updatedAt)} />
-        </Project>
-      ))}
+      <Title>Projects</Title>
+      {content}
     </Container>
   );
 };
+
+export * from "./Project";
