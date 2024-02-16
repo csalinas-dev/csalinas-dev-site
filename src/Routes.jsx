@@ -4,7 +4,7 @@ import {
   RouterProvider,
 } from "react-router-dom";
 
-import { Home, NotFound, Wordleverse } from "./pages";
+import { Blog, Home, NotFound, Wordleverse } from "./pages";
 
 const router = createBrowserRouter([
   {
@@ -19,6 +19,10 @@ const router = createBrowserRouter([
   {
     path: "/wordleverse",
     element: <Wordleverse />,
+  },
+  {
+    path: "/blog",
+    element: <Blog />,
   },
 ]);
 
