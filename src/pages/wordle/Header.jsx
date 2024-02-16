@@ -1,15 +1,15 @@
 import styled from "@emotion/styled";
-import dateFormat from "dateformat";
+import { useContext, useEffect } from "react";
 
 import {
   Comment,
   Const,
+  FormattedDate,
   Function,
   Numeric,
   Parenthesis,
   Var,
 } from "../../components";
-import { useContext, useEffect } from "react";
 import { Context, toggleExpert } from "./context";
 import words from "./context/words.json";
 
@@ -54,28 +54,11 @@ const Header = () => {
     dispatch,
   } = useContext(Context);
 
-  let titleContent;
-  if (title) {
-    titleContent = (
-      <Comment>
-        {"// "}
-        {title}
-      </Comment>
-    );
-  } else {
-    const now = new Date();
-    const month = dateFormat(now, "mmmm");
-    const day = dateFormat(now, "d");
-    const suffix = dateFormat(now, "S");
-    const year = dateFormat(now, "yyyy");
-    titleContent = (
-      <Comment>
-        {"// "}
-        {month} {day}
-        <sup>{suffix}</sup>, {year}
-      </Comment>
-    );
-  }
+  const titleContent = title ? (
+    <Comment>{title}</Comment>
+  ) : (
+    <FormattedDate date={new Date()} />
+  );
 
   useEffect(() => {
     if (wordsRemaining.length > 0) {

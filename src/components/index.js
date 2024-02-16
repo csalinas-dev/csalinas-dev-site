@@ -1,2 +1,3 @@
-export * from './color';
-export * from './Section';
+export * from "./color";
+export * from "./FormattedDate";
+export * from "./Section";
