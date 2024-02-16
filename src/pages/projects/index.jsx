@@ -43,15 +43,15 @@ const Project = styled(Link)`
   overflow: hidden;
   padding: 2.5rem;
   position: relative;
-  width: 100%;
-  text-decoration: none;
+  text-decoration-color: initial;
   text-decoration-style: initial;
   text-decoration-thickness: initial;
-  text-decoration-color: initial;
+  text-decoration: none;
+  width: 100%;
 
   h1,
   span {
-    text-shadow: 4px 8px 32px rgba(0, 0, 0, 0.5);
+    text-shadow: rgba(0, 0, 0, 0.5) 0px 2px 8px;
     user-select: none;
     z-index: 1;
   }
