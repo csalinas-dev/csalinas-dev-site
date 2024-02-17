@@ -40,7 +40,6 @@ body {
   color: var(--foreground);
   font-family: var(--font);
   font-size: 16px;
-  line-height: 1.5em;
   margin: 0;
 }
 
@@ -55,9 +54,10 @@ a,
 a:visited,
 a:active {
   color: var(--const);
-  text-decoration-style: wavy;
+  text-decoration: none;
+  /* text-decoration-style: wavy;
   text-decoration-thickness: 2px;
-  text-decoration-color: var(--invalid);
+  text-decoration-color: var(--invalid); */
   display: inline-block;
 }
 

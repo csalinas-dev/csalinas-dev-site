@@ -6,7 +6,7 @@ import { FormattedDate, Section, Title } from "../../components";
 
 const PROJECTS = gql`
   {
-    posts(orderBy: updatedAt_DESC) {
+    projects(orderBy: updatedAt_DESC) {
       id
       updatedAt
       slug
@@ -43,10 +43,7 @@ const Project = styled(Link)`
   overflow: hidden;
   padding: 2.5rem;
   position: relative;
-  text-decoration-color: initial;
-  text-decoration-style: initial;
-  text-decoration-thickness: initial;
-  text-decoration: none;
+  user-select: none;
   width: 100%;
 
   h1,
@@ -95,7 +92,7 @@ export const Projects = () => {
       </Project>
     );
   } else {
-    content = data.posts.map(
+    content = data.projects.map(
       ({ id, slug, name, updatedAt, thumbnail: { url } }) => (
         <Project key={id} to={slug} src={url}>
           <Name>{name}</Name>
