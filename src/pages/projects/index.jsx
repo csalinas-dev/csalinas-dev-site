@@ -10,8 +10,8 @@ const PROJECTS = gql`
       id
       updatedAt
       slug
-      title
-      image {
+      name
+      thumbnail {
         url
       }
     }
@@ -96,9 +96,9 @@ export const Projects = () => {
     );
   } else {
     content = data.posts.map(
-      ({ id, slug, title, updatedAt, image: { url } }) => (
-        <Project key={id} to={`${slug}`} src={url}>
-          <Name>{title}</Name>
+      ({ id, slug, name, updatedAt, thumbnail: { url } }) => (
+        <Project key={id} to={slug} src={url}>
+          <Name>{name}</Name>
           <FormattedDate date={Date.parse(updatedAt)} />
         </Project>
       )
