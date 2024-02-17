@@ -39,6 +39,24 @@ const Image = styled.img`
   width: 100%;
 `;
 
+const Article = styled.article`
+  h2 {
+    color: var(--comment);
+
+    &:before {
+      content: "// ";
+    }
+  }
+
+  h3 {
+    color: var(--function);
+  }
+
+  strong {
+    color: var(--var);
+  }
+`;
+
 export const Project = () => {
   const { slug } = useParams();
   const { loading, error, data } = useQuery(PROJECT, { variables: { slug } });
@@ -60,9 +78,9 @@ export const Project = () => {
       </Link>
       <Title>{name}</Title>
       <Image alt="" src={image.url} />
-      <article>
+      <Article>
         <Markdown>{content}</Markdown>
-      </article>
+      </Article>
     </Container>
   );
 };
