@@ -26,14 +26,12 @@ const Container = styled(Section)`
 
 const Name = styled.h1`
   color: white;
-  font-size: 3rem;
-  line-height: 3rem;
   margin: 0;
 `;
 
 const Project = styled(Link)`
   align-items: end;
-  aspect-ratio: 5 / 2;
+  aspect-ratio: 2 / 2;
   border-radius: 2rem;
   box-shadow: 0 8px 10px 1px rgba(0, 0, 0, 0.14),
     0 3px 14px 2px rgba(0, 0, 0, 0.12), 0 5px 5px -3px rgba(0, 0, 0, 0.2);
@@ -46,11 +44,52 @@ const Project = styled(Link)`
   user-select: none;
   width: 100%;
 
+  @media (min-width: 696px) {
+    aspect-ratio: 3 / 2;
+  }
+
+  @media (min-width: 896px) {
+    aspect-ratio: 4 / 2;
+  }
+
+  @media (min-width: 1296px) {
+    aspect-ratio: 5 / 2;
+  }
+
   h1,
   span {
-    text-shadow: rgba(0, 0, 0, 0.5) 0px 2px 8px;
+    text-align: right;
+    text-shadow: rgba(0, 0, 0, 0.75) 1px 2px 4px;
     user-select: none;
     z-index: 1;
+  }
+
+  h1 {
+    font-size: 2rem;
+
+    @media (min-width: 696px) {
+      font-size: 2.5rem;
+    }
+
+    @media (min-width: 896px) {
+      font-size: 3.5rem;
+    }
+
+    @media (min-width: 1296px) {
+      font-size: 4rem;
+    }
+  }
+
+  span {
+    font-size: 1.5rem;
+
+    @media (min-width: 896px) {
+      font-size: 1.75rem;
+    }
+
+    @media (min-width: 1296px) {
+      font-size: 2rem;
+    }
   }
 
   &:before {

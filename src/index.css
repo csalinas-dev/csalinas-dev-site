@@ -55,9 +55,6 @@ a:visited,
 a:active {
   color: var(--const);
   text-decoration: none;
-  /* text-decoration-style: wavy;
-  text-decoration-thickness: 2px;
-  text-decoration-color: var(--invalid); */
   display: inline-block;
 }
 
