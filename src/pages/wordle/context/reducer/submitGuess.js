@@ -13,6 +13,13 @@ export const submitGuess = (state) => {
     return state;
   }
 
+  if (guess === "IQUIT") {
+    return {
+      ...state,
+      win: false,
+    };
+  }
+
   // Check if guess is in list of words
   if (!words.includes(guess)) {
     return {
