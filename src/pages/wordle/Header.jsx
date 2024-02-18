@@ -1,15 +1,16 @@
 import styled from "@emotion/styled";
-import dateFormat from "dateformat";
+import { useContext, useEffect } from "react";
 
 import {
-  Comment,
   Const,
+  FormattedDate,
   Function,
+  Module,
   Numeric,
   Parenthesis,
+  Title,
   Var,
 } from "../../components";
-import { useContext, useEffect } from "react";
 import { Context, toggleExpert } from "./context";
 import words from "./context/words.json";
 
@@ -23,26 +24,6 @@ const Container = styled.header`
   padding-bottom: 1rem;
 `;
 
-const Title = styled.h1`
-  align-self: center;
-  font-size: 2rem;
-  line-height: 2rem;
-  justify-self: center;
-  user-select: none;
-  margin-top: 0;
-  margin-bottom: 0.75rem;
-
-  @media (min-width: 360px) {
-    font-size: 3rem;
-    line-height: 3rem;
-  }
-
-  @media (min-width: 768px) {
-    font-size: 5rem;
-    line-height: 5rem;
-  }
-`;
-
 const Toggle = styled.span`
   cursor: pointer;
   user-select: none;
@@ -54,28 +35,11 @@ const Header = () => {
     dispatch,
   } = useContext(Context);
 
-  let titleContent;
-  if (title) {
-    titleContent = (
-      <Comment>
-        {"// "}
-        {title}
-      </Comment>
-    );
-  } else {
-    const now = new Date();
-    const month = dateFormat(now, "mmmm");
-    const day = dateFormat(now, "d");
-    const suffix = dateFormat(now, "S");
-    const year = dateFormat(now, "yyyy");
-    titleContent = (
-      <Comment>
-        {"// "}
-        {month} {day}
-        <sup>{suffix}</sup>, {year}
-      </Comment>
-    );
-  }
+  const titleContent = title ? (
+    <Module>{title}</Module>
+  ) : (
+    <FormattedDate date={new Date()} />
+  );
 
   useEffect(() => {
     if (wordsRemaining.length > 0) {

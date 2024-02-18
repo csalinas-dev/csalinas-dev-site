@@ -6,6 +6,10 @@ export const VSCode = styled.span`
 
 export const Comment = styled.span`
   color: var(--comment);
+
+  &:first-of-type:before {
+    content: "// ";
+  }
 `;
 
 export const Component = styled.span`
