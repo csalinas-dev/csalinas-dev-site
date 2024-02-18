@@ -3,7 +3,7 @@ import styled from "@emotion/styled";
 import { Link, useParams } from "react-router-dom";
 import Markdown from "react-markdown";
 
-import { Section, Title } from "../../components";
+import { FormattedDate, Section, Title } from "../../components";
 
 const PROJECT = gql`
   query Project($slug: String!) {
@@ -69,14 +69,15 @@ export const Project = () => {
     return <Section>Error 😟</Section>;
   }
 
-  const { name, image, content } = data.project;
+  const { updatedAt, name, image, content } = data.project;
 
   return (
     <Container>
-      <Link to="..">
+      <Link to="/projects">
         <i className="fas fa-chevron-left" /> Back to Projects
       </Link>
-      <Title>{name}</Title>
+      <Title style={{ marginBottom: 0 }}>{name}</Title>
+      <FormattedDate date={updatedAt} />
       <Image alt="" src={image.url} />
       <Article>
         <Markdown>{content}</Markdown>

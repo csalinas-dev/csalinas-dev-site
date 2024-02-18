@@ -135,7 +135,7 @@ export const Projects = () => {
       ({ id, slug, name, updatedAt, thumbnail: { url } }) => (
         <Project key={id} to={slug} src={url}>
           <Name>{name}</Name>
-          <FormattedDate date={Date.parse(updatedAt)} />
+          <FormattedDate date={updatedAt} />
         </Project>
       )
     );
@@ -143,6 +143,9 @@ export const Projects = () => {
 
   return (
     <Container>
+      <Link to="/">
+        <i className="fas fa-chevron-left" /> Back to Home
+      </Link>
       <Title>Projects</Title>
       {content}
     </Container>

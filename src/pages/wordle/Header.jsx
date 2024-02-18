@@ -2,10 +2,10 @@ import styled from "@emotion/styled";
 import { useContext, useEffect } from "react";
 
 import {
-  Comment,
   Const,
   FormattedDate,
   Function,
+  Module,
   Numeric,
   Parenthesis,
   Title,
@@ -36,7 +36,7 @@ const Header = () => {
   } = useContext(Context);
 
   const titleContent = title ? (
-    <Comment>{title}</Comment>
+    <Module>{title}</Module>
   ) : (
     <FormattedDate date={new Date()} />
   );

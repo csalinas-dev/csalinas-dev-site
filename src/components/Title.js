@@ -3,11 +3,11 @@ import styled from "@emotion/styled";
 export const Title = styled.h1`
   align-self: center;
   font-size: 2rem;
-  line-height: 2rem;
   justify-self: center;
-  user-select: none;
-  margin-top: 0;
+  line-height: 2rem;
   margin-bottom: 0.75rem;
+  margin-top: 0;
+  user-select: none;
 
   @media (min-width: 360px) {
     font-size: 3rem;
