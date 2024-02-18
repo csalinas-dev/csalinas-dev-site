@@ -23,7 +23,10 @@ const Navigation = styled.div`
   gap: 1rem;
 
   a {
+    align-items: center;
     color: var(--foreground);
+    display: flex;
+    gap: 1rem;
   }
 `;
 
