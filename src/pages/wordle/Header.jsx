@@ -1,5 +1,5 @@
 import styled from "@emotion/styled";
-import { useContext, useEffect } from "react";
+import { Fragment, useContext, useEffect } from "react";
 
 import {
   Const,
@@ -13,6 +13,7 @@ import {
 } from "../../components";
 import { Context, toggleExpert } from "./context";
 import words from "./context/words.json";
+import { Link } from "react-router-dom";
 
 const Container = styled.header`
   align-items: center;
@@ -22,6 +23,22 @@ const Container = styled.header`
   grid-area: header;
   justify-content: center;
   padding-bottom: 1rem;
+  padding-top: 2rem;
+  position: relative;
+`;
+
+const Toolbar = styled.div`
+  background-color: var(--absentBackground);
+  display: flex;
+  flex-flow: row nowrap;
+  font-size: 1rem;
+  justify-content: end;
+  left: -1rem;
+  line-height: 1rem;
+  padding: 0.5rem 1rem;
+  position: absolute;
+  right: -1rem;
+  top: -1rem;
 `;
 
 const Toggle = styled.span`
@@ -51,6 +68,11 @@ const Header = () => {
   const expertString = expert ? "true" : "false";
   return (
     <Container>
+      <Toolbar>
+        <Link to="instructions">
+          <i className="fa-regular fa-circle-question" /> How to Play
+        </Link>
+      </Toolbar>
       <Title>Wordleverse</Title>
       {titleContent}
       {row === 0 && (
