@@ -78,3 +78,5 @@ export const Wordleverse = () => {
     </ContextProvider>
   );
 };
+
+export * from "./instructions";

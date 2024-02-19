@@ -4,7 +4,14 @@ import {
   RouterProvider,
 } from "react-router-dom";
 
-import { Project, Projects, Home, NotFound, Wordleverse } from "./pages";
+import {
+  Home,
+  WordleverseInstructions,
+  NotFound,
+  Project,
+  Projects,
+  Wordleverse,
+} from "./pages";
 
 const router = createBrowserRouter([
   {
@@ -19,6 +26,10 @@ const router = createBrowserRouter([
   {
     path: "/wordleverse",
     element: <Wordleverse />,
+  },
+  {
+    path: "/wordleverse/instructions",
+    element: <WordleverseInstructions />,
   },
   {
     path: "/projects",
