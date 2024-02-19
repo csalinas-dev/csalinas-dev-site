@@ -14,10 +14,14 @@ export const submitGuess = (state) => {
   }
 
   if (guess === "IQUIT") {
-    return {
+    const newState = {
       ...state,
+      guess: "",
+      row: 6,
       win: false,
     };
+    saveGame(newState);
+    return newState;
   }
 
   // Check if guess is in list of words

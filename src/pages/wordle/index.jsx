@@ -19,7 +19,6 @@ const Grid = styled.div`
   grid-template-rows: max-content 1fr;
   height: 100vh;
   justify-content: center;
-  // overflow-x: hidden;
   padding: 1rem;
   position: relative;
   width: 100vw;
@@ -78,3 +77,5 @@ export const Wordleverse = () => {
     </ContextProvider>
   );
 };
+
+export * from "./instructions";
