@@ -1,4 +1,4 @@
-import { clone, filter } from "lodash";
+import { clone, filter, flatten } from "lodash";
 import words from "data/words.json";
 
 const getTodaysDateSeed = () => {
@@ -79,4 +79,19 @@ export const getTodaysWords = () => {
 
   const puzzle = getWords();
   return puzzle;
+};
+
+export const setupPuzzle = (board, [w1, w2, w3, w4]) => {
+  const target = flatten([
+    w4[0],
+    w2[0],
+    w1.split(""),
+    w4[2],
+    w2[2],
+    w3.split(""),
+    w4[4],
+    w2[4],
+  ]);
+  const puzzle = shuffleArray(clone(target));
+  return { target, puzzle };
 };
