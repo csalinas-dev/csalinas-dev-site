@@ -5,12 +5,13 @@ import {
 } from "react-router-dom";
 
 import {
+  Hashtag,
   Home,
-  WordleverseInstructions,
   NotFound,
   Project,
   Projects,
   Wordleverse,
+  WordleverseInstructions,
 } from "pages";
 
 const router = createBrowserRouter([
@@ -38,6 +39,10 @@ const router = createBrowserRouter([
   {
     path: "/projects/:slug",
     element: <Project />,
+  },
+  {
+    path: "/hashtag",
+    element: <Hashtag />,
   },
 ]);
 
