@@ -11,7 +11,7 @@ import {
   Project,
   Projects,
   Wordleverse,
-} from "./pages";
+} from "pages";
 
 const router = createBrowserRouter([
   {

@@ -1,6 +1,6 @@
 import styled from "@emotion/styled";
-import { Var, String, Section } from "../../components";
 import { Link } from "react-router-dom";
+import { Var, String, Section } from "components";
 
 const Title = styled.h1`
   display: inline-block;

@@ -1,5 +1,5 @@
 import { random, cloneDeep } from "lodash";
-import words from "../words.json";
+import words from "data/words.json";
 import { initialState } from "..";
 
 export const playAgain = ({ expert }) => ({

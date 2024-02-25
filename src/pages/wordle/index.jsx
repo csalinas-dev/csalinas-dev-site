@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import styled from "@emotion/styled";
 
 import { ContextProvider } from "./context";
@@ -7,7 +8,6 @@ import Alerts from "./Alerts";
 import Header from "./Header";
 import Gameboard from "./Gameboard";
 import Keyboard from "./Keyboard";
-import { useEffect } from "react";
 
 const Grid = styled.div`
   align-items: center;

@@ -1,5 +1,5 @@
 import GitHubCalendar from "react-github-calendar";
-import { Comment, Function, Section } from "../../components";
+import { Comment, Function, Section } from "components";
 
 const theme = {
   dark: ["#383838", "#C586C0", "#4EC9B0", "#DCDCAA", "#4FC1FF"],

@@ -1,6 +1,6 @@
 import { filter } from "lodash";
 
-import words from "../words.json";
+import words from "data/words.json";
 import Status from "../../Status";
 
 import { getEligibleWords, saveGame, updateLetterStatuses } from "./helpers";

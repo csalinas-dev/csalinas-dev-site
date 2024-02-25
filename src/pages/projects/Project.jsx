@@ -3,7 +3,7 @@ import styled from "@emotion/styled";
 import { Link, useParams } from "react-router-dom";
 import Markdown from "react-markdown";
 
-import { FormattedDate, Section, Title } from "../../components";
+import { FormattedDate, Section, Title } from "components";
 
 const PROJECT = gql`
   query Project($slug: String!) {

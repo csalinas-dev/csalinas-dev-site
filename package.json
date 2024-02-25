@@ -2,6 +2,7 @@
   "name": "csalinas-dev",
   "version": "0.1.0",
   "private": true,
+  "base": "./src",
   "dependencies": {
     "@apollo/client": "^3.9.5",
     "@emotion/css": "^11.11.2",

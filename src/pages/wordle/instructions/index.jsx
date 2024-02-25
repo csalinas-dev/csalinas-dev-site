@@ -10,7 +10,7 @@ import {
   String,
   Title,
   Var,
-} from "../../../components";
+} from "components";
 
 import correct from "./correct.png";
 import present from "./present.png";

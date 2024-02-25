@@ -1,5 +1,5 @@
 import styled from "@emotion/styled";
-import { Invalid, Section } from "../../components";
+import { Invalid, Section } from "components";
 
 const Container = styled.h1`
   display: inline-block;
@@ -15,7 +15,7 @@ const Container = styled.h1`
 `;
 
 export const NotFound = () => (
-  <Section style={{minHeight: "100vh"}}>
+  <Section style={{ minHeight: "100vh" }}>
     <Container>
       <Invalid>404 Error</Invalid>
       <br />
