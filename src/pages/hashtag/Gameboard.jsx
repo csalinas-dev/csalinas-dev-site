@@ -9,10 +9,9 @@ const Board = styled.div`
   gap: 0.5rem;
   grid-template-columns: repeat(5, 1fr);
   grid-template-rows: repeat(5, 1fr);
-  max-height: calc(100vw - 4rem);
+  max-height: calc(100vw - 6rem);
   max-width: calc(100vh - 4rem);
-  width: 100%;
-  height: 100%;
+  width: calc(100% - 2rem);
 `;
 
 const Tile = styled.div`
@@ -50,7 +49,7 @@ export const Gameboard = () => {
   const letterToTile = (tile, i) => {
     if (tile === null) {
       // Empty Space
-      return <div></div>;
+      return <div key={`spacer-${i}`}></div>;
     }
 
     const { key, letter, status: className } = tile;

@@ -6,6 +6,7 @@ import {
 
 import {
   Hashtag,
+  HashtagInstructions,
   Home,
   NotFound,
   Project,
@@ -43,6 +44,10 @@ const router = createBrowserRouter([
   {
     path: "/hashtag",
     element: <Hashtag />,
+  },
+  {
+    path: "/hashtag/instructions",
+    element: <HashtagInstructions />,
   },
 ]);
 
