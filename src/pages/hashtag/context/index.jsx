@@ -3,6 +3,7 @@ import { cloneDeep, range } from "lodash";
 
 import Status from "../Status";
 import reducer from "./reducer";
+import { getTodaysWords } from "./random";
 
 const board = range(5).map((_, row) =>
   range(5).map((_, col) =>
@@ -27,6 +28,7 @@ export const Context = createContext({
 
 const getInitialState = () => {
   const state = cloneDeep(initialState);
+  getTodaysWords();
   return state;
 };
 
