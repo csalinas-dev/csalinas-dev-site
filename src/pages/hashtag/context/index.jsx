@@ -5,7 +5,7 @@ import dateFormat from "dateformat";
 import Status from "../Status";
 import { setupPuzzle, getTodaysWords } from "./random";
 import reducer from "./reducer";
-import { puzzleToBoard } from "./reducer/helpers";
+import { updateBoardStatuses } from "./reducer/helpers";
 
 const board = flatten(
   range(5).map((_, row) =>
@@ -41,15 +41,14 @@ const getInitialState = () => {
 
   // Load New Game
   const state = cloneDeep(initialState);
-  const words = getTodaysWords();
-  const { target, puzzle } = setupPuzzle(words);
-  const board = puzzleToBoard(state.board, puzzle);
-  return {
-    ...state,
-    words,
-    target,
-    board,
-  };
+  state.words = getTodaysWords();
+  const { targetBoard: target, puzzleBoard } = setupPuzzle(
+    state.words,
+    state.board
+  );
+  state.target = target;
+  state.board = updateBoardStatuses(state, puzzleBoard);
+  return state;
 };
 
 export const Context = createContext({

@@ -1,6 +1,5 @@
 import { clone, filter, flatten } from "lodash";
 import words from "data/words.json";
-import Status from "../Status";
 
 const getTodaysDateSeed = () => {
   const today = new Date();
@@ -28,6 +27,16 @@ const shuffleArray = (array) => {
   }
 
   return array;
+};
+
+const puzzleToBoard = (board, puzzle) => {
+  let current = 0;
+  return board.map((tile) => {
+    if (!tile) {
+      return tile;
+    }
+    return { ...tile, letter: puzzle[current++] };
+  });
 };
 
 export const getTodaysWords = () => {
@@ -82,7 +91,7 @@ export const getTodaysWords = () => {
   return puzzle;
 };
 
-export const setupPuzzle = ([w1, w2, w3, w4]) => {
+export const setupPuzzle = ([w1, w2, w3, w4], board) => {
   const target = flatten([
     w4[0],
     w2[0],
@@ -92,7 +101,9 @@ export const setupPuzzle = ([w1, w2, w3, w4]) => {
     w3.split(""),
     w4[4],
     w2[4],
-  ]).map((l) => ({ letter: l, status: Status.Default }));
+  ]);
   const puzzle = shuffleArray(clone(target));
-  return { target, puzzle };
+  const targetBoard = puzzleToBoard(board, target);
+  const puzzleBoard = puzzleToBoard(board, puzzle);
+  return { targetBoard, puzzleBoard };
 };
