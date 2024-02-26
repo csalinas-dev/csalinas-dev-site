@@ -1,5 +1,5 @@
 import { cloneDeep } from "lodash";
-import { updateBoardStatuses } from "./helpers";
+import { saveGame, updateBoardStatuses } from "./helpers";
 import Status from "pages/wordle/Status";
 
 export const swapTiles = (state, tileDroppedOn) => {
@@ -19,6 +19,7 @@ export const swapTiles = (state, tileDroppedOn) => {
     return state;
   }
 
+  let newState;
   const moves = state.moves + 1;
   const newBoard = cloneDeep(board);
   newBoard[tileInHand].letter = board[tileDroppedOn].letter;
@@ -31,7 +32,7 @@ export const swapTiles = (state, tileDroppedOn) => {
     (tile) => !tile || tile.status === Status.Correct
   );
   if (isComplete) {
-    return {
+    newState = {
       ...state,
       moves,
       tileInHand: null,
@@ -42,7 +43,7 @@ export const swapTiles = (state, tileDroppedOn) => {
 
   // Check if the game is lost
   if (moves >= 12) {
-    return {
+    newState = {
       ...state,
       moves,
       tileInHand: null,
@@ -52,10 +53,13 @@ export const swapTiles = (state, tileDroppedOn) => {
   }
 
   // Continue the game
-  return {
+  newState = {
     ...state,
     moves,
     tileInHand: null,
     board: updatedBoard,
   };
+
+  saveGame(newState);
+  return newState;
 };

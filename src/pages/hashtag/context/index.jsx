@@ -34,7 +34,7 @@ export const defaultState = {
 const getInitialState = () => {
   // Get Today's Play
   const today = dateFormat(new Date(), "yyyy-mm-dd");
-  const saved = localStorage.getItem(today);
+  const saved = localStorage.getItem(`HASHTAG-${today}`);
   if (saved) {
     return JSON.parse(saved);
   }

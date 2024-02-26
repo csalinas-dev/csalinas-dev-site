@@ -73,7 +73,7 @@ const getInitialState = () => {
 
   // Get Today's Play
   const today = dateFormat(new Date(), "yyyy-mm-dd");
-  const saved = localStorage.getItem(today);
+  const saved = localStorage.getItem(`WORDLEVERSE-${today}`);
   if (!saved) {
     return state;
   }
