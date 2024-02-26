@@ -1,11 +1,12 @@
 export const puzzleToBoard = (board, puzzle) => {
   let current = 0;
-  const puzzleBoard = board.map((tile) => {
+  return board.map((tile) => {
     if (!tile) {
       return tile;
     }
-    tile.letter = puzzle[current++];
+    const piece = puzzle[current++];
+    tile.letter = piece.letter;
+    tile.status = piece.status;
     return tile;
   });
-  return puzzleBoard;
 };

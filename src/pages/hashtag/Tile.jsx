@@ -1,4 +1,4 @@
-import { useContext, useEffect, useRef } from "react";
+import { useCallback, useContext } from "react";
 import { Context, dragging, swapTiles } from "./context";
 
 const { default: styled } = require("@emotion/styled");
@@ -34,31 +34,28 @@ const Container = styled.div`
 export const Tile = ({ tile, index }) => {
   const { letter, status: className } = tile;
   const { dispatch } = useContext(Context);
-  const ref = useRef(null);
 
-  useEffect(() => {
-    const tileRef = ref.current;
-    if (tileRef) {
-      const dragStart = () => dispatch(dragging(index));
-      const prevDef = (e) => e.preventDefault();
-      const drop = () => dispatch(swapTiles(index));
-      tileRef.addEventListener("dragstart", dragStart);
-      tileRef.addEventListener("dragover", prevDef);
-      tileRef.addEventListener("drop", drop);
+  const onDragStart = useCallback(
+    () => dispatch(dragging(index)),
+    [dispatch, index]
+  );
+  const onDragOver = useCallback((e) => e.preventDefault(), []);
+  const onDrop = useCallback(
+    () => dispatch(swapTiles(index)),
+    [dispatch, index]
+  );
 
-      return () => {
-        tileRef.removeEventListener("dragstart", dragStart);
-        tileRef.removeEventListener("dragover", prevDef);
-        tileRef.removeEventListener("drop", drop);
-      };
-    }
-  }, [ref, dispatch, index]);
-
-  const props = {
-    ref,
-    className,
-    draggable: true,
-  };
-
-  return <Container {...props}>{letter}</Container>;
+  return (
+    <Container
+      {...{
+        className,
+        draggable: true,
+        onDragStart,
+        onDragOver,
+        onDrop,
+      }}
+    >
+      {letter}
+    </Container>
+  );
 };

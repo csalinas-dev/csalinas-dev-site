@@ -1,12 +1,13 @@
-export const swapTiles = (state, droppedOnTile) => {
-  const { tileInHand } = state;
+import { cloneDeep } from "lodash";
 
-  console.log(
-    tileInHand,
-    state.board[tileInHand],
-    droppedOnTile,
-    state.board[droppedOnTile]
-  );
+export const swapTiles = ({ tileInHand, board, ...state }, tileDroppedOn) => {
+  const newBoard = cloneDeep(board);
+  newBoard[tileInHand].letter = board[tileDroppedOn].letter;
+  newBoard[tileDroppedOn].letter = board[tileInHand].letter;
 
-  return state;
+  return {
+    ...state,
+    board: newBoard,
+    tileInHand: null,
+  };
 };

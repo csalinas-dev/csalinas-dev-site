@@ -1,4 +1,4 @@
-import { createContext, useReducer } from "react";
+import { createContext, useMemo, useReducer } from "react";
 import { cloneDeep, flatten, range } from "lodash";
 import dateFormat from "dateformat";
 
@@ -25,17 +25,11 @@ export const initialState = {
   board,
   words: [],
   target: [],
-  puzzle: [],
   tileInHand: null,
   moves: 0,
   win: null,
   error: null,
 };
-
-export const Context = createContext({
-  state: initialState,
-  dispatch: () => {},
-});
 
 const getInitialState = () => {
   // Get Today's Play
@@ -48,22 +42,25 @@ const getInitialState = () => {
   // Load New Game
   const state = cloneDeep(initialState);
   const words = getTodaysWords();
-  const { target, puzzle } = setupPuzzle(state.board, words);
+  const { target, puzzle } = setupPuzzle(words);
   const board = puzzleToBoard(state.board, puzzle);
   return {
     ...state,
     words,
     target,
-    puzzle,
     board,
   };
 };
 
+export const Context = createContext({
+  state: initialState,
+  dispatch: () => {},
+});
+
 export const ContextProvider = ({ children }) => {
   const [state, dispatch] = useReducer(reducer, getInitialState());
-  return (
-    <Context.Provider value={{ state, dispatch }}>{children}</Context.Provider>
-  );
+  const store = useMemo(() => ({ state, dispatch }), [state, dispatch]);
+  return <Context.Provider value={store}>{children}</Context.Provider>;
 };
 
 export * from "./actions";

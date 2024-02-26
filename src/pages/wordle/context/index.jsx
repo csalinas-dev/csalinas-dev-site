@@ -1,4 +1,4 @@
-import { createContext, useReducer } from "react";
+import { createContext, useMemo, useReducer } from "react";
 import { cloneDeep, range } from "lodash";
 import dateFormat from "dateformat";
 
@@ -89,9 +89,8 @@ const getInitialState = () => {
 
 export const ContextProvider = ({ children }) => {
   const [state, dispatch] = useReducer(reducer, getInitialState());
-  return (
-    <Context.Provider value={{ state, dispatch }}>{children}</Context.Provider>
-  );
+  const store = useMemo(() => ({ state, dispatch }), [state, dispatch]);
+  return <Context.Provider value={store}>{children}</Context.Provider>;
 };
 
 export * from "./actions";
