@@ -31,7 +31,7 @@ const Container = styled.div`
   }
 `;
 
-export const Tile = ({ tile }) => {
+export const Tile = ({ tile, index }) => {
   const { letter, status: className } = tile;
   const { dispatch } = useContext(Context);
   const ref = useRef(null);
@@ -39,9 +39,9 @@ export const Tile = ({ tile }) => {
   useEffect(() => {
     const tileRef = ref.current;
     if (tileRef) {
-      const dragStart = () => dispatch(dragging(tile));
+      const dragStart = () => dispatch(dragging(index));
       const prevDef = (e) => e.preventDefault();
-      const drop = () => dispatch(swapTiles(tile));
+      const drop = () => dispatch(swapTiles(index));
       tileRef.addEventListener("dragstart", dragStart);
       tileRef.addEventListener("dragover", prevDef);
       tileRef.addEventListener("drop", drop);
@@ -52,7 +52,7 @@ export const Tile = ({ tile }) => {
         tileRef.removeEventListener("drop", drop);
       };
     }
-  }, [ref, dispatch, tile]);
+  }, [ref, dispatch, index]);
 
   const props = {
     ref,

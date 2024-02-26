@@ -26,7 +26,7 @@ export const Gameboard = () => {
         if (tile === null) {
           return <div key={`spacer-${i}`}></div>;
         }
-        return <Tile key={tile.key} tile={tile} />;
+        return <Tile key={tile.key} tile={tile} index={i} />;
       })}
     </Board>
   );
