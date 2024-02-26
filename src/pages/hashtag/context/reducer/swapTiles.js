@@ -12,5 +12,6 @@ export const swapTiles = ({ tileInHand, board, ...state }, tileDroppedOn) => {
     ...state,
     board: updatedBoard,
     tileInHand: null,
+    moves: state.moves + 1,
   };
 };
