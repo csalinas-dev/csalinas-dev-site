@@ -47,7 +47,7 @@ const keyboard = [
   { key: "28", label: "DELETE", status: Status.Default },
 ];
 
-export const initialState = {
+export const defaultState = {
   board,
   keyboard,
   row: 0,
@@ -61,13 +61,13 @@ export const initialState = {
 };
 
 export const Context = createContext({
-  state: initialState,
+  state: defaultState,
   dispatch: () => {},
 });
 
 // Get initial state (load or create new game)
 const getInitialState = () => {
-  const state = cloneDeep(initialState);
+  const state = cloneDeep(defaultState);
   state.word = getTodaysRandomWord();
   state.expert = localStorage.getItem("expert") === "true";
 
@@ -87,8 +87,10 @@ const getInitialState = () => {
   return newState;
 };
 
+const initialState = getInitialState();
+
 export const ContextProvider = ({ children }) => {
-  const [state, dispatch] = useReducer(reducer, getInitialState());
+  const [state, dispatch] = useReducer(reducer, initialState);
   const store = useMemo(() => ({ state, dispatch }), [state, dispatch]);
   return <Context.Provider value={store}>{children}</Context.Provider>;
 };

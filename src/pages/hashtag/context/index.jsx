@@ -21,7 +21,7 @@ const board = flatten(
   )
 );
 
-export const initialState = {
+export const defaultState = {
   board,
   words: [],
   target: [],
@@ -40,7 +40,7 @@ const getInitialState = () => {
   }
 
   // Load New Game
-  const state = cloneDeep(initialState);
+  const state = cloneDeep(defaultState);
   state.words = getTodaysWords();
   const { targetBoard: target, puzzleBoard } = setupPuzzle(
     state.words,
@@ -51,13 +51,15 @@ const getInitialState = () => {
   return state;
 };
 
+const initialState = getInitialState();
+
 export const Context = createContext({
   state: initialState,
   dispatch: () => {},
 });
 
 export const ContextProvider = ({ children }) => {
-  const [state, dispatch] = useReducer(reducer, getInitialState());
+  const [state, dispatch] = useReducer(reducer, initialState);
   const store = useMemo(() => ({ state, dispatch }), [state, dispatch]);
   return <Context.Provider value={store}>{children}</Context.Provider>;
 };
