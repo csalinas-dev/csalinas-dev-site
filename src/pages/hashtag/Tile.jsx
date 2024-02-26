@@ -9,12 +9,15 @@ const Container = styled.div`
   background-color: var(--selectionBackground);
   border-radius: 10%;
   box-shadow: 0.025rem 0.05rem 0.2rem rgba(0, 0, 0, 0.5);
-  cursor: move;
   display: flex;
   justify-content: center;
   overflow: hidden;
   text-shadow: 1px 1px var(--background);
   user-select: none;
+
+  &.draggable {
+    cursor: grab;
+  }
 
   &.absent {
     background-color: var(--absentBackground);
@@ -33,7 +36,12 @@ const Container = styled.div`
 
 export const Tile = ({ tile, index }) => {
   const { letter, status: className } = tile;
-  const { dispatch } = useContext(Context);
+  const {
+    state: { win },
+    dispatch,
+  } = useContext(Context);
+
+  const props = { className };
 
   const onDragStart = useCallback(
     () => dispatch(dragging(index)),
@@ -45,17 +53,13 @@ export const Tile = ({ tile, index }) => {
     [dispatch, index]
   );
 
-  return (
-    <Container
-      {...{
-        className,
-        draggable: true,
-        onDragStart,
-        onDragOver,
-        onDrop,
-      }}
-    >
-      {letter}
-    </Container>
-  );
+  if (win === null) {
+    props.className += " draggable";
+    props.draggable = true;
+    props.onDragStart = onDragStart;
+    props.onDragOver = onDragOver;
+    props.onDrop = onDrop;
+  }
+
+  return <Container {...props}>{letter}</Container>;
 };
