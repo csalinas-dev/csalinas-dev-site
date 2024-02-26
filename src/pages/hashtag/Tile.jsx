@@ -1,5 +1,6 @@
 import { useCallback, useContext } from "react";
 import { Context, dragging, swapTiles } from "./context";
+import { useResponsiveTile } from "./hooks";
 
 const { default: styled } = require("@emotion/styled");
 
@@ -40,8 +41,15 @@ export const Tile = ({ tile, index }) => {
     state: { win },
     dispatch,
   } = useContext(Context);
+  const { ref, size } = useResponsiveTile();
 
-  const props = { className };
+  const fontSize = size * 0.75;
+  const style = {
+    fontSize: fontSize,
+    lineHeight: `${fontSize}px`,
+  };
+
+  const props = { className, style, ref };
 
   const onDragStart = useCallback(
     () => dispatch(dragging(index)),

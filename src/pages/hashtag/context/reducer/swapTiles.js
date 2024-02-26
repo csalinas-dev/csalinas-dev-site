@@ -20,16 +20,6 @@ export const swapTiles = (state, tileDroppedOn) => {
   }
 
   const moves = state.moves + 1;
-  if (moves >= 12) {
-    return {
-      ...state,
-      moves,
-      tileInHand: null,
-      win: false,
-      board: state.target,
-    };
-  }
-
   const newBoard = cloneDeep(board);
   newBoard[tileInHand].letter = board[tileDroppedOn].letter;
   newBoard[tileDroppedOn].letter = board[tileInHand].letter;
@@ -50,6 +40,18 @@ export const swapTiles = (state, tileDroppedOn) => {
     };
   }
 
+  // Check if the game is lost
+  if (moves >= 12) {
+    return {
+      ...state,
+      moves,
+      tileInHand: null,
+      win: false,
+      board: state.target,
+    };
+  }
+
+  // Continue the game
   return {
     ...state,
     moves,
