@@ -1,5 +1,5 @@
 import { createContext, useReducer } from "react";
-import { cloneDeep, range } from "lodash";
+import { cloneDeep, flatten, range } from "lodash";
 import dateFormat from "dateformat";
 
 import Status from "../Status";
@@ -7,15 +7,17 @@ import { setupPuzzle, getTodaysWords } from "./random";
 import reducer from "./reducer";
 import { puzzleToBoard } from "./reducer/helpers";
 
-const board = range(5).map((_, row) =>
-  range(5).map((_, col) =>
-    row % 2 === 1 || col % 2 === 1
-      ? {
-          key: `${row}${col}`,
-          letter: "",
-          status: Status.Default,
-        }
-      : null
+const board = flatten(
+  range(5).map((_, row) =>
+    range(5).map((_, col) =>
+      row % 2 === 1 || col % 2 === 1
+        ? {
+            key: `${row}${col}`,
+            letter: "",
+            status: Status.Default,
+          }
+        : null
+    )
   )
 );
 
@@ -24,7 +26,10 @@ export const initialState = {
   words: [],
   target: [],
   puzzle: [],
+  tileInHand: null,
   moves: 0,
+  win: null,
+  error: null,
 };
 
 export const Context = createContext({

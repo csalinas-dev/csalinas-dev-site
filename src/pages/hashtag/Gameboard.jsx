@@ -1,7 +1,8 @@
 import styled from "@emotion/styled";
 import { useContext } from "react";
-import { Context } from "./context";
 import { map } from "lodash";
+import { Context } from "./context";
+import { Tile } from "./Tile";
 
 const Board = styled.div`
   aspect-ratio: 1 / 1;
@@ -14,52 +15,19 @@ const Board = styled.div`
   width: calc(100% - 2rem);
 `;
 
-const Tile = styled.div`
-  align-items: center;
-  aspect-ratio: 1 / 1;
-  background-color: var(--selectionBackground);
-  border-radius: 10%;
-  box-shadow: 0.025rem 0.05rem 0.2rem rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  overflow: hidden;
-  text-shadow: 1px 1px var(--background);
-  user-select: none;
-
-  &.absent {
-    background-color: var(--absentBackground);
-    color: rgba(204, 204, 204, 0.54);
-  }
-
-  &.present {
-    background-color: var(--selector);
-    color: var(--background);
-  }
-
-  &.correct {
-    background-color: var(--comment);
-  }
-`;
-
 export const Gameboard = () => {
   const {
     state: { board },
   } = useContext(Context);
 
-  const letterToTile = (tile, i) => {
-    if (tile === null) {
-      // Empty Space
-      return <div key={`spacer-${i}`}></div>;
-    }
-
-    const { key, letter, status: className } = tile;
-
-    const props = {
-      key,
-      className,
-    };
-    return <Tile {...props}>{letter}</Tile>;
-  };
-
-  return <Board>{map(board, (tile) => map(tile, letterToTile))}</Board>;
+  return (
+    <Board>
+      {map(board, (tile, i) => {
+        if (tile === null) {
+          return <div key={`spacer-${i}`}></div>;
+        }
+        return <Tile key={tile.key} tile={tile} />;
+      })}
+    </Board>
+  );
 };
