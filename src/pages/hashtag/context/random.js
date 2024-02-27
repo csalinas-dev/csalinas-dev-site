@@ -1,12 +1,9 @@
-import { clone, filter, flatten } from "lodash";
+import { clone, filter, flatten, get } from "lodash";
+import dateFormat from "dateformat";
 import words from "data/words.json";
 
-const getTodaysDateSeed = () => {
-  const today = new Date();
-  return (
-    today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate()
-  );
-};
+const getTodaysDateSeed = () => parseInt(dateFormat(new Date(), "yyyymmdd"));
+const getRandomSeed = () => Math.floor(Math.random() * 10000000);
 
 const seededRandom = (seed) => {
   const a = 1664525;
@@ -17,30 +14,17 @@ const seededRandom = (seed) => {
   return seed / m;
 };
 
-const shuffleArray = (array) => {
-  let seed = getTodaysDateSeed();
-
+const shuffleArray = (array, seed) => {
   for (let i = array.length - 1; i > 0; i--) {
     let random = seededRandom(seed + i);
     let j = Math.floor(random * (i + 1));
     [array[i], array[j]] = [array[j], array[i]];
   }
-
   return array;
 };
 
-const puzzleToBoard = (board, puzzle) => {
-  let current = 0;
-  return board.map((tile) => {
-    if (!tile) {
-      return tile;
-    }
-    return { ...tile, letter: puzzle[current++] };
-  });
-};
-
-export const getTodaysWords = () => {
-  const sWords = shuffleArray(clone(words));
+const generate = (seed) => {
+  const sWords = shuffleArray(clone(words), seed);
 
   const getWords = (w1 = null, w2 = null, w3 = null, w4 = null) => {
     if (w4) {
@@ -91,7 +75,20 @@ export const getTodaysWords = () => {
   return puzzle;
 };
 
-export const setupPuzzle = ([w1, w2, w3, w4], board) => {
+export const getTodaysWords = () => generate(getTodaysDateSeed());
+export const getRandomWords = () => generate(getRandomSeed());
+
+const puzzleToBoard = (board, puzzle) => {
+  let current = 0;
+  return board.map((tile) => {
+    if (!tile) {
+      return tile;
+    }
+    return { ...tile, letter: puzzle[current++] };
+  });
+};
+
+export const setupPuzzle = ([w1, w2, w3, w4], board, today) => {
   const target = flatten([
     w4[0],
     w2[0],
@@ -102,7 +99,10 @@ export const setupPuzzle = ([w1, w2, w3, w4], board) => {
     w4[4],
     w2[4],
   ]);
-  const puzzle = shuffleArray(clone(target));
+  const puzzle = shuffleArray(
+    clone(target),
+    today ? getTodaysDateSeed() : getRandomSeed()
+  );
   const targetBoard = puzzleToBoard(board, target);
   const puzzleBoard = puzzleToBoard(board, puzzle);
   return { targetBoard, puzzleBoard };

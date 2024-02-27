@@ -5,22 +5,20 @@ import Status from "pages/wordle/Status";
 export const swapTiles = (state, tileDroppedOn) => {
   const { tileInHand, board } = state;
   if (tileInHand === tileDroppedOn) {
-    // TODO: Error "You can't swap a tile with itself."
     //   Perhaps this error shakes the tile in hand.
-    return state;
+    return { ...state, error: "You can't swap a tile with itself." };
   }
 
   if (
     board[tileInHand].status === Status.Correct ||
     board[tileDroppedOn].status === Status.Correct
   ) {
-    // TODO: Error "You can't swap a correct tile."
     //   Perhaps this error shakes the tile in hand.
-    return state;
+    return { ...state, error: "You can't swap a correct tile." };
   }
 
   let newState;
-  const moves = state.moves + 1;
+  const moves = state.moves - 1;
   const newBoard = cloneDeep(board);
   newBoard[tileInHand].letter = board[tileDroppedOn].letter;
   newBoard[tileDroppedOn].letter = board[tileInHand].letter;
@@ -38,17 +36,16 @@ export const swapTiles = (state, tileDroppedOn) => {
       win: true,
       board: updatedBoard,
     };
-  } else if (moves >= 12) {
-    // Check if the game is lost
+  } else if (moves <= 0) {
     newState = {
       ...state,
       moves,
       tileInHand: null,
       win: false,
       board: state.target,
+      shareBoard: updatedBoard,
     };
   } else {
-    // Continue the game
     newState = {
       ...state,
       moves,

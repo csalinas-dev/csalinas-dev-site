@@ -42,7 +42,7 @@ export const Toolbar = () => {
   return (
     <Container>
       <div>Hashtag</div>
-      <div>{12 - moves} moves left</div>
+      <div>{moves} moves left</div>
       <div>
         <Link to="instructions">
           <i className="fa-regular fa-circle-question" /> How to Play

@@ -1,9 +1,10 @@
-import { Fragment, useEffect } from "react";
+import { useEffect } from "react";
 import styled from "@emotion/styled";
 
 import "./polyfills/draggable";
 
 import { ContextProvider } from "./context";
+import Alerts from "./Alerts";
 import { Gameboard } from "./Gameboard";
 import { Toolbar } from "./Toolbar";
 
@@ -24,14 +25,13 @@ export const Hashtag = () => {
   });
 
   return (
-    <Fragment>
-      <ContextProvider>
-        <Container>
-          <Toolbar />
-          <Gameboard />
-        </Container>
-      </ContextProvider>
-    </Fragment>
+    <ContextProvider>
+      <Container>
+        <Alerts />
+        <Toolbar />
+        <Gameboard />
+      </Container>
+    </ContextProvider>
   );
 };
 

@@ -23,10 +23,12 @@ const board = flatten(
 
 export const defaultState = {
   board,
+  shareBoard: [],
   words: [],
   target: [],
   tileInHand: null,
-  moves: 0,
+  moves: 12,
+  title: null,
   win: null,
   error: null,
 };
@@ -44,7 +46,8 @@ const getInitialState = () => {
   state.words = getTodaysWords();
   const { targetBoard: target, puzzleBoard } = setupPuzzle(
     state.words,
-    state.board
+    state.board,
+    true
   );
   state.target = target;
   state.board = updateBoardStatuses(state, puzzleBoard);
@@ -65,3 +68,4 @@ export const ContextProvider = ({ children }) => {
 };
 
 export * from "./actions";
+export * from "./random";
