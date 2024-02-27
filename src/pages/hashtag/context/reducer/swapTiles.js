@@ -4,6 +4,11 @@ import Status from "pages/wordle/Status";
 
 export const swapTiles = (state, tileDroppedOn) => {
   const { tileInHand, board, title } = state;
+
+  if (state.moves <= 0) {
+    return { ...state, moves: 0 };
+  }
+
   if (tileInHand === tileDroppedOn) {
     //   Perhaps this error shakes the tile in hand.
     return { ...state, error: "You can't swap a tile with itself." };

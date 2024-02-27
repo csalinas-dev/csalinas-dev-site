@@ -1,6 +1,7 @@
 import { useCallback, useContext } from "react";
 import { Context, dragging, swapTiles } from "./context";
 import { useResponsiveTile } from "./hooks";
+import Status from "./Status";
 
 const { default: styled } = require("@emotion/styled");
 
@@ -38,7 +39,7 @@ const Container = styled.div`
 export const Tile = ({ tile, index }) => {
   const { letter, status: className } = tile;
   const {
-    state: { win },
+    state: { win, moves },
     dispatch,
   } = useContext(Context);
   const { ref, size } = useResponsiveTile();
@@ -61,7 +62,7 @@ export const Tile = ({ tile, index }) => {
     [dispatch, index]
   );
 
-  if (win === null) {
+  if (win === null && moves > 0 && className !== Status.Correct) {
     props.className += " draggable";
     props.draggable = true;
     props.onDragStart = onDragStart;
