@@ -23,6 +23,13 @@ const Container = styled.div`
     flex-flow: row nowrap;
     flex: 1 1 0;
     justify-content: center;
+    padding: 0 0.5rem;
+    white-space: nowrap;
+
+    @media (max-width: 600px) {
+      font-size: 0.8rem;
+      padding: 0 0.25rem;
+    }
 
     &:first-of-type {
       justify-content: start;

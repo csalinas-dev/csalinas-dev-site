@@ -51,7 +51,7 @@ export const Splash = () => (
         <i className="fa-solid fa-fw fa-grip" /> Wordleverse
       </Link>
       <Link to="/hashtag">
-        <i className="fa-solid fa-hashtag" /> Hashtag
+        <i className="fa-solid fa-fw fa-hashtag" /> Hashtag
       </Link>
     </Navigation>
   </Section>
