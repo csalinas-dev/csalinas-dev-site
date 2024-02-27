@@ -1,4 +1,4 @@
-import { clone, filter, flatten, get } from "lodash";
+import { clone, filter, flatten } from "lodash";
 import dateFormat from "dateformat";
 import words from "data/words.json";
 
@@ -42,7 +42,7 @@ const generate = (seed) => {
     }
 
     if (!w2) {
-      const f = filter(sWords, (w) => w[1] === w1[3]);
+      const f = filter(sWords, (w) => w[1] === w1[3] && w !== w1);
       for (let i = 0; i < f.length; i++) {
         const next = getWords(w1, f[i]);
         if (next) {
@@ -53,7 +53,7 @@ const generate = (seed) => {
     }
 
     if (!w3) {
-      const f = filter(sWords, (w) => w[3] === w2[3]);
+      const f = filter(sWords, (w) => w[3] === w2[3] && w !== w1 && w !== w2);
       for (let i = 0; i < f.length; i++) {
         const next = getWords(w1, w2, f[i]);
         if (next) {
@@ -63,7 +63,11 @@ const generate = (seed) => {
       return null;
     }
 
-    const f = filter(sWords, (w) => w[1] === w1[1] && w[3] === w3[1]);
+    const f = filter(
+      sWords,
+      (w) =>
+        w[1] === w1[1] && w[3] === w3[1] && w !== w1 && w !== w2 && w !== w3
+    );
     if (!f.length) {
       return null;
     }

@@ -12,5 +12,6 @@ export const playAgain = () => {
   );
   state.target = target;
   state.board = updateBoardStatuses(state, puzzleBoard);
+  state.title = "Random";
   return state;
 };

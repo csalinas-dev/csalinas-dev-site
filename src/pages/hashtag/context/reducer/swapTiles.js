@@ -3,7 +3,7 @@ import { saveGame, updateBoardStatuses } from "./helpers";
 import Status from "pages/wordle/Status";
 
 export const swapTiles = (state, tileDroppedOn) => {
-  const { tileInHand, board } = state;
+  const { tileInHand, board, title } = state;
   if (tileInHand === tileDroppedOn) {
     //   Perhaps this error shakes the tile in hand.
     return { ...state, error: "You can't swap a tile with itself." };
@@ -54,6 +54,8 @@ export const swapTiles = (state, tileDroppedOn) => {
     };
   }
 
-  saveGame(newState);
+  if (!title) {
+    saveGame(newState);
+  }
   return newState;
 };
