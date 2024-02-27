@@ -8,7 +8,7 @@ import {
   Section,
   String,
   Var,
-} from "../../components";
+} from "components";
 
 export const About = () => {
   const birthdate = new Date(1995, 7, 13);

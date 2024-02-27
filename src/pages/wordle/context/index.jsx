@@ -1,4 +1,4 @@
-import { createContext, useReducer } from "react";
+import { createContext, useMemo, useReducer } from "react";
 import { cloneDeep, range } from "lodash";
 import dateFormat from "dateformat";
 
@@ -47,7 +47,7 @@ const keyboard = [
   { key: "28", label: "DELETE", status: Status.Default },
 ];
 
-export const initialState = {
+export const defaultState = {
   board,
   keyboard,
   row: 0,
@@ -61,19 +61,19 @@ export const initialState = {
 };
 
 export const Context = createContext({
-  state: initialState,
+  state: defaultState,
   dispatch: () => {},
 });
 
 // Get initial state (load or create new game)
 const getInitialState = () => {
-  const state = cloneDeep(initialState);
+  const state = cloneDeep(defaultState);
   state.word = getTodaysRandomWord();
   state.expert = localStorage.getItem("expert") === "true";
 
   // Get Today's Play
   const today = dateFormat(new Date(), "yyyy-mm-dd");
-  const saved = localStorage.getItem(today);
+  const saved = localStorage.getItem(`WORDLEVERSE-${today}`);
   if (!saved) {
     return state;
   }
@@ -87,11 +87,12 @@ const getInitialState = () => {
   return newState;
 };
 
+const initialState = getInitialState();
+
 export const ContextProvider = ({ children }) => {
-  const [state, dispatch] = useReducer(reducer, getInitialState());
-  return (
-    <Context.Provider value={{ state, dispatch }}>{children}</Context.Provider>
-  );
+  const [state, dispatch] = useReducer(reducer, initialState);
+  const store = useMemo(() => ({ state, dispatch }), [state, dispatch]);
+  return <Context.Provider value={store}>{children}</Context.Provider>;
 };
 
 export * from "./actions";

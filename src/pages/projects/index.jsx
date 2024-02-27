@@ -2,7 +2,7 @@ import { useQuery, gql } from "@apollo/client";
 import styled from "@emotion/styled";
 import { Link } from "react-router-dom";
 
-import { FormattedDate, Section, Title } from "../../components";
+import { FormattedDate, Section, Title } from "components";
 
 const PROJECTS = gql`
   {

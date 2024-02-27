@@ -1,4 +1,4 @@
-import words from "./words.json";
+import words from "data/words.json";
 
 const getTodaysDateSeed = () => {
   const today = new Date();

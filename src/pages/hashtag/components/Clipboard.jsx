@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useCallback, useContext, useState } from "react";
 import styled from "@emotion/styled";
 import dateFormat from "dateformat";
 import { filter, map } from "lodash";
@@ -33,54 +33,57 @@ const Copied = styled.span`
 const symbols = {
   correct: "🟩",
   present: "🟨",
-  absent: "⬛",
+  absent: "⬜",
+  default: "▪️",
 };
 
-const convertWordleToText = (board, expert) => {
-  // Convert current board to grid of statuses
-  const grid = filter(
-    map(board, (row) => map(row, (cell) => cell.status)),
-    (row) => row.some((cell) => cell !== Status.Default)
-  );
+const getStars = (left) => {
+  const moves = 12 - left;
+  if (moves <= 6) {
+    return "⭐⭐⭐";
+  }
+  if (moves <= 9) {
+    return "⭐⭐";
+  }
+  return "⭐";
+};
 
-  // Metadata
-  let attemptCount = grid.length;
-  let isWin = grid.some((row) => row.every((cell) => cell === Status.Correct));
-
-  // Title
+const getWinText = (moves) => {
   const now = new Date();
   const date = dateFormat(now, "mmmm dS, yyyy");
-  let result = `${date}\n`;
-  result += "Wordleverse ";
-  result += isWin ? attemptCount : "X";
-  result += "/6";
-  result += expert ? "*" : "";
-  result += "\n\n";
+  let result = `${date}\nHashtag ${getStars(moves)}\n`;
+  result += `You won in ${12 - moves} moves!`;
+  return result;
+};
 
-  // Convert statuses to symbols
-  result += map(grid, (row) =>
-    map(row, (cell) => symbols[cell] || "⬛").join("")
-  ).join("\n");
+const getLossText = (board) => {
+  const now = new Date();
+  const date = dateFormat(now, "mmmm dS, yyyy");
+  let result = `${date}\nHashtag ❌\n\n`;
+  result += map(board, (cell, i) => {
+    const status = cell?.status ?? Status.Default;
+    let t = symbols[status];
+    if (i % 5 === 4 && i !== board.lenght - 1) {
+      t += "\n";
+    }
+    return t;
+  }).join("");
 
   return result;
 };
 
 export const Clipboard = () => {
   const {
-    state: { board, expert },
+    state: { shareBoard: board, moves, win },
   } = useContext(Context);
   const [copied, setCopied] = useState(null);
 
-  const copyToClipboard = (text) => {
+  const handleShare = useCallback(() => {
+    const text = win ? getWinText(moves) : getLossText(board);
     navigator.clipboard.writeText(text).then(() => {
       setCopied(true);
     });
-  };
-
-  const handleShare = () => {
-    const wordleText = convertWordleToText(board, expert);
-    copyToClipboard(wordleText);
-  };
+  }, [board, moves, win, setCopied]);
 
   if (copied) {
     return (

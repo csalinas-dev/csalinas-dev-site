@@ -10,9 +10,10 @@ import {
   Parenthesis,
   Title,
   Var,
-} from "../../components";
+} from "components";
+import words from "data/words.json";
+
 import { Context, toggleExpert } from "./context";
-import words from "./context/words.json";
 import { Link } from "react-router-dom";
 
 const Container = styled.header`

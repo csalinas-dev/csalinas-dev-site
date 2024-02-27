@@ -1,6 +1,6 @@
 import styled from "@emotion/styled";
-import { Var, String, Section } from "../../components";
 import { Link } from "react-router-dom";
+import { Var, String, Section } from "components";
 
 const Title = styled.h1`
   display: inline-block;
@@ -49,6 +49,9 @@ export const Splash = () => (
       </Link>
       <Link to="/wordleverse">
         <i className="fa-solid fa-fw fa-grip" /> Wordleverse
+      </Link>
+      <Link to="/hashtag">
+        <i className="fa-solid fa-fw fa-hashtag" /> Hashtag
       </Link>
     </Navigation>
   </Section>

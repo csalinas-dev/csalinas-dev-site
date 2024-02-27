@@ -1,9 +1,9 @@
 import { useContext } from "react";
 import styled from "@emotion/styled";
+import { map } from "lodash";
 
 import { Context } from "./context";
 import { useKeyboardInput } from "./hooks";
-import { map } from "lodash";
 
 const Board = styled.div`
   aspect-ratio: 365 / 438;
