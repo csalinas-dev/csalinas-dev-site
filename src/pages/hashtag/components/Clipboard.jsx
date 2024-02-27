@@ -1,7 +1,7 @@
 import { useCallback, useContext, useState } from "react";
 import styled from "@emotion/styled";
 import dateFormat from "dateformat";
-import { filter, map } from "lodash";
+import { map } from "lodash";
 import { Context } from "../context";
 import Status from "../Status";
 
