@@ -12,10 +12,10 @@ const board = flatten(
     range(5).map((_, col) =>
       row % 2 === 1 || col % 2 === 1
         ? {
-            key: `${row}${col}`,
-            letter: "",
-            status: Status.Default,
-          }
+          key: `${row}${col}`,
+          letter: "",
+          status: Status.Default,
+        }
         : null
     )
   )
@@ -27,7 +27,7 @@ export const defaultState = {
   words: [],
   target: [],
   tileInHand: null,
-  moves: 12,
+  moves: 20,
   title: null,
   win: null,
   error: null,
@@ -58,7 +58,7 @@ const initialState = getInitialState();
 
 export const Context = createContext({
   state: initialState,
-  dispatch: () => {},
+  dispatch: () => { },
 });
 
 export const ContextProvider = ({ children }) => {

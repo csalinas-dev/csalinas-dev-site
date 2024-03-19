@@ -38,11 +38,11 @@ const symbols = {
 };
 
 const getStars = (left) => {
-  const moves = 12 - left;
-  if (moves <= 6) {
+  const moves = 20 - left;
+  if (moves <= 10) {
     return "⭐⭐⭐";
   }
-  if (moves <= 9) {
+  if (moves <= 15) {
     return "⭐⭐";
   }
   return "⭐";
@@ -52,7 +52,7 @@ const getWinText = (moves) => {
   const now = new Date();
   const date = dateFormat(now, "mmmm dS, yyyy");
   let result = `${date}\nHashtag ${getStars(moves)}\n`;
-  result += `You won in ${12 - moves} moves!`;
+  result += `You won in ${20 - moves} moves!`;
   return result;
 };
 
