@@ -11,7 +11,7 @@ import {
 } from "components";
 
 export const About = () => {
-  const birthdate = new Date(1995, 7, 13);
+  const birthdate = new Date(1995, 6, 13);
   const ageDate = new Date(Date.now() - birthdate);
   const age = Math.abs(ageDate.getUTCFullYear() - 1970);
 
