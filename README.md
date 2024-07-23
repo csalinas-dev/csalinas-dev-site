@@ -1,11 +1,11 @@
 # Christopher Salinas Portfolio Site
 ### csalinas.dev
 
-This repository contains the source code for the personal website of [Christopher Salinas](https://csalinas.dev/), built using React. It showcases Christopher's projects, blog, and professional journey.
+This repository contains the source code for the personal website of [Christopher Salinas](https://csalinas.dev/), built using Next.js. It showcases Christopher's projects, game rewrites, and professional journey.
 
 ## Features
 
-- **React Framework:** The site is built with React, offering a dynamic and responsive user experience.
+- **Next.js Framework:** The site is built with Next.js, offering enhanced performance and SEO capabilities.
 - **Responsive Design:** Ensures a seamless viewing experience on various devices and screen sizes.
 - **Portfolio Showcase:** Highlights Christopher's projects and accomplishments.
 - **Blog Integration:** Shares insights and experiences in software development.
@@ -36,14 +36,15 @@ This repository contains the source code for the personal website of [Christophe
 
 - Start the development server:
   ```sh
-  npm start
+  npm run dev
   ```
   The application will be available at [http://localhost:3000](http://localhost:3000).
 
 ## Available Scripts
 
-- `npm start`: Runs the app in development mode.
+- `npm run dev`: Runs the app in development mode.
 - `npm run build`: Builds the app for production.
+- `npm start`: Starts the production server.
 
 ## Deployment
 

@@ -2,42 +2,27 @@
   "name": "csalinas-dev",
   "version": "0.1.0",
   "private": true,
-  "base": "./src",
-  "dependencies": {
-    "@apollo/client": "^3.9.5",
-    "@emotion/react": "^11.11.1",
-    "@emotion/styled": "^11.11.0",
-    "dateformat": "^5.0.3",
-    "graphql": "^16.8.1",
-    "lodash": "^4.17.21",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-github-calendar": "^4.0.8",
-    "react-markdown": "^9.0.1",
-    "react-router-dom": "^6.21.1",
-    "react-scripts": "^5.0.1"
-  },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
   },
-  "eslintConfig": {
-    "extends": [
-      "react-app"
-    ]
+  "dependencies": {
+    "@emotion/styled": "^11.13.0",
+    "@next/third-parties": "^14.2.5",
+    "dateformat": "^5.0.3",
+    "graphql-request": "^7.1.0",
+    "lodash": "^4.17.21",
+    "next": "14.2.5",
+    "react": "^18",
+    "react-dom": "^18",
+    "react-github-calendar": "^4.1.6",
+    "react-markdown": "^9.0.1",
+    "sharp": "^0.33.4"
   },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
+  "devDependencies": {
+    "eslint": "^8",
+    "eslint-config-next": "14.2.5"
   }
 }
