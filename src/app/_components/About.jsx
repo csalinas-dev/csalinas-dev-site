@@ -24,14 +24,14 @@ export const About = () => {
           </strong>
         </Comment>
         <p>
-          Hello, I'm <String>Christopher Salinas Jr.</String>, a dedicated{" "}
+          Hello, I&apos;m <String>Christopher Salinas Jr.</String>, a dedicated{" "}
           <Const>software engineer</Const> based in{" "}
           <Function>Albuquerque, NM</Function>. My fascination with computers
-          began at the young age of <Numeric>7</Numeric>, and since then, I've
-          been on a continuous quest to unlock the potential of technology. Now,
-          at <Numeric>{age}</Numeric>, with a rich history in the field since{" "}
-          <Numeric>July 2014</Numeric>, my journey is a testament to passion and
-          perseverance.
+          began at the young age of <Numeric>7</Numeric>, and since then,
+          I&apos;ve been on a continuous quest to unlock the potential of
+          technology. Now, at <Numeric>{age}</Numeric>, with a rich history in
+          the field since <Numeric>July 2014</Numeric>, my journey is a
+          testament to passion and perseverance.
         </p>
       </div>
 
@@ -58,9 +58,9 @@ export const About = () => {
           <Module>Git</Module>, <Module>GitHub</Module>, <Module>Azure</Module>,
           and <Module>VS Code</Module>. Alongside these, I also skillfully
           navigate the creative realms with the <Module>Adobe Suite</Module>.
-          Each tool, whether it's for coding efficiency or creative expression,
-          is wielded with a blend of precision and enthusiasm, reflecting my
-          holistic approach to software development.
+          Each tool, whether it&apos;s for coding efficiency or creative
+          expression, is wielded with a blend of precision and enthusiasm,
+          reflecting my holistic approach to software development.
         </p>
       </div>
 
@@ -68,8 +68,8 @@ export const About = () => {
         <Comment as="h3">A Lens on the World</Comment>
         <p>
           Beyond the world of coding, I pursue my passion for photography,
-          capturing life's fleeting moments and transforming them into eternal
-          memories. You can witness this artistic journey at{" "}
+          capturing life&apos;s fleeting moments and transforming them into
+          eternal memories. You can witness this artistic journey at{" "}
           <a
             href="https://thischristography.com"
             target="_blank"
@@ -85,8 +85,9 @@ export const About = () => {
       <div>
         <Comment as="h3">A Journey Through Education & Experience</Comment>
         <p>
-          My academic path culminated with a <String>Bachelor's degree</String>{" "}
-          in <Const>Computer Science</Const> from the{" "}
+          My academic path culminated with a{" "}
+          <String>Bachelor&apos;s degree</String> in{" "}
+          <Const>Computer Science</Const> from the{" "}
           <Function>University of New Mexico</Function> in{" "}
           <Numeric>December 2020</Numeric>, a milestone achieved amid the global
           challenges of the pandemic. This achievement not only represents my
@@ -113,7 +114,7 @@ export const About = () => {
         <Comment as="h3">Join My Journey</Comment>
         <p>
           My story is one of continuous learning, adapting, and pushing the
-          boundaries of what's possible with technology. Join me on this
+          boundaries of what&apos;s possible with technology. Join me on this
           exciting journey as I continue to explore, create, and innovate, one
           project at a time.
         </p>

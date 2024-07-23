@@ -9,7 +9,7 @@ const theme = {
 export const GitHub = () => (
   <Section id="commits" style={{ minHeight: "100vh" }}>
     <h3>
-      <Comment>I definitely don't have any </Comment>
+      <Comment>I definitely don&apos;t have any </Comment>
       <Function>commit</Function>
       <Comment>ment issues</Comment>
     </h3>

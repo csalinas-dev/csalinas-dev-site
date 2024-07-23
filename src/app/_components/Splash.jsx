@@ -35,7 +35,7 @@ const Navigation = styled.div`
 export const Splash = () => (
   <Section style={{ minHeight: "100vh" }}>
     <Title>
-      <Var>Hello, I'm</Var>
+      <Var>Hello, I&apos;m</Var>
       <br />
       <String>Christopher Salinas Jr</String>
     </Title>

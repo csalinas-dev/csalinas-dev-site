@@ -101,7 +101,7 @@ export const WordleverseInstructions = () => (
           alt="Example of double letters, one correct and one in the wrong spot."
         />
         <p>
-          The word contains two <strong>S</strong>'s. The first is correct, the
+          The word contains two <strong>S</strong>&apos;s. The first is correct, the
           second is in the wrong spot.
         </p>
       </Example>
@@ -114,7 +114,7 @@ export const WordleverseInstructions = () => (
         <p>
           The word contains only one <strong>S</strong>. The first{" "}
           <strong>S</strong> is in the correct position, the second{" "}
-          <strong>S</strong> is not in the word (because there's only one{" "}
+          <strong>S</strong> is not in the word (because there&apos;s only one{" "}
           <strong>S</strong>).
         </p>
       </Example>
