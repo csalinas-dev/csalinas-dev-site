@@ -12,6 +12,7 @@
     "@emotion/styled": "^11.13.0",
     "@next/third-parties": "^14.2.5",
     "dateformat": "^5.0.3",
+    "lodash": "^4.17.21",
     "next": "14.2.5",
     "react": "^18",
     "react-dom": "^18",
