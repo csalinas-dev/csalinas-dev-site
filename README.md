@@ -1,36 +1,57 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Christopher Salinas Portfolio Site
+### csalinas.dev
+
+This repository contains the source code for the personal website of [Christopher Salinas](https://csalinas.dev/), built using Next.js. It showcases Christopher's projects, game rewrites, and professional journey.
+
+## Features
+
+- **Next.js Framework:** The site is built with Next.js, offering enhanced performance and SEO capabilities.
+- **Responsive Design:** Ensures a seamless viewing experience on various devices and screen sizes.
+- **Portfolio Showcase:** Highlights Christopher's projects and accomplishments.
+- **Blog Integration:** Shares insights and experiences in software development.
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- Node.js
+- npm (Node Package Manager)
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Installation
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+1. Clone the repository:
+   ```sh
+   git clone https://github.com/csalinas-dev/csalinas-dev-site.git
+   ```
+2. Navigate to the project directory:
+   ```sh
+   cd csalinas-dev-site
+   ```
+3. Install dependencies:
+   ```sh
+   npm install
+   ```
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+### Running the Application
 
-## Learn More
+- Start the development server:
+  ```sh
+  npm run dev
+  ```
+  The application will be available at [http://localhost:3000](http://localhost:3000).
 
-To learn more about Next.js, take a look at the following resources:
+## Available Scripts
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `npm run dev`: Runs the app in development mode.
+- `npm run build`: Builds the app for production.
+- `npm start`: Starts the production server.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+## Deployment
 
-## Deploy on Vercel
+Triggered by pushing commits to `main`, the site is automatically deployed and hosted on [Render](https://render.com/).
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Contact
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+Christopher Salinas - [chris@csalinas.dev](mailto:chris@csalinas.dev)
+
+Project Link: [https://github.com/csalinas-dev/csalinas-dev-site](https://github.com/csalinas-dev/csalinas-dev-site)
