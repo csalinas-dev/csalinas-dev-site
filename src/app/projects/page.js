@@ -6,9 +6,8 @@ import hygraph from "@/lib/hygraph";
 
 import { Container, Name, Project } from "./components";
 
-export const metadata = {
-  title: "Projects | Christopher Salinas Jr.",
-};
+export const dynamic = "force-dynamic";
+export const metadata = { title: "Projects | Christopher Salinas Jr." };
 
 const getProjects = async () => {
   const query = gql`
