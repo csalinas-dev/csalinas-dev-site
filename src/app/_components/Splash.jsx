@@ -49,13 +49,13 @@ export const Splash = () => (
       <Link href="/wordleverse">
         <i className="fa-solid fa-fw fa-grip" /> Wordleverse
       </Link>
+      <Link href="/hashtag">
+        <i className="fa-solid fa-fw fa-hashtag" /> Hashtag
+      </Link>
     </Navigation>
   </Section>
 );
 
-      // <Link href="/projects">
-      //   <i className="fa-solid fa-fw fa-box-archive" /> Projects
-      // </Link>
-      // <Link href="/hashtag">
-      //   <i className="fa-solid fa-fw fa-hashtag" /> Hashtag
-      // </Link>
+// <Link href="/projects">
+//   <i className="fa-solid fa-fw fa-box-archive" /> Projects
+// </Link>

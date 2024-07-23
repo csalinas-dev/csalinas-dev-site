@@ -4,13 +4,13 @@ const Game = dynamic(() => import("./Game"), { ssr: false });
 import { ContextProvider } from "./context";
 
 export const metadata = {
-  title: "Wordleverse | Christopher Salinas Jr.",
+  title: "Hashtag | Christopher Salinas Jr.",
 };
 
-export const Wordleverse = () => (
+export const Hashtag = () => (
   <ContextProvider>
     <Game />
   </ContextProvider>
 );
 
-export default Wordleverse;
+export default Hashtag;

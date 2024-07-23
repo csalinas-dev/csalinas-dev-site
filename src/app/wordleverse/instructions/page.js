@@ -66,6 +66,7 @@ export const WordleverseInstructions = () => (
       <Var as="h4">Examples</Var>
       <Example>
         <Image
+          placeholder="blur"
           src={correct}
           alt="Example of a correct letter within a Wordleverse guess."
         />
@@ -75,6 +76,7 @@ export const WordleverseInstructions = () => (
       </Example>
       <Example>
         <Image
+          placeholder="blur"
           src={present}
           alt="Example of a letter that is present in a Wordleverse guess."
         />
@@ -84,6 +86,7 @@ export const WordleverseInstructions = () => (
       </Example>
       <Example>
         <Image
+          placeholder="blur"
           src={absent}
           alt="Example of a letter that not in a Wordleverse guess."
         />
@@ -93,6 +96,7 @@ export const WordleverseInstructions = () => (
       </Example>
       <Example>
         <Image
+          placeholder="blur"
           src={doublePresent}
           alt="Example of double letters, one correct and one in the wrong spot."
         />
@@ -103,6 +107,7 @@ export const WordleverseInstructions = () => (
       </Example>
       <Example>
         <Image
+          placeholder="blur"
           src={doubleAbsent}
           alt="Example of double letters, one correct and one absent."
         />
@@ -158,6 +163,7 @@ export const WordleverseInstructions = () => (
       </p>
       <Example>
         <Image
+          placeholder="blur"
           src={concede}
           alt="If you wish to concede, type IQUIT to forfeit and reveal the word."
         />
