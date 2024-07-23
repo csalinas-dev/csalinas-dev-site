@@ -40,6 +40,29 @@ const Toolbar = styled.div`
   position: absolute;
   right: -1rem;
   top: -1rem;
+
+  > div {
+    align-items: center;
+    display: flex;
+    flex-flow: row nowrap;
+    flex: 1 1 0;
+    justify-content: center;
+    padding: 0 0.5rem;
+    white-space: nowrap;
+
+    @media (max-width: 600px) {
+      font-size: 0.8rem;
+      padding: 0 0.25rem;
+    }
+
+    &:first-of-type {
+      justify-content: start;
+    }
+
+    &:last-of-type {
+      justify-content: end;
+    }
+  }
 `;
 
 const Toggle = styled.span`
@@ -70,12 +93,14 @@ const Header = () => {
   return (
     <Container>
       <Toolbar>
-        <Link href="/wordleverse/instructions">
-          <i className="fa-regular fa-circle-question" /> How to Play
-        </Link>
+        <div>Wordleverse</div>
+        <div>{titleContent}</div>
+        <div>
+          <Link href="/wordleverse/instructions">
+            <i className="fa-regular fa-circle-question" /> How to Play
+          </Link>
+        </div>
       </Toolbar>
-      <Title>Wordleverse</Title>
-      {titleContent}
       {row === 0 && (
         <Toggle onClick={() => dispatch(toggleExpert())}>
           <Function>expertMode</Function>
