@@ -1,7 +1,8 @@
 "use client";
 
+import Image from "next/image";
+import Link from "next/link";
 import styled from "@emotion/styled";
-import { Link } from "react-router-dom";
 import { Fragment } from "react";
 
 import {
@@ -48,7 +49,7 @@ const Example = styled.div`
 export const WordleverseInstructions = () => (
   <Fragment>
     <Container>
-      <Link to="/wordleverse">
+      <Link href="/wordleverse">
         <i className="fas fa-chevron-left" /> Back to Wordleverse
       </Link>
       <Title>Wordleverse</Title>
@@ -64,7 +65,7 @@ export const WordleverseInstructions = () => (
       </ul>
       <Var as="h4">Examples</Var>
       <Example>
-        <img
+        <Image
           src={correct}
           alt="Example of a correct letter within a Wordleverse guess."
         />
@@ -73,7 +74,7 @@ export const WordleverseInstructions = () => (
         </p>
       </Example>
       <Example>
-        <img
+        <Image
           src={present}
           alt="Example of a letter that is present in a Wordleverse guess."
         />
@@ -82,7 +83,7 @@ export const WordleverseInstructions = () => (
         </p>
       </Example>
       <Example>
-        <img
+        <Image
           src={absent}
           alt="Example of a letter that not in a Wordleverse guess."
         />
@@ -91,7 +92,7 @@ export const WordleverseInstructions = () => (
         </p>
       </Example>
       <Example>
-        <img
+        <Image
           src={doublePresent}
           alt="Example of double letters, one correct and one in the wrong spot."
         />
@@ -101,7 +102,7 @@ export const WordleverseInstructions = () => (
         </p>
       </Example>
       <Example>
-        <img
+        <Image
           src={doubleAbsent}
           alt="Example of double letters, one correct and one absent."
         />
@@ -156,7 +157,7 @@ export const WordleverseInstructions = () => (
         any more words and you wish to concede, just type:
       </p>
       <Example>
-        <img
+        <Image
           src={concede}
           alt="If you wish to concede, type IQUIT to forfeit and reveal the word."
         />
@@ -164,3 +165,5 @@ export const WordleverseInstructions = () => (
     </Container>
   </Fragment>
 );
+
+export default WordleverseInstructions;

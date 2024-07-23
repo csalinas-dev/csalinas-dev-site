@@ -70,7 +70,7 @@ const Header = () => {
   return (
     <Container>
       <Toolbar>
-        <Link href="instructions">
+        <Link href="/wordleverse/instructions">
           <i className="fa-regular fa-circle-question" /> How to Play
         </Link>
       </Toolbar>
