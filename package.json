@@ -1,0 +1,24 @@
+{
+  "name": "csalinas-dev",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@emotion/styled": "^11.13.0",
+    "@next/third-parties": "^14.2.5",
+    "dateformat": "^5.0.3",
+    "next": "14.2.5",
+    "react": "^18",
+    "react-dom": "^18",
+    "react-github-calendar": "^4.1.6"
+  },
+  "devDependencies": {
+    "eslint": "^8",
+    "eslint-config-next": "14.2.5"
+  }
+}
