@@ -46,6 +46,9 @@ export const Splash = () => (
       <a href="#commits">
         <i className="fa-solid fa-fw fa-code-commit" /> Commits
       </a>
+      <Link href="/projects">
+        <i className="fa-solid fa-fw fa-box-archive" /> Projects
+      </Link>
       <Link href="/wordleverse">
         <i className="fa-solid fa-fw fa-grip" /> Wordleverse
       </Link>
@@ -55,7 +58,3 @@ export const Splash = () => (
     </Navigation>
   </Section>
 );
-
-// <Link href="/projects">
-//   <i className="fa-solid fa-fw fa-box-archive" /> Projects
-// </Link>

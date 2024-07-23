@@ -1,4 +1,6 @@
-import { Splash, About, GitHub } from "./_components";
+import { About } from "./About";
+import { GitHub } from "./GitHub";
+import { Splash } from "./Splash";
 
 export default function Home() {
   return (
