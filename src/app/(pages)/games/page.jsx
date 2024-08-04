@@ -77,6 +77,7 @@ const CardTitle = styled.div`
   position: absolute;
   right: 0;
   top: 0;
+  user-select: none;
 
   @media (min-width: 500px) {
     font-size: 1.5rem;
