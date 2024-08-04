@@ -104,7 +104,7 @@ export default function Page() {
     <Section>
       <Title>Games</Title>
       <Container>
-        <Card className="wordle" href="/games/wordle">
+        <Card className="wordle" href="/games/wordleverse">
           <CardImage
             alt="Wordleverse Screenshot"
             fill

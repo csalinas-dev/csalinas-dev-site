@@ -69,6 +69,7 @@ export const ImageContainer = styled.div`
 
 export const Image = styled(NextImage)`
   object-fit: contain;
+  user-select: none;
 `;
 
 export const Title = styled.h2`
