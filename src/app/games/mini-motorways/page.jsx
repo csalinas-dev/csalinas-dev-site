@@ -15,6 +15,8 @@ import {
   Title,
 } from "./styled";
 
+export const dynamic = "force-dynamic";
+
 const getMiniMotorways = async () => {
   const query = gql`
     {
@@ -41,7 +43,7 @@ export default async function Page() {
   const miniMotorways = await getMiniMotorways();
   return (
     <Section>
-      <Link href="/" style={{ marginBottom: "2rem;" }}>
+      <Link href="/" style={{ marginBottom: "2rem" }}>
         <i className="fas fa-chevron-left" /> Back to Home
       </Link>
       <PageTitle style={{ marginBottom: "2rem" }}>Mini Motorways</PageTitle>
