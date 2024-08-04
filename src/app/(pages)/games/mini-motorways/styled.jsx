@@ -20,6 +20,7 @@ export const Container = styled.div`
 
 export const Card = styled.div`
   aspect-ratio: 2 / 4;
+  background-color: var(--selectionBackground);
   border-radius: 2rem;
   box-shadow: 0 8px 10px 1px rgba(0, 0, 0, 0.14),
     0 3px 14px 2px rgba(0, 0, 0, 0.12), 0 5px 5px -3px rgba(0, 0, 0, 0.2);
@@ -50,8 +51,9 @@ export const Map = styled.div`
   width: 100%;
 
   @media (min-width: 896px) {
+    gap: 1.25rem;
     height: 100%;
-    padding: 2rem;
+    padding: 1.25rem;
     width: auto;
   }
 `;

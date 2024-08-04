@@ -59,7 +59,7 @@ export const Project = styled(Link)`
     }
 
     @media (min-width: 896px) {
-      font-size: 3.5rem;
+      font-size: 3rem;
     }
 
     @media (min-width: 1296px) {

@@ -1,7 +1,8 @@
 "use client";
 
 import styled from "@emotion/styled";
-import { Invalid, Section } from "@/components";
+import { Invalid, Nav, Section } from "@/components";
+import { Fragment } from "react";
 
 const Container = styled.h1`
   display: inline-block;
@@ -18,12 +19,15 @@ const Container = styled.h1`
 
 export default function NotFound() {
   return (
-    <Section style={{ minHeight: "100vh" }}>
-      <Container>
-        <Invalid>404 Error</Invalid>
-        <br />
-        <span>Route not found</span>
-      </Container>
-    </Section>
+    <Fragment>
+      <Nav />
+      <Section style={{ flex: "1 1 0px" }}>
+        <Container>
+          <Invalid>404 Error</Invalid>
+          <br />
+          <span>Route not found</span>
+        </Container>
+      </Section>
+    </Fragment>
   );
 }

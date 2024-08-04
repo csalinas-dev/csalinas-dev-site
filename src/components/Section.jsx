@@ -21,4 +21,8 @@ export const Section = styled.section`
   @media (min-width: 1296px) {
     width: 1200px;
   }
+
+  @media (min-width: 1596px) {
+    width: 1500px;
+  }
 `;

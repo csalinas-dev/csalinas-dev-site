@@ -32,9 +32,6 @@ const Projects = async () => {
   const projects = await getProjects();
   return (
     <Container>
-      <Link href="/">
-        <i className="fas fa-chevron-left" /> Back to Home
-      </Link>
       <Title>Projects</Title>
       {projects.map(({ id, slug, name, updatedAt, thumbnail: { url } }) => (
         <Project key={id} href={"/projects/" + slug} src={url}>

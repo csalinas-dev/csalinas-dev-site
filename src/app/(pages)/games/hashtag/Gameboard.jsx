@@ -10,8 +10,8 @@ const Board = styled.div`
   gap: 0.5rem;
   grid-template-columns: repeat(5, 1fr);
   grid-template-rows: repeat(5, 1fr);
-  max-height: calc(100vw - 6rem);
-  max-width: calc(100vh - 4rem);
+  max-height: calc(100vw - 4rem);
+  max-width: calc(100vh - 6rem - 36px);
   width: calc(100% - 2rem);
 `;
 

@@ -1,5 +1,4 @@
 import { About } from "./About";
-import { GitHub } from "./GitHub";
 import { Splash } from "./Splash";
 
 export default function Home() {
@@ -7,7 +6,6 @@ export default function Home() {
     <main>
       <Splash />
       <About />
-      <GitHub />
     </main>
   );
 }
