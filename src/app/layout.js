@@ -3,7 +3,7 @@ import { Sono } from "next/font/google";
 import { GoogleTagManager } from "@next/third-parties/google";
 import "./globals.css";
 
-const sono = Sono({ subsets: ["latin"] });
+const sono = Sono({ subsets: ["latin"], fallback: ["monospace"] });
 
 export const metadata = {
   title: "Christopher Salinas Jr. | Software Engineer",

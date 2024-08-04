@@ -10,6 +10,18 @@ const nextConfig = {
       },
     ],
   },
+  redirects: () => [
+    {
+      source: "/wordleverse",
+      destination: "/games/wordleverse",
+      permanent: true,
+    },
+    {
+      source: "/hashtag",
+      destination: "/games/hashtag",
+      permanent: true,
+    },
+  ],
 };
 
 export default nextConfig;
