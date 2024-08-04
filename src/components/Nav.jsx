@@ -8,10 +8,13 @@ import logo from "@/assets/logo.png";
 
 const Header = styled.header`
   align-items: stretch;
-  background-color: var(--selectionBackground);
+  background-color: #343a40;
+  border-bottom: 1px solid var(--selectionBackground);
   display: flex;
   flex-flow: row nowrap;
   justify-content: flex-start;
+  position: sticky;
+  top: 0;
   z-index: 5000;
 `;
 
@@ -69,6 +72,10 @@ const Dropdown = styled.div`
 
 const Menu = styled.div`
   align-items: stretch;
+  border-bottom: 1px solid var(--selectionBackground);
+  border-left: 1px solid var(--selectionBackground);
+  border-radius: 0 0 0.5rem 0.5rem;
+  border-right: 1px solid var(--selectionBackground);
   flex-flow: column nowrap;
   justify-content: flex-start;
   left: 0;
