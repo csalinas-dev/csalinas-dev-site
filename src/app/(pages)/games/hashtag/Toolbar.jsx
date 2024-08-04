@@ -51,7 +51,7 @@ export const Toolbar = () => {
       <div>Hashtag</div>
       <div>{moves} moves left</div>
       <div>
-        <Link href="/hashtag/instructions">
+        <Link href="/games/hashtag/instructions">
           <i className="fa-regular fa-circle-question" /> How to Play
         </Link>
       </div>

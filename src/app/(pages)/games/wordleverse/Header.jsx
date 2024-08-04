@@ -96,7 +96,7 @@ const Header = () => {
         <div>Wordleverse</div>
         <div>{titleContent}</div>
         <div>
-          <Link href="/wordleverse/instructions">
+          <Link href="/games/wordleverse/instructions">
             <i className="fa-regular fa-circle-question" /> How to Play
           </Link>
         </div>
