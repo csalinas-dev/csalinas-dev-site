@@ -43,17 +43,14 @@ export const Splash = () => (
       <a href="#about">
         <i className="fa-solid fa-fw fa-signature" /> About Me
       </a>
-      <a href="#commits">
-        <i className="fa-solid fa-fw fa-code-commit" /> Commits
+      <a href="/github">
+        <i className="fa-brands fa-fw fa-github" /> GitHub
       </a>
       <Link href="/projects">
-        <i className="fa-solid fa-fw fa-box-archive" /> Projects
+        <i className="fa-solid fa-fw fa-code" /> Projects
       </Link>
-      <Link href="/wordleverse">
-        <i className="fa-solid fa-fw fa-grip" /> Wordleverse
-      </Link>
-      <Link href="/hashtag">
-        <i className="fa-solid fa-fw fa-hashtag" /> Hashtag
+      <Link href="/games">
+        <i className="fa-solid fa-fw fa-gamepad" /> Games
       </Link>
     </Navigation>
   </Section>

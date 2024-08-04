@@ -1,7 +1,14 @@
 import Link from "next/link";
 import { gql } from "graphql-request";
 
-import { Section, Title as PageTitle } from "@/components";
+import {
+  Section,
+  Title as PageTitle,
+  Module,
+  Selector,
+  Numeric,
+  Regex,
+} from "@/components";
 import hygraph from "@/lib/hygraph";
 
 import {
@@ -43,9 +50,6 @@ export default async function Page() {
   const miniMotorways = await getMiniMotorways();
   return (
     <Section>
-      <Link href="/" style={{ marginBottom: "2rem" }}>
-        <i className="fas fa-chevron-left" /> Back to Home
-      </Link>
       <PageTitle style={{ marginBottom: "2rem" }}>Mini Motorways</PageTitle>
       <Container>
         {miniMotorways.map(
@@ -67,13 +71,21 @@ export default async function Page() {
                 <Title>{city}</Title>
               </Map>
               <Info>
-                <h3 style={{ margin: 0 }}>Best Scores</h3>
+                <h3 style={{ margin: 0 }}>
+                  <Module>Best Score{expert && "s"}</Module>
+                </h3>
                 <Score>
-                  <strong>Classic:</strong> {classic}
+                  <Selector>
+                    <strong>Classic:</strong>
+                  </Selector>{" "}
+                  <Numeric>{classic}</Numeric>
                 </Score>
                 {expert && (
                   <Score>
-                    <strong>Expert:</strong> {expert}
+                    <Regex>
+                      <strong>Expert:</strong>
+                    </Regex>{" "}
+                    <Numeric>{expert}</Numeric>
                   </Score>
                 )}
               </Info>

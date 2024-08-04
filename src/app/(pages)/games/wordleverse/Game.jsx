@@ -17,7 +17,7 @@ const Grid = styled.div`
     "boards";
   grid-template-columns: 100%;
   grid-template-rows: max-content 1fr;
-  height: 100vh;
+  height: calc(100vh - 36px);
   justify-content: center;
   padding: 1rem;
   position: relative;

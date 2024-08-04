@@ -12,7 +12,7 @@ const Container = styled.div`
   align-items: center;
   display: flex;
   flex-flow: row nowrap;
-  height: 100vh;
+  height: calc(100vh - 36px);
   justify-content: center;
   padding: 4rem 2rem 2rem;
   position: relative;
