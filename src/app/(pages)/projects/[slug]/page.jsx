@@ -1,37 +1,17 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
-import { gql } from "graphql-request";
 import Markdown from "react-markdown";
+import { camelCase, startCase } from "lodash";
 
-import hygraph from "@/lib/hygraph";
 import { FormattedDate, Title } from "@/components";
 
+import { getProject } from "./action";
 import { Article, Container, Image, Links } from "./components";
 
-const getProject = async (slug) => {
-  const query = gql`
-    query Project($slug: String!) {
-      project(where: { slug: $slug }) {
-        id
-        updatedAt
-        name
-        link
-        content
-        image {
-          url
-        }
-      }
-    }
-  `;
-
-  const { project } = await hygraph.request(query, { slug });
-
-  if (!project) {
-    notFound();
-  }
-
-  return project;
-};
+export async function generateMetadata({ params: { slug } }) {
+  return {
+    title: `${startCase(camelCase(slug))} | Projects | Christopher Salinas Jr.`,
+  };
+}
 
 export default async function Page({ params: { slug } }) {
   const {

@@ -1,32 +1,10 @@
-import Link from "next/link";
-import { gql } from "graphql-request";
-
 import { FormattedDate, Title } from "@/components";
-import hygraph from "@/lib/hygraph";
 
+import { getProjects } from "./action";
 import { Container, Name, Project } from "./components";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Projects | Christopher Salinas Jr." };
-
-const getProjects = async () => {
-  const query = gql`
-    {
-      projects(orderBy: updatedAt_DESC) {
-        id
-        updatedAt
-        slug
-        name
-        thumbnail {
-          url
-        }
-      }
-    }
-  `;
-
-  const { projects } = await hygraph.request(query);
-  return projects;
-};
 
 const Projects = async () => {
   const projects = await getProjects();

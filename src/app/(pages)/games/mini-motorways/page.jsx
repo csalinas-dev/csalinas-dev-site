@@ -1,6 +1,3 @@
-import Link from "next/link";
-import { gql } from "graphql-request";
-
 import {
   Section,
   Title as PageTitle,
@@ -9,8 +6,8 @@ import {
   Numeric,
   Regex,
 } from "@/components";
-import hygraph from "@/lib/hygraph";
 
+import { getMiniMotorways } from "./action";
 import {
   Card,
   Container,
@@ -23,28 +20,6 @@ import {
 } from "./styled";
 
 export const dynamic = "force-dynamic";
-
-const getMiniMotorways = async () => {
-  const query = gql`
-    {
-      miniMotorways(orderBy: order_ASC, stage: PUBLISHED, first: 100) {
-        id
-        city
-        color {
-          hex
-        }
-        classic
-        expert
-        image {
-          url
-        }
-      }
-    }
-  `;
-
-  const { miniMotorways } = await hygraph.request(query);
-  return miniMotorways;
-};
 
 export default async function Page() {
   const miniMotorways = await getMiniMotorways();
