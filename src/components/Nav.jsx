@@ -96,7 +96,6 @@ export const Nav = () => (
         src={logo}
         height="20"
         width="20"
-        placeholder="blur"
         alt="Christopher Salinas Jr Portfolio Logo"
       />
       Chris Salinas Jr
