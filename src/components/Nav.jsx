@@ -28,10 +28,15 @@ const Link = styled(NextLink)`
   color: var(--var) !important;
   display: inline-flex;
   flex-flow: row nowrap;
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   justify-content: flex-start;
-  padding: 0.5rem 0.75rem;
+  padding: 0.25rem 0.5rem;
   white-space: nowrap;
+
+  @media (min-width: 400px) {
+    font-size: 0.8rem;
+    padding: 0.5rem 0.75rem;
+  }
 
   @media (min-width: 500px) {
     font-size: 1rem;
@@ -78,9 +83,14 @@ const Menu = styled.div`
   border-right: 1px solid var(--selectionBackground);
   flex-flow: column nowrap;
   justify-content: flex-start;
-  left: 0;
+  right: 0;
   position: absolute;
   top: 100%;
+
+  @media (min-width: 600px) {
+    left: 0;
+    right: initial;
+  }
 `;
 
 const SubTitle = styled.small`

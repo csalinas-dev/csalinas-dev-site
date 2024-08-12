@@ -79,3 +79,7 @@ a:hover {
 ::selection {
   background: #add6ff26;
 }
+
+i.fa-fw, svg.fa-fw {
+  width: 40px;
+}

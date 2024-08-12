@@ -40,7 +40,13 @@ export default async function Page() {
               <Map style={{ backgroundColor }}>
                 <ImageContainer>
                   {image && (
-                    <Image fill src={image.url} alt={"Thumbnail for " + city} />
+                    <Image
+                      fill
+                      src={image.url}
+                      alt={"Thumbnail for " + city}
+                      sizes="(min-width: 696px) 33vw, (min-width: 896px) 50vw, (min-width: 1296px) 33vw, (min-width: 1596px) 33vw, 100vw"
+                      quality={100}
+                    />
                   )}
                 </ImageContainer>
                 <Title>{city}</Title>

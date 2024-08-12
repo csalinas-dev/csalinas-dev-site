@@ -17,9 +17,8 @@ export default function RootLayout({ children }) {
       <body className={sono.className}>
         {children}
         <Script
-          async
-          crossorigin="anonymous"
           src="https://kit.fontawesome.com/1e18be7ee9.js"
+          strategy="beforeInteractive"
         />
       </body>
     </html>
