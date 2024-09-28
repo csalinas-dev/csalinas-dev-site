@@ -96,24 +96,31 @@ export const Info = styled.div`
   display: flex;
   flex-flow: column nowrap;
   flex: 1 1 0px;
-  font-size: 2rem;
+  font-size: 1.15rem;
   gap: 0.5rem;
   justify-content: center;
   padding: 2rem;
 
   @media (min-width: 696px) {
-    font-size: 1.25rem;
-  }
-
-  @media (min-width: 896px) {
-    font-size: 2rem;
+    font-size: 1rem;
   }
 
   @media (min-width: 1296px) {
-    font-size: 2.75rem;
+    font-size: 1.75rem;
+  }
+
+  @media (min-width: 1596px) {
+    font-size: 2.5rem;
   }
 `;
 
-export const Score = styled.p`
+export const Score = styled.div`
   margin: 0;
+  display: flex;
+  align-items: center;
+  width: 100%;
+`;
+
+export const Flex = styled.div`
+  flex: 1 1 0;
 `;

@@ -11,6 +11,7 @@ import { getMiniMotorways } from "./action";
 import {
   Card,
   Container,
+  Flex,
   Image,
   ImageContainer,
   Info,
@@ -33,6 +34,12 @@ export default async function Page() {
             city,
             color: { hex: backgroundColor },
             classic,
+            challenge1Name = null,
+            challenge1Score = null,
+            challenge2Name = null,
+            challenge2Score = null,
+            challenge3Name = null,
+            challenge3Score = null,
             expert,
             image,
           }) => (
@@ -57,15 +64,38 @@ export default async function Page() {
                 </h3>
                 <Score>
                   <Selector>
-                    <strong>Classic:</strong>
-                  </Selector>{" "}
+                    <strong>Classic</strong>
+                  </Selector>
+                  <Flex />
                   <Numeric>{classic}</Numeric>
                 </Score>
+                {challenge1Name && (
+                  <Score>
+                    <strong>{challenge1Name}</strong>
+                    <Flex />
+                    <Numeric>{challenge1Score}</Numeric>
+                  </Score>
+                )}
+                {challenge2Name && (
+                  <Score>
+                    <strong>{challenge2Name}</strong>
+                    <Flex />
+                    <Numeric>{challenge2Score}</Numeric>
+                  </Score>
+                )}
+                {challenge3Name && (
+                  <Score>
+                    <strong>{challenge3Name}</strong>
+                    <Flex />
+                    <Numeric>{challenge3Score}</Numeric>
+                  </Score>
+                )}
                 {expert && (
                   <Score>
                     <Regex>
-                      <strong>Expert:</strong>
-                    </Regex>{" "}
+                      <strong>Expert</strong>
+                    </Regex>
+                    <Flex />
                     <Numeric>{expert}</Numeric>
                   </Score>
                 )}

@@ -13,6 +13,12 @@ export const getMiniMotorways = async () => {
           hex
         }
         classic
+        challenge1Name
+        challenge1Score
+        challenge2Name
+        challenge2Score
+        challenge3Name
+        challenge3Score
         expert
         image {
           url
