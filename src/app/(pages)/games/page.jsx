@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import styled from "@emotion/styled";
 
-import { Function, Module, Section, Title } from "@/components";
+import { Module, Section, Title } from "@/components";
 
 import wordleverse from "@/assets/wordleverse.jpg";
 import hashtag from "@/assets/hashtag.jpg";
