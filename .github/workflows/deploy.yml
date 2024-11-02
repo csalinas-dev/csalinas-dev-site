@@ -14,7 +14,7 @@ jobs:
 
     steps:
       - name: Stop PM2 process
-        run: pm2 stop 0
+        run: pm2 stop csalinas-dev
 
       - name: Clone repository
         run: |
@@ -28,4 +28,4 @@ jobs:
         run: npm run build
 
       - name: Restart PM2 process
-        run: pm2 restart 0
+        run: pm2 restart csalinas-dev
