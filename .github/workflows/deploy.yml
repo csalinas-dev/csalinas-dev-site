@@ -1,0 +1,30 @@
+name: Deploy to csalinas-dev-sfo3-01
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+    - name: Stop PM2 process
+      run: pm2 stop csalinas-dev
+
+    - name: Clone repository
+      run: |
+        git reset --hard
+        git pull
+      working-directory: /root/csalinas-dev-site
+
+    - name: Install dependencies
+      run: npm ci
+      working-directory: /root/csalinas-dev-site
+
+    - name: Build the application
+      run: npm run build
+      working-directory: /root/csalinas-dev-site
+
+    - name: Restart PM2 process
+      run: pm2 restart csalinas-dev
