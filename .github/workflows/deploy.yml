@@ -8,6 +8,10 @@ jobs:
   deploy:
     runs-on: self-hosted
 
+    defaults:
+      run:
+        working-directory: /root/csalinas-dev-site
+
     steps:
     - name: Stop PM2 process
       run: pm2 stop csalinas-dev
@@ -16,15 +20,12 @@ jobs:
       run: |
         git reset --hard
         git pull
-      working-directory: /root/csalinas-dev-site
 
     - name: Install dependencies
       run: npm ci
-      working-directory: /root/csalinas-dev-site
 
     - name: Build the application
       run: npm run build
-      working-directory: /root/csalinas-dev-site
 
     - name: Restart PM2 process
       run: pm2 restart csalinas-dev
