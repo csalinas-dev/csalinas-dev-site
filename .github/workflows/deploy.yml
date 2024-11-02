@@ -10,7 +10,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: /root/csalinas-dev-site
+        working-directory: /var/www/csalinas-dev-site
 
     steps:
     - name: Stop PM2 process
