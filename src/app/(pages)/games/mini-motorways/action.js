@@ -28,7 +28,5 @@ export const getMiniMotorways = async () => {
   `;
 
   const { miniMotorways } = await hygraph.request(query);
-  console.log(Date.now().toLocaleString());
-  console.log(miniMotorways[0]);
   return miniMotorways;
 };
