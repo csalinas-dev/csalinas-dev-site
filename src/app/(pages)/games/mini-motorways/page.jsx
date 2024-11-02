@@ -20,6 +20,8 @@ import {
   Title,
 } from "./styled";
 
+export const dynamic = "force-dynamic";
+
 export default async function Page() {
   const miniMotorways = await getMiniMotorways();
   return (
