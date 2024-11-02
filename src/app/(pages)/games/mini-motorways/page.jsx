@@ -20,8 +20,6 @@ import {
   Title,
 } from "./styled";
 
-export const dynamic = "force-dynamic"; // This should make it dynamic, but it's not querying the data every time the page loads :( why doesn't Render do that?
-
 export default async function Page() {
   const miniMotorways = await getMiniMotorways();
   return (
