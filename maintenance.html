@@ -4,25 +4,41 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Maintenance</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Sono:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
     <style>
+      :root {
+        --background: #1f1f1f;
+        --foreground: #cccccc;
+        --invalid: #f44747;
+      }
+
       body {
-        background-color: #121212;
-        color: #ffffff;
+        background-color: var(--background);
+        color: var(--foreground);
         display: flex;
         justify-content: center;
         align-items: center;
         height: 100vh;
         margin: 0;
-        font-family: Arial, sans-serif;
+        font-family: "Sono", Arial, sans-serif;
       }
+
       .container {
         text-align: center;
       }
+
       h1 {
         font-size: 2rem;
+        color: var(--invalid);
       }
+
       p {
         font-size: 1.2rem;
+        color: var(--foreground);
+        line-height: 2;
       }
     </style>
   </head>
@@ -31,7 +47,7 @@
       <h1>We'll be back soon!</h1>
       <p>
         Sorry for the inconvenience but we're performing some maintenance at the
-        moment. We'll be back online shortly!
+        moment. <br />We'll be back online shortly!
       </p>
     </div>
   </body>
