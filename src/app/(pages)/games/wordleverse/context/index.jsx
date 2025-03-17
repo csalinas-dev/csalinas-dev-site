@@ -9,7 +9,7 @@ import Status from "../Status";
 
 import reducer from "./reducer";
 import { getEligibleWords } from "./reducer/helpers";
-import { getTodaysRandomWord } from "./random";
+import { getTodaysRandomWord, getRandomWordForDate } from "./random";
 
 const board = range(6).map((_, row) =>
   range(5).map((_, col) => ({
@@ -73,10 +73,7 @@ export const Context = createContext({
 
 // Helper function to get word for a specific date
 function getWordForDate(date) {
-  // This is a simplified implementation
-  // In a real app, you would have a deterministic way to get the word for any date
-  // For now, we'll just use the current random word generator
-  return getTodaysRandomWord();
+  return getRandomWordForDate(date);
 }
 
 export const ContextProvider = ({ children, date }) => {

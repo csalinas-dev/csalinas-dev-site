@@ -1,15 +1,12 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { getOrCreateGame, saveGameState, getGameByDate } from "@/lib/wordleverse-db";
-import { getTodaysRandomWord } from "@/app/(pages)/games/wordleverse/context/random";
+import { getRandomWordForDate } from "@/app/(pages)/games/wordleverse/context/random";
 import dateFormat from "dateformat";
 
 // Helper function to get word for a specific date
 function getWordForDate(date) {
-  // This is a simplified implementation
-  // In a real app, you would have a deterministic way to get the word for any date
-  // For now, we'll just use the current random word generator
-  return getTodaysRandomWord();
+  return getRandomWordForDate(date);
 }
 
 // GET /api/wordleverse/game
