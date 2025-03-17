@@ -12,6 +12,7 @@ import {
   Title,
   Var,
 } from "@/components";
+import AuthNav from "@/components/AuthNav";
 import words from "@/data/words.json";
 
 import { Context, toggleExpert } from "./context";
@@ -65,15 +66,45 @@ const Toolbar = styled.div`
   }
 `;
 
+const NavLinks = styled.div`
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  
+  a {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    
+    &:hover {
+      color: #ffffff;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    gap: 0.5rem;
+    font-size: 0.8rem;
+  }
+`;
+
 const Toggle = styled.span`
   cursor: pointer;
   user-select: none;
+`;
+
+const AuthContainer = styled.div`
+  position: absolute;
+  top: -3.5rem;
+  right: 0;
+  padding: 0.5rem;
+  font-size: 0.8rem;
 `;
 
 const Header = () => {
   const {
     state: { expert, row, title, wordsRemaining },
     dispatch,
+    session,
   } = useContext(Context);
 
   const titleContent = title ? (
@@ -92,13 +123,21 @@ const Header = () => {
   const expertString = expert ? "true" : "false";
   return (
     <Container>
+      <AuthContainer>
+        <AuthNav />
+      </AuthContainer>
       <Toolbar>
         <div>Wordleverse</div>
         <div>{titleContent}</div>
         <div>
-          <Link href="/games/wordleverse/instructions">
-            <i className="fa-regular fa-circle-question" /> How to Play
-          </Link>
+          <NavLinks>
+            <Link href="/games/wordleverse/history">
+              <i className="fa-solid fa-clock-rotate-left" /> History
+            </Link>
+            <Link href="/games/wordleverse/instructions">
+              <i className="fa-regular fa-circle-question" /> How to Play
+            </Link>
+          </NavLinks>
         </div>
       </Toolbar>
       {row === 0 && (
