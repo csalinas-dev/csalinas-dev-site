@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { getUserGameHistory } from "@/lib/wordleverse-db";
+import { getUserGameHistory, getAvailableDates } from "@/lib/wordleverse-db";
 
 // GET /api/wordleverse/history
 export async function GET(request) {
@@ -10,7 +10,21 @@ export async function GET(request) {
   }
 
   try {
+    const { searchParams } = new URL(request.url);
+    const includeAvailableDates = searchParams.get("includeDates") === "true";
+    
+    // Get user's game history with streak information
     const history = await getUserGameHistory(session.user.id);
+    
+    // If requested, include available dates
+    if (includeAvailableDates) {
+      const availableDates = await getAvailableDates(session.user.id);
+      return NextResponse.json({
+        ...history,
+        availableDates
+      });
+    }
+    
     return NextResponse.json(history);
   } catch (error) {
     console.error("Error getting history:", error);

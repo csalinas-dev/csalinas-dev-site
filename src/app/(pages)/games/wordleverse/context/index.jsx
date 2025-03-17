@@ -62,6 +62,8 @@ export const defaultState = {
   error: null,
   win: null,
   loading: true,
+  gameDate: "",
+  isPastGame: false,
 };
 
 export const Context = createContext({
@@ -69,7 +71,15 @@ export const Context = createContext({
   dispatch: () => {},
 });
 
-export const ContextProvider = ({ children }) => {
+// Helper function to get word for a specific date
+function getWordForDate(date) {
+  // This is a simplified implementation
+  // In a real app, you would have a deterministic way to get the word for any date
+  // For now, we'll just use the current random word generator
+  return getTodaysRandomWord();
+}
+
+export const ContextProvider = ({ children, date }) => {
   const { data: session, status } = useSession();
   const [initialState, setInitialState] = useState(defaultState);
   const [isLoading, setIsLoading] = useState(true);
@@ -79,8 +89,13 @@ export const ContextProvider = ({ children }) => {
     const loadGame = async () => {
       setIsLoading(true);
       const today = dateFormat(new Date(), "yyyy-mm-dd");
+      const gameDate = date || today;
+      const isPastGame = gameDate !== today;
+      
       const state = cloneDeep(defaultState);
-      state.word = getTodaysRandomWord();
+      state.word = getWordForDate(gameDate);
+      state.gameDate = gameDate;
+      state.isPastGame = isPastGame;
       
       // If user is not authenticated, use localStorage as fallback
       if (status === "loading") {
@@ -91,7 +106,7 @@ export const ContextProvider = ({ children }) => {
         // Use localStorage for non-authenticated users
         if (typeof window !== "undefined") {
           state.expert = localStorage.getItem("expert") === "true";
-          const saved = localStorage.getItem(`WORDLEVERSE-${today}`);
+          const saved = localStorage.getItem(`WORDLEVERSE-${gameDate}`);
           if (saved) {
             const game = JSON.parse(saved);
             const newState = {
@@ -109,7 +124,7 @@ export const ContextProvider = ({ children }) => {
       } else {
         // Use database for authenticated users
         try {
-          const response = await fetch(`/api/wordleverse/game?date=${today}`);
+          const response = await fetch(`/api/wordleverse/game?date=${gameDate}`);
           if (response.ok) {
             const gameData = await response.json();
             if (gameData) {
@@ -142,6 +157,9 @@ export const ContextProvider = ({ children }) => {
                 expert: gameData.expert,
                 win: gameData.win,
                 word: gameData.word,
+                gameDate,
+                isPastGame,
+                playable: gameData.playable !== false
               };
               newState.wordsRemaining = getEligibleWords(newState);
               setInitialState(newState);
@@ -161,7 +179,7 @@ export const ContextProvider = ({ children }) => {
     };
 
     loadGame();
-  }, [session, status]);
+  }, [session, status, date]);
 
   const [state, dispatch] = useReducer(reducer, initialState);
   
@@ -174,8 +192,9 @@ export const ContextProvider = ({ children }) => {
   const store = useMemo(() => ({
     state: contextState,
     dispatch,
-    session
-  }), [contextState, dispatch, session]);
+    session,
+    gameDate: date || dateFormat(new Date(), "yyyy-mm-dd")
+  }), [contextState, dispatch, session, date]);
   
   return <Context.Provider value={store}>{children}</Context.Provider>;
 };

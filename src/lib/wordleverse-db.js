@@ -2,17 +2,19 @@ import { prisma } from "./prisma";
 import dateFormat from "dateformat";
 
 // Get or create a game for the current user and date
-export async function getOrCreateGame(userId, word) {
+export async function getOrCreateGame(userId, word, date = null) {
   if (!userId) return null;
 
+  const gameDate = date || dateFormat(new Date(), "yyyy-mm-dd");
   const today = dateFormat(new Date(), "yyyy-mm-dd");
+  const isPastGame = date && date !== today;
   
   // Try to find an existing game for this user and date
   let game = await prisma.wordleGame.findUnique({
     where: {
       userId_date: {
         userId,
-        date: today,
+        date: gameDate,
       },
     },
   });
@@ -64,14 +66,16 @@ export async function getOrCreateGame(userId, word) {
     game = await prisma.wordleGame.create({
       data: {
         userId,
-        date: today,
+        date: gameDate,
         word,
-        board: board,
-        keyboard: keyboard,
+        board,
+        keyboard,
+        guesses: [],
         row: 0,
         expert: false,
         win: null,
         completed: false,
+        playable: true,
       },
     });
   }
@@ -79,38 +83,57 @@ export async function getOrCreateGame(userId, word) {
   return game;
 }
 
+// Get a specific game by date
+export async function getGameByDate(userId, date) {
+  if (!userId || !date) return null;
+  
+  const game = await prisma.wordleGame.findUnique({
+    where: {
+      userId_date: {
+        userId,
+        date,
+      },
+    },
+  });
+  
+  return game;
+}
+
 // Save game state
-export async function saveGameState(userId, gameState) {
+export async function saveGameState(userId, gameState, date = null) {
   if (!userId) return null;
 
+  const gameDate = date || dateFormat(new Date(), "yyyy-mm-dd");
   const today = dateFormat(new Date(), "yyyy-mm-dd");
-  const { board, keyboard, row, expert, win, completed } = gameState;
+  const { board, keyboard, row, expert, win, completed, guesses } = gameState;
 
   // Update the game
   const updatedGame = await prisma.wordleGame.update({
     where: {
       userId_date: {
         userId,
-        date: today,
+        date: gameDate,
       },
     },
     data: {
       board,
       keyboard,
+      guesses: guesses || [],
       row,
       expert,
       win,
       completed,
+      playable: !completed,
     },
   });
 
-  // If the game is completed, add to history
+  // If the game is completed, add to history and update streak
   if (completed && updatedGame.win !== null) {
     await prisma.wordleHistory.upsert({
       where: {
         userId_date: {
           userId,
-          date: today,
+          date: gameDate,
         },
       },
       update: {
@@ -119,15 +142,65 @@ export async function saveGameState(userId, gameState) {
       },
       create: {
         userId,
-        date: today,
+        date: gameDate,
         word: updatedGame.word,
         guesses: updatedGame.win ? row : null,
         win: updatedGame.win,
       },
     });
+
+    // Only update streak for today's game
+    if (gameDate === today) {
+      await updateStreak(userId, updatedGame.win);
+    }
   }
 
   return updatedGame;
+}
+
+// Update user's streak
+async function updateStreak(userId, isWin) {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { streak, maxStreak, lastPlayedDate },
+  });
+
+  if (!user) return;
+
+  const today = dateFormat(new Date(), "yyyy-mm-dd");
+  const yesterday = dateFormat(new Date(Date.now() - 86400000), "yyyy-mm-dd");
+  
+  let newStreak = 0;
+  let newMaxStreak = user.maxStreak;
+
+  if (isWin) {
+    // If user won and played yesterday, increment streak
+    if (user.lastPlayedDate === yesterday) {
+      newStreak = user.streak + 1;
+    }
+    // If user won but didn't play yesterday, reset streak to 1
+    else {
+      newStreak = 1;
+    }
+    
+    // Update max streak if needed
+    if (newStreak > user.maxStreak) {
+      newMaxStreak = newStreak;
+    }
+  } else {
+    // If user lost, reset streak to 0
+    newStreak = 0;
+  }
+
+  // Update user's streak information
+  await prisma.user.update({
+    where: { id: userId },
+    data: {
+      streak: newStreak,
+      maxStreak: newMaxStreak,
+      lastPlayedDate: today,
+    },
+  });
 }
 
 // Get user's game history
@@ -143,7 +216,53 @@ export async function getUserGameHistory(userId) {
     },
   });
 
-  return history;
+  // Get user's streak information
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { streak, maxStreak },
+  });
+
+  return {
+    games: history,
+    streak: user?.streak || 0,
+    maxStreak: user?.maxStreak || 0
+  };
+}
+
+// Get all available dates for a user
+export async function getAvailableDates(userId) {
+  if (!userId) return [];
+
+  // Get all dates from the beginning of the game to today
+  const startDate = new Date('2022-01-01'); // Adjust this to when your game started
+  const today = new Date();
+  const allDates = [];
+  
+  for (let d = new Date(startDate); d <= today; d.setDate(d.getDate() + 1)) {
+    allDates.push(dateFormat(d, "yyyy-mm-dd"));
+  }
+  
+  // Get all games the user has played
+  const playedGames = await prisma.wordleGame.findMany({
+    where: {
+      userId,
+    },
+    select: {
+      date: true,
+      completed: true,
+    },
+  });
+  
+  const playedDates = new Set(playedGames.map(game => game.date));
+  const completedDates = new Set(playedGames.filter(game => game.completed).map(game => game.date));
+  
+  // Return all dates with their status
+  return allDates.map(date => ({
+    date,
+    played: playedDates.has(date),
+    completed: completedDates.has(date),
+    isToday: date === dateFormat(today, "yyyy-mm-dd"),
+  }));
 }
 
 // Set user preference for expert mode

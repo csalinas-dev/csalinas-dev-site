@@ -1,3 +1,6 @@
+"use client";
+
+import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 const Game = dynamic(() => import("./Game"), { ssr: false });
 
@@ -7,10 +10,13 @@ export const metadata = {
   title: "Wordleverse | Christopher Salinas Jr.",
 };
 
-export const Wordleverse = () => (
-  <ContextProvider>
-    <Game />
-  </ContextProvider>
-);
-
-export default Wordleverse;
+export default function Wordleverse() {
+  const searchParams = useSearchParams();
+  const date = searchParams.get("date");
+  
+  return (
+    <ContextProvider date={date}>
+      <Game />
+    </ContextProvider>
+  );
+}
