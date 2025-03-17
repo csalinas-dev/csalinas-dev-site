@@ -1,8 +1,10 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import styled from "@emotion/styled";
 
 import { useResponsiveBoards } from "./hooks";
+import { ContextProvider } from "./context";
 
 import Alerts from "./Alerts";
 import Header from "./Header";
@@ -46,6 +48,9 @@ const Boards = styled.div`
 `;
 
 export default function Game() {
+  const searchParams = useSearchParams();
+  const date = searchParams.get("date");
+  
   const { container, width, height } = useResponsiveBoards();
   const actualHeight = height - 16;
   const isPortrait = width / actualHeight < 0.6298020955;
@@ -59,15 +64,17 @@ export default function Game() {
   }
 
   return (
-    <Grid>
-      <Alerts />
-      <Header />
-      <Container ref={container}>
-        <Boards>
-          <Gameboard width={w} height={hGB} />
-          <Keyboard width={w} height={hKB} />
-        </Boards>
-      </Container>
-    </Grid>
+    <ContextProvider date={date}>
+      <Grid>
+        <Alerts />
+        <Header />
+        <Container ref={container}>
+          <Boards>
+            <Gameboard width={w} height={hGB} />
+            <Keyboard width={w} height={hKB} />
+          </Boards>
+        </Container>
+      </Grid>
+    </ContextProvider>
   );
 };
