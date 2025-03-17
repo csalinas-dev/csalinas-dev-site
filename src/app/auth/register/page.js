@@ -58,7 +58,7 @@ const Input = styled.input`
   
   &:focus {
     outline: none;
-    border-color: #4f46e5;
+    border-color: var(--vscode);
     box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
   }
   
@@ -69,7 +69,7 @@ const Input = styled.input`
 
 const Button = styled.button`
   padding: 0.75rem 1rem;
-  background-color: #4f46e5;
+  background-color: var(--vscode);
   color: white;
   border: none;
   border-radius: 4px;
@@ -78,7 +78,7 @@ const Button = styled.button`
   transition: background-color 0.2s;
   
   &:hover {
-    background-color: #4338ca;
+    background-color: #006cc1;
   }
   
   &:disabled {

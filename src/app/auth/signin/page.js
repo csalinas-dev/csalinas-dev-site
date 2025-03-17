@@ -189,6 +189,22 @@ const SocialButton = styled.button`
   }
 `;
 
+const LinkText = styled.p`
+  margin-top: 1rem;
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--foreground);
+  
+  a {
+    color: var(--const);
+    text-decoration: none;
+    
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+`;
+
 export default function SignIn() {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -268,6 +284,11 @@ export default function SignIn() {
             {isLoading ? "Signing in..." : "Sign in"}
           </Button>
         </Form>
+
+        <LinkText>
+          Don&apos;t have an account?{" "}
+          <Link href="/auth/register">Register</Link>
+        </LinkText>
         
         <Divider>
           <DividerTextContainer>
