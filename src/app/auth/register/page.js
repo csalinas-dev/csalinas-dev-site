@@ -19,15 +19,16 @@ const FormContainer = styled.div`
   width: 100%;
   max-width: 400px;
   padding: 2rem;
-  background-color: white;
+  background-color: #2a2a2a;
   border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
 `;
 
 const Title = styled.h1`
   font-size: 1.5rem;
   margin-bottom: 1.5rem;
   text-align: center;
+  color: var(--foreground);
 `;
 
 const Form = styled.form`
@@ -44,18 +45,25 @@ const FormGroup = styled.div`
 
 const Label = styled.label`
   font-weight: 500;
+  color: var(--foreground);
 `;
 
 const Input = styled.input`
   padding: 0.75rem;
-  border: 1px solid #d1d5db;
+  border: 1px solid #4a4a4a;
   border-radius: 4px;
   font-size: 1rem;
+  background-color: #333333;
+  color: var(--foreground);
   
   &:focus {
     outline: none;
     border-color: #4f46e5;
     box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
+  }
+  
+  &::placeholder {
+    color: #6b7280;
   }
 `;
 
@@ -80,13 +88,13 @@ const Button = styled.button`
 `;
 
 const ErrorMessage = styled.div`
-  color: #ef4444;
+  color: #f87171;
   font-size: 0.875rem;
   margin-top: 0.5rem;
 `;
 
 const SuccessMessage = styled.div`
-  color: #10b981;
+  color: #34d399;
   font-size: 0.875rem;
   margin-top: 0.5rem;
   text-align: center;
@@ -96,9 +104,10 @@ const LinkText = styled.p`
   margin-top: 1rem;
   text-align: center;
   font-size: 0.875rem;
+  color: var(--foreground);
   
   a {
-    color: #4f46e5;
+    color: var(--const);
     text-decoration: none;
     
     &:hover {
