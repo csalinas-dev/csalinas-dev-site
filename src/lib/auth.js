@@ -1,4 +1,4 @@
-import { PrismaAdapter } from "@next-auth/prisma-adapter";
+import { PrismaAdapter } from "@auth/prisma-adapter";
 import { PrismaClient } from "@prisma/client";
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
@@ -9,12 +9,7 @@ import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
-export const {
-  handlers: { GET, POST },
-  auth,
-  signIn,
-  signOut,
-} = NextAuth({
+const authOptions = {
   adapter: PrismaAdapter(prisma),
   providers: [
     GoogleProvider({
@@ -125,7 +120,13 @@ export const {
   session: {
     strategy: "jwt",
   },
-});
+};
+
+export const handler = NextAuth(authOptions);
+export const { GET, POST } = handler;
+export const auth = handler.auth;
+export const signIn = handler.signIn;
+export const signOut = handler.signOut;
 
 // Function to register a new user
 export async function registerUser(name, email, password) {
