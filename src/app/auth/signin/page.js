@@ -223,12 +223,25 @@ export default function SignIn() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [unverifiedEmail, setUnverifiedEmail] = useState("");
+  const [resendingEmail, setResendingEmail] = useState(false);
 
-  // Check if the user has just verified their email
+  // Check URL parameters on load
   useEffect(() => {
     const verified = searchParams.get("verified");
+    const error = searchParams.get("error");
+    const emailParam = searchParams.get("email");
+    
     if (verified === "true") {
       setSuccess("Your email has been verified successfully. You can now sign in.");
+    }
+    
+    if (error === "EMAIL_NOT_VERIFIED" && emailParam) {
+      setUnverifiedEmail(emailParam);
+      setError("Your email is not verified. Please verify your email before signing in.");
+      if (emailParam) {
+        setEmail(emailParam);
+      }
     }
   }, [searchParams]);
 
@@ -236,6 +249,8 @@ export default function SignIn() {
     e.preventDefault();
     setIsLoading(true);
     setError("");
+    setSuccess("");
+    setUnverifiedEmail("");
 
     try {
       const result = await signIn("credentials", {
@@ -244,8 +259,18 @@ export default function SignIn() {
         password,
       });
 
-      if (result?.error) {
-        setError(result.error);
+      // If there's an error or the user is redirected
+      if (!result?.ok) {
+        // Check if we were redirected due to unverified email
+        if (result?.error === "EMAIL_NOT_VERIFIED" ||
+            (result?.url && result.url.includes("error=EMAIL_NOT_VERIFIED"))) {
+          setUnverifiedEmail(email);
+          setError("Your email is not verified. Please verify your email before signing in.");
+          setIsLoading(false);
+          return;
+        }
+        
+        setError(result?.error || "An error occurred during sign in");
         setIsLoading(false);
         return;
       }
@@ -253,8 +278,39 @@ export default function SignIn() {
       router.push("/");
       router.refresh();
     } catch (error) {
+      console.error("Sign in error:", error);
       setError("An error occurred. Please try again.");
       setIsLoading(false);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    if (!unverifiedEmail) return;
+    
+    setResendingEmail(true);
+    setError("");
+    setSuccess("");
+    
+    try {
+      const response = await fetch("/api/auth/resend-verification", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email: unverifiedEmail }),
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to resend verification email");
+      }
+      
+      setSuccess("Verification email has been resent. Please check your inbox.");
+    } catch (error) {
+      setError(error.message || "Failed to resend verification email");
+    } finally {
+      setResendingEmail(false);
     }
   };
 
@@ -269,6 +325,22 @@ export default function SignIn() {
         
         {success && (
           <SuccessMessage>{success}</SuccessMessage>
+        )}
+        
+        {unverifiedEmail && (
+          <div style={{ marginTop: '1rem', marginBottom: '1rem' }}>
+            <p style={{ fontSize: '0.875rem', marginBottom: '0.5rem' }}>
+              Your email address needs to be verified before you can sign in.
+            </p>
+            <Button
+              type="button"
+              onClick={handleResendVerification}
+              disabled={resendingEmail}
+              style={{ width: '100%' }}
+            >
+              {resendingEmail ? "Sending..." : "Resend Verification Email"}
+            </Button>
+          </div>
         )}
         
         <Form onSubmit={handleSubmit}>

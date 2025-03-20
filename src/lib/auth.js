@@ -65,7 +65,9 @@ const authOptions = {
 
           // Check if email is verified
           if (!user.emailVerified) {
-            throw new Error("Email not verified. Please verify your email before signing in.");
+            // Instead of throwing an error, return an object with error property
+            // This will be handled properly by NextAuth
+            return Promise.resolve(null);
           }
 
           return {
@@ -92,22 +94,37 @@ const authOptions = {
       }
       return session;
     },
-    async signIn({ user, account }) {
+    async signIn({ user, account, credentials }) {
       // Allow OAuth providers to sign in without email verification
       if (account?.provider === "google" || account?.provider === "github") {
         return true;
       }
 
-      // For email/password, check if email is verified
-      if (user.email) {
+      // For credentials provider, check if email is verified
+      if (account?.provider === "credentials" && credentials) {
+        const dbUser = await prisma.user.findUnique({
+          where: { email: credentials.email },
+        });
+        
+        if (dbUser && !dbUser.emailVerified) {
+          await sendVerificationEmail(credentials.email, dbUser.id);
+          return `/auth/signin?error=EMAIL_NOT_VERIFIED&email=${encodeURIComponent(credentials.email)}`;
+        }
+      }
+      
+      // For email provider, check if email is verified
+      if (user?.email && !account) {
         const dbUser = await prisma.user.findUnique({
           where: { email: user.email },
         });
         
-        return dbUser?.emailVerified !== null;
+        if (dbUser?.emailVerified === null) {
+          await sendVerificationEmail(user.email, dbUser?.id);
+          return `/auth/signin?error=EMAIL_NOT_VERIFIED&email=${encodeURIComponent(user.email)}`;
+        }
       }
       
-      return false;
+      return true;
     },
   },
   pages: {
