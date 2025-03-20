@@ -178,6 +178,98 @@ export const ContextProvider = ({ children, date }) => {
     loadGame();
   }, [session, status, date]);
 
+  // Migrate localStorage games to database when user logs in
+  useEffect(() => {
+    const migrateLocalStorageGames = async () => {
+      // Only run migration if user is authenticated and not in loading state
+      if (!session || status === "loading" || typeof window === "undefined") {
+        return;
+      }
+
+      // Find all localStorage keys that start with WORDLEVERSE-
+      const localStorageKeys = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith("WORDLEVERSE-")) {
+          localStorageKeys.push(key);
+        }
+      }
+
+      if (localStorageKeys.length === 0) {
+        return; // No games to migrate
+      }
+
+      console.log(`Found ${localStorageKeys.length} games to migrate from localStorage to database`);
+
+      // Migrate each game to the database
+      for (const key of localStorageKeys) {
+        try {
+          const gameDate = key.replace("WORDLEVERSE-", "");
+          const savedGame = localStorage.getItem(key);
+          
+          if (!savedGame) continue;
+          
+          const game = JSON.parse(savedGame);
+          
+          // Convert enum values to strings for database storage
+          const dbBoard = game.board.map(row =>
+            row.map(cell => ({
+              ...cell,
+              status: cell.status.toString().toLowerCase()
+            }))
+          );
+          
+          const dbKeyboard = game.keyboard.map(key => ({
+            ...key,
+            status: key.status.toString().toLowerCase()
+          }));
+          
+          // Track guesses for history view
+          const guesses = [];
+          for (let i = 0; i < game.row; i++) {
+            const rowGuess = game.board[i].map(cell => cell.letter).join('');
+            if (rowGuess.length === 5) {
+              guesses.push(rowGuess);
+            }
+          }
+          
+          const gameState = {
+            ...game,
+            board: dbBoard,
+            keyboard: dbKeyboard,
+            guesses,
+            completed: game.win !== null || game.row > 5,
+            word: getWordForDate(gameDate)
+          };
+          
+          // Save to database
+          const response = await fetch('/api/wordleverse/game', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              gameState,
+              date: gameDate
+            }),
+          });
+          
+          if (response.ok) {
+            // Clear from localStorage after successful migration
+            localStorage.removeItem(key);
+            console.log(`Successfully migrated game from ${gameDate} to database`);
+          } else {
+            console.error(`Failed to migrate game from ${gameDate} to database`);
+          }
+        } catch (error) {
+          console.error("Error migrating game:", error);
+        }
+      }
+    };
+
+    migrateLocalStorageGames();
+  }, [session, status]);
+
   // Initialize reducer with the loaded state
   const [state, dispatch] = useReducer(reducer, initialState);
   
