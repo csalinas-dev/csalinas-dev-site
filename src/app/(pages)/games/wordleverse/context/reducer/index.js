@@ -8,6 +8,8 @@ import { toggleExpert } from "./toggleExpert";
 
 const reducer = (state, action) => {
   switch (action.type) {
+    case "INITIALIZE_STATE":
+      return action.state;
     case "ADD LETTER":
       return addLetter(state, action.letter);
     case "REMOVE LETTER":

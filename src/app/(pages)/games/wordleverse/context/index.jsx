@@ -178,7 +178,16 @@ export const ContextProvider = ({ children, date }) => {
     loadGame();
   }, [session, status, date]);
 
+  // Initialize reducer with the loaded state
   const [state, dispatch] = useReducer(reducer, initialState);
+  
+  // Update reducer state when initialState changes
+  useEffect(() => {
+    if (!isLoading) {
+      // This ensures the reducer state is updated when initialState changes
+      dispatch({ type: "INITIALIZE_STATE", state: initialState });
+    }
+  }, [initialState, isLoading]);
   
   // Add loading state to the context
   const contextState = {

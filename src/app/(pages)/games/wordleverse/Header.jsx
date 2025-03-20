@@ -70,17 +70,18 @@ const NavLinks = styled.div`
   display: flex;
   gap: 1rem;
   align-items: center;
-  
-  a {
+
+  a,
+  button {
     display: flex;
     align-items: center;
     gap: 0.25rem;
-    
+
     &:hover {
       color: #ffffff;
     }
   }
-  
+
   @media (max-width: 768px) {
     gap: 0.5rem;
     font-size: 0.8rem;

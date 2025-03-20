@@ -7,30 +7,26 @@ export default function AuthNav() {
   const { data: session, status } = useSession();
   const isLoading = status === "loading";
 
+  // Simplified version for the navigation bar
   return (
-    <div className="flex items-center space-x-4">
+    <>
       {isLoading ? (
-        <span className="text-sm">Loading...</span>
+        <span>Loading...</span>
       ) : session ? (
-        <>
-          <span className="text-sm">
-            Signed in as {session.user?.name || session.user?.email}
-          </span>
-          <button
-            onClick={() => signOut()}
-            className="rounded-md bg-gray-800 px-3 py-1.5 text-sm font-semibold text-white hover:bg-gray-700"
-          >
-            Sign out
-          </button>
-        </>
+        <button
+          onClick={() => signOut()}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+        >
+          <i className="fa-solid fa-sign-out-alt" /> Sign out
+        </button>
       ) : (
         <button
           onClick={() => signIn()}
-          className="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-500"
+          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
         >
-          Sign in
+          <i className="fa-solid fa-sign-in-alt" /> Sign in
         </button>
       )}
-    </div>
+    </>
   );
 }
