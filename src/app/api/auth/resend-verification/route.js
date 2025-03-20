@@ -1,9 +1,7 @@
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
 import crypto from "crypto";
 import nodemailer from "nodemailer";
-
-const prisma = new PrismaClient();
 
 // Function to send verification email
 async function sendVerificationEmail(email, token) {

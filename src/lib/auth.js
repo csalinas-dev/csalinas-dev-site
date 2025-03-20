@@ -1,9 +1,7 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import crypto from 'crypto';
 import nodemailer from 'nodemailer';
-
-const prisma = new PrismaClient();
 
 // Function to register a new user
 export async function registerUser(name, email, password) {
