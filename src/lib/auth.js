@@ -65,9 +65,8 @@ const authOptions = {
 
           // Check if email is verified
           if (!user.emailVerified) {
-            // Instead of throwing an error, return an object with error property
-            // This will be handled properly by NextAuth
-            return Promise.resolve(null);
+            // Return null to trigger the signIn callback
+            return null;
           }
 
           return {
@@ -107,7 +106,27 @@ const authOptions = {
         });
         
         if (dbUser && !dbUser.emailVerified) {
-          await sendVerificationEmail(credentials.email, dbUser.id);
+          // Create a new verification token
+          const token = crypto.randomBytes(32).toString('hex');
+          const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+          // Delete any existing tokens
+          await prisma.verificationToken.deleteMany({
+            where: { identifier: credentials.email },
+          });
+
+          // Create a new token
+          await prisma.verificationToken.create({
+            data: {
+              identifier: credentials.email,
+              token,
+              expires,
+            },
+          });
+
+          // Send verification email
+          await sendVerificationEmail(credentials.email, token);
+          
           return `/auth/signin?error=EMAIL_NOT_VERIFIED&email=${encodeURIComponent(credentials.email)}`;
         }
       }
@@ -118,8 +137,28 @@ const authOptions = {
           where: { email: user.email },
         });
         
-        if (dbUser?.emailVerified === null) {
-          await sendVerificationEmail(user.email, dbUser?.id);
+        if (dbUser && !dbUser.emailVerified) {
+          // Create a new verification token
+          const token = crypto.randomBytes(32).toString('hex');
+          const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+          // Delete any existing tokens
+          await prisma.verificationToken.deleteMany({
+            where: { identifier: user.email },
+          });
+
+          // Create a new token
+          await prisma.verificationToken.create({
+            data: {
+              identifier: user.email,
+              token,
+              expires,
+            },
+          });
+
+          // Send verification email
+          await sendVerificationEmail(user.email, token);
+          
           return `/auth/signin?error=EMAIL_NOT_VERIFIED&email=${encodeURIComponent(user.email)}`;
         }
       }
@@ -139,8 +178,12 @@ const authOptions = {
   },
 };
 
-export const handler = NextAuth(authOptions);
-export const { GET, POST } = handler;
+// Create a single instance of the handler
+const handler = NextAuth(authOptions);
+
+// Export the handler methods
+export const GET = handler.GET;
+export const POST = handler.POST;
 export const auth = handler.auth;
 export const signIn = handler.signIn;
 export const signOut = handler.signOut;
