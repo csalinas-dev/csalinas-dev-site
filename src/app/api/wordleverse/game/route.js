@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { getSession } from "@/app/auth";
 import { getOrCreateGame, saveGameState, getGameByDate } from "@/lib/wordleverse-db";
 import { getRandomWordForDate } from "@/app/(pages)/games/wordleverse/context/random";
 import dateFormat from "dateformat";
@@ -11,7 +11,7 @@ function getWordForDate(date) {
 
 // GET /api/wordleverse/game
 export async function GET(request) {
-  const session = await auth();
+  const session = await getSession();
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -45,7 +45,7 @@ export async function GET(request) {
 
 // POST /api/wordleverse/game
 export async function POST(request) {
-  const session = await auth();
+  const session = await getSession();
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

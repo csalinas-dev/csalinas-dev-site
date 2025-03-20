@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { getSession } from "@/app/auth";
 import { getUserGameHistory, getAvailableDates } from "@/lib/wordleverse-db";
 
 // GET /api/wordleverse/history
 export async function GET(request) {
-  const session = await auth();
+  const session = await getSession();
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
