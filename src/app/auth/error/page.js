@@ -11,6 +11,11 @@ export default function AuthError() {
     Configuration: "There is a problem with the server configuration.",
     AccessDenied: "You do not have access to this resource.",
     Verification: "The verification link may have been used or is invalid.",
+    MissingToken: "The verification token is missing.",
+    InvalidToken: "The verification token is invalid or has already been used.",
+    TokenExpired: "The verification token has expired. Please request a new one.",
+    UserNotFound: "The user associated with this token could not be found.",
+    VerificationFailed: "Email verification failed. Please try again.",
     Default: "An error occurred during authentication.",
   };
 

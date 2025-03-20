@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import styled from "@emotion/styled";
 
@@ -129,6 +129,16 @@ const ErrorMessage = styled.div`
   border-radius: 4px;
 `;
 
+const SuccessMessage = styled.div`
+  color: #34d399;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+  padding: 0.75rem;
+  background-color: rgba(16, 185, 129, 0.1);
+  border: 1px solid #065f46;
+  border-radius: 4px;
+`;
+
 const Divider = styled.div`
   position: relative;
   margin-top: 1.5rem;
@@ -207,10 +217,20 @@ const LinkText = styled.p`
 
 export default function SignIn() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  // Check if the user has just verified their email
+  useEffect(() => {
+    const verified = searchParams.get("verified");
+    if (verified === "true") {
+      setSuccess("Your email has been verified successfully. You can now sign in.");
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -245,6 +265,10 @@ export default function SignIn() {
         
         {error && (
           <ErrorMessage>{error}</ErrorMessage>
+        )}
+        
+        {success && (
+          <SuccessMessage>{success}</SuccessMessage>
         )}
         
         <Form onSubmit={handleSubmit}>
