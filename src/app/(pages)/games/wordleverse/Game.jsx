@@ -3,8 +3,8 @@
 import { useSearchParams } from "next/navigation";
 import styled from "@emotion/styled";
 
-import { useResponsiveBoards } from "./hooks";
-import { ContextProvider } from "./context";
+import { useResponsiveBoards } from "./_hooks";
+import { ContextProvider } from "./_context";
 
 import Alerts from "./Alerts";
 import Header from "./Header";

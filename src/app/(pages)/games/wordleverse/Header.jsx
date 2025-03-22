@@ -15,7 +15,7 @@ import {
 import AuthNav from "@/components/AuthNav";
 import words from "@/data/words.json";
 
-import { Context, toggleExpert } from "./context";
+import { Context, toggleExpert } from "./_context";
 
 const Container = styled.header`
   align-items: center;

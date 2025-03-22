@@ -1,9 +1,9 @@
 import { useContext, Fragment } from "react";
 import styled from "@emotion/styled";
 
-import { Context, dismissAlert } from "./context";
-import { useError } from "./hooks";
-import { Clipboard, PlayAgain } from "./components";
+import { Context, dismissAlert } from "./_context";
+import { useError } from "./_hooks";
+import { Clipboard, PlayAgain } from "./_components";
 
 const Container = styled.div`
   display: flex;

@@ -1,6 +1,6 @@
 import styled from "@emotion/styled";
 import { useContext } from "react";
-import { Context, playAgain } from "../context";
+import { Context, playAgain } from "../_context";
 
 const Button = styled.span`
   background-color: var(--background);

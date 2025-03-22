@@ -2,7 +2,7 @@ import { useContext } from "react";
 import { slice, sortBy } from "lodash";
 import styled from "@emotion/styled";
 
-import { Context, addLetter, removeLetter, submitGuess } from "./context";
+import { Context, addLetter, removeLetter, submitGuess } from "./_context";
 
 const gap = 0.5;
 const g = 16 * gap;

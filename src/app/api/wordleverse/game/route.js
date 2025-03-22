@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/app/auth";
 import { getOrCreateGame, saveGameState, getGameByDate } from "@/lib/wordleverse-db";
-import { getRandomWordForDate } from "@/app/(pages)/games/wordleverse/context/random";
+import { getRandomWordForDate } from "@/app/(pages)/games/wordleverse/_context/random";
 import dateFormat from "dateformat";
 
 // Helper function to get word for a specific date

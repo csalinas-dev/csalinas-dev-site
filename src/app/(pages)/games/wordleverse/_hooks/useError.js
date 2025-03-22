@@ -1,5 +1,5 @@
 import { useContext, useEffect } from "react";
-import { Context, dismissError } from "../context";
+import { Context, dismissError } from "../_context";
 
 export const useError = () => {
   const {

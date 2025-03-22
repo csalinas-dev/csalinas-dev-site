@@ -2,7 +2,7 @@
 
 import { getSession, getCurrentUser } from "@/app/auth";
 import { getOrCreateGame, saveGameState, getGameByDate, getUserGameHistory, getAvailableDates } from "@/lib/wordleverse-db";
-import { getRandomWordForDate } from "@/app/(pages)/games/wordleverse/context/random";
+import { getRandomWordForDate } from "@/app/(pages)/games/wordleverse/_context/random";
 import dateFormat from "dateformat";
 
 // Helper function to get word for a specific date

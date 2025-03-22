@@ -2,7 +2,7 @@ import { useContext, useState } from "react";
 import styled from "@emotion/styled";
 import dateFormat from "dateformat";
 import { filter, map } from "lodash";
-import { Context } from "../context";
+import { Context } from "../_context";
 import Status from "../Status";
 
 const Button = styled.span`
