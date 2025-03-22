@@ -121,9 +121,12 @@ export const ContextProvider = ({ children, date }) => {
       } else {
         // Use database for authenticated users
         try {
-          const response = await fetch(`/api/wordleverse/game?date=${gameDate}`);
-          if (response.ok) {
-            const gameData = await response.json();
+          const formData = new FormData();
+          formData.append("date", gameDate);
+          const gameData = await import("@/actions/wordleverse").then(module =>
+            module.getGame(formData)
+          );
+          if (!gameData.error) {
             if (gameData) {
               // Convert database statuses to enum values
               gameData.board = gameData.board.map(row =>
@@ -243,18 +246,14 @@ export const ContextProvider = ({ children, date }) => {
           };
           
           // Save to database
-          const response = await fetch('/api/wordleverse/game', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
+          const result = await import("@/actions/wordleverse").then(module =>
+            module.saveGame({
               gameState,
               date: gameDate
-            }),
-          });
+            })
+          );
           
-          if (response.ok) {
+          if (!result.error) {
             // Clear from localStorage after successful migration
             localStorage.removeItem(key);
             console.log(`Successfully migrated game from ${gameDate} to database`);
