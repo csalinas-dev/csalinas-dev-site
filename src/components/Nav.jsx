@@ -1,8 +1,9 @@
 "use client";
 
+import styled from "@emotion/styled";
 import NextImage from "next/image";
 import NextLink from "next/link";
-import styled from "@emotion/styled";
+import { useSession, signIn, signOut } from "next-auth/react";
 
 import logo from "@/assets/logo.png";
 
@@ -87,9 +88,15 @@ const Menu = styled.div`
   position: absolute;
   top: 100%;
 
+
   @media (min-width: 600px) {
     left: 0;
     right: initial;
+
+    &.right {
+      left: initial;
+      right: 0;
+    }
   }
 `;
 
@@ -99,28 +106,52 @@ const SubTitle = styled.small`
   padding: 0.5rem 0.75rem;
 `;
 
-export const Nav = () => (
-  <Header>
-    <Link href="/" className="primary">
-      <Logo
-        src={logo}
-        height="20"
-        width="20"
-        alt="Christopher Salinas Jr Portfolio Logo"
-      />
-      Chris Salinas Jr
-    </Link>
-    <Link href="/github">GitHub</Link>
-    <Link href="/projects">Projects</Link>
-    <Dropdown>
-      <Link href="/games">Games</Link>
-      <Menu className="menu">
-        <SubTitle>Play</SubTitle>
-        <Link href="/games/wordleverse">Wordleverse</Link>
-        <Link href="/games/hashtag">Hashtag</Link>
-        <SubTitle>Compare</SubTitle>
-        <Link href="/games/mini-motorways">Mini Motorways</Link>
-      </Menu>
-    </Dropdown>
-  </Header>
-);
+export const Nav = () => {
+  const { data: session, status } = useSession();
+  const loading = status === "loading";
+
+  return (
+    <Header>
+      <Link href="/" className="primary">
+        <Logo
+          src={logo}
+          height="20"
+          width="20"
+          alt="Christopher Salinas Jr Portfolio Logo"
+        />
+        Chris Salinas Jr
+      </Link>
+      <Link href="/github">GitHub</Link>
+      <Link href="/projects">Projects</Link>
+      <Dropdown>
+        <Link href="/games">Games</Link>
+        <Menu className="menu">
+          <SubTitle>Play</SubTitle>
+          <Link href="/games/wordleverse">Wordleverse</Link>
+          <Link href="/games/hashtag">Hashtag</Link>
+          <SubTitle>Compare</SubTitle>
+          <Link href="/games/mini-motorways">Mini Motorways</Link>
+        </Menu>
+      </Dropdown>
+      <div style={{ flexGrow: 1 }} />
+      <Dropdown>
+        <Link href="#">{session ? session.user?.name : "Account"}</Link>
+        <Menu className="menu right">
+          {loading && <Link href="#">Loading ...</Link>}
+          {!loading && !session && (
+            <Link href="#" onClick={() => signIn()}>
+              <i className="fa-solid fa-sign-in-alt" />
+              &nbsp;Sign in
+            </Link>
+          )}
+          {!loading && session && (
+            <Link href="#" onClick={() => signOut()}>
+              <i className="fa-solid fa-sign-out-alt" />
+              &nbsp;Sign out
+            </Link>
+          )}
+        </Menu>
+      </Dropdown>
+    </Header>
+  );
+};

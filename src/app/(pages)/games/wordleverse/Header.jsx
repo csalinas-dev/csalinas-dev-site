@@ -9,10 +9,8 @@ import {
   Module,
   Numeric,
   Parenthesis,
-  Title,
   Var,
 } from "@/components";
-import AuthNav from "@/components/AuthNav";
 import words from "@/data/words.json";
 
 import { Context, toggleExpert } from "./_context";
@@ -93,14 +91,6 @@ const Toggle = styled.span`
   user-select: none;
 `;
 
-const AuthContainer = styled.div`
-  position: absolute;
-  top: -3.5rem;
-  right: 0;
-  padding: 0.5rem;
-  font-size: 0.8rem;
-`;
-
 const Header = () => {
   const {
     state: { expert, row, title, wordsRemaining },
@@ -124,9 +114,6 @@ const Header = () => {
   const expertString = expert ? "true" : "false";
   return (
     <Container>
-      <AuthContainer>
-        <AuthNav />
-      </AuthContainer>
       <Toolbar>
         <div>Wordleverse</div>
         <div>{titleContent}</div>
