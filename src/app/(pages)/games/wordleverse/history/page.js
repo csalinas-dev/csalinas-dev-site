@@ -6,6 +6,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
+import { getOrCreateGame } from "@wordleverse/_actions/getOrCreateGame";
+
 import { getHistory } from "./_actions/getHistory";
 import {
   BackLink,
@@ -41,7 +43,6 @@ import {
   Title,
   Word,
 } from "./_components/styled";
-import { getOrCreateGame } from "../_actions/getOrCreateGame";
 
 const DAYS_OF_WEEK = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 

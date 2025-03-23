@@ -3,6 +3,8 @@
 import { getCurrentUser } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 
+import { getAvailableDates } from "./getAvailableDates";
+
 export const getHistory = async (options = {}) => {
    const user = await getCurrentUser();
     if (!user) {
@@ -24,7 +26,7 @@ export const getHistory = async (options = {}) => {
       // Get user's streak information
       const user = await prisma.user.findUnique({
         where: { id: userId },
-        select: { streak, maxStreak },
+        select: { streak: true, maxStreak: true },
       });
 
       const history = {
@@ -36,7 +38,7 @@ export const getHistory = async (options = {}) => {
       // If requested, include available dates
       const includeAvailableDates = options.includeAvailableDates === true;
       if (includeAvailableDates) {
-        const availableDates = await getAvailableDates(session.user.id);
+        const availableDates = await getAvailableDates(userId);
         return {
           ...history,
           availableDates
