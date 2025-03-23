@@ -55,7 +55,6 @@ export const useLoadGame = (
               ...state,
               ...gameData,
               gameDate,
-              isPastGame,
             };
             newState.wordsRemaining = getEligibleWords(newState);
             setInitialState(newState);

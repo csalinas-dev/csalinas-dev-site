@@ -3,8 +3,9 @@
 import { getSession } from "next-auth/react";
 
 import prisma from "@/lib/prisma";
-import { getRandomWord } from "@/app/(pages)/games/wordleverse/_lib/random";
+
 import { defaultState } from "@wordleverse/_lib/defaults";
+import { getRandomWord } from "@wordleverse/_lib/random";
 
 /**
  * Get or create a game for a specific date
@@ -22,6 +23,8 @@ export const getOrCreateGame = async (date) => {
   }
 
   try {
+    const userId = session.user.id;
+    
     // Try to find an existing game for this user and date
     let game = await prisma.wordleGame.findUnique({
       where: {

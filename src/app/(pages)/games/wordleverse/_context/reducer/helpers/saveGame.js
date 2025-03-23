@@ -40,6 +40,7 @@ export const saveGame = async (state) => {
       };
 
       await save({ gameState, date });
+      console.log("Game saved to database:", date);
     } catch (error) {
       console.error("Error saving game to database:", error);
       // Fallback to localStorage if database save fails

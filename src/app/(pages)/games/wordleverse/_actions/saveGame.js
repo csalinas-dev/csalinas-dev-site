@@ -1,7 +1,10 @@
 "use server";
 
-import prisma from "@/lib/prisma";
+import dateFormat from "dateformat";
 import { getSession } from "next-auth/react";
+
+import prisma from "@/lib/prisma";
+
 import { updateStreak } from "./updateStreak";
 
 /**
@@ -16,6 +19,7 @@ export async function saveGame(data) {
   }
 
   try {
+    const userId = session.user.id;
     const {
       gameState: { board, keyboard, row, expert, win, completed, guesses = [] },
       date,

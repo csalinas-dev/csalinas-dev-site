@@ -33,15 +33,14 @@ export const ContextProvider = ({ children, date }) => {
   useEffect(() => {
     if (!loading) {
       // This ensures the reducer state is updated when initialState changes
-      dispatch({ type: "INITIALIZE_STATE", state: initialState });
+      dispatch({ type: "INITIALIZE_STATE", state: { ...initialState, session } });
     }
-  }, [initialState, loading]);
+  }, [initialState, loading, session]);
 
   const store = useMemo(
     () => ({
-      state: { ...state, loading },
+      state: { ...state, loading, session },
       dispatch,
-      session,
       gameDate: date || dateFormat(new Date(), "yyyy-mm-dd"),
     }),
     [dispatch, state, loading, session, date]
