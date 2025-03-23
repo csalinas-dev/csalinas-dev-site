@@ -23,7 +23,7 @@ export const getOrCreateGame = async (date) => {
 
   try {
     const userId = user.id;
-    
+
     // Try to find an existing game for this user and date
     let game = await prisma.wordleGame.findUnique({
       where: {
@@ -39,11 +39,15 @@ export const getOrCreateGame = async (date) => {
       const word = getRandomWord(date);
       game = await prisma.wordleGame.create({
         data: {
-          ...defaultState,
           userId,
           date,
           word,
+          board: defaultState.board,
+          keyboard: defaultState.keyboard,
           guesses: [],
+          row: defaultState.row,
+          expert: defaultState.expert,
+          win: defaultState.win,
           completed: false,
           playable: true,
         },
