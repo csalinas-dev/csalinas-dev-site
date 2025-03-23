@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import dateFormat from "dateformat";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import dateFormat from "dateformat";
-import { getHistory } from "@/actions/wordleverse";
+import { useState, useEffect } from "react";
 
+import { getHistory } from "./_actions/getHistory";
 import {
   BackLink,
   CalendarContainer,
@@ -41,6 +41,7 @@ import {
   Title,
   Word,
 } from "./_components/styled";
+import { getOrCreateGame } from "../_actions/getOrCreateGame";
 
 const DAYS_OF_WEEK = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -201,11 +202,7 @@ export default function HistoryPage() {
     // If authenticated, fetch the full game details
     if (session && game) {
       try {
-        const formData = new FormData();
-        formData.append("date", game.date);
-        const gameData = await import("@/actions/wordleverse").then((module) =>
-          module.getGame(formData)
-        );
+        const gameData = getOrCreateGame(game.date);
         if (!gameData.error) {
           setSelectedGame({
             ...game,

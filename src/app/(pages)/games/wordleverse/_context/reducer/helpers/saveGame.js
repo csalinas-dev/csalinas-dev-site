@@ -1,5 +1,5 @@
 import dateFormat from "dateformat";
-import { saveGame as save } from "@/actions/wordleverse";
+import { saveGame as save } from "@wordleverse/_actions/saveGame";
 
 export const saveGame = async (state) => {
   const {

@@ -3,7 +3,7 @@ import styled from "@emotion/styled";
 import dateFormat from "dateformat";
 import { filter, map } from "lodash";
 import { Context } from "../_context";
-import Status from "../Status";
+import Status from "../_lib/Status";
 
 const Button = styled.span`
   align-items: center;
