@@ -1,7 +1,22 @@
 import dateFormat from "dateformat";
 import { saveGame as save } from "@wordleverse/_actions/saveGame";
 
-export const saveGame = async (state) => {
+// Synchronous function for the reducer to call
+export const saveGame = (state) => {
+  // This function just prepares the state for saving
+  // but doesn't actually perform the async operations
+  // It returns the state unchanged
+  
+  // Schedule the actual save operation to happen asynchronously
+  setTimeout(() => {
+    saveGameAsync(state);
+  }, 0);
+  
+  return state;
+};
+
+// Separate async function that handles the actual saving
+const saveGameAsync = async (state) => {
   const {
     error,
     guess,

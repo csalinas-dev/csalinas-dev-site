@@ -1,7 +1,8 @@
 import { filter } from "lodash";
 
 import words from "@/data/words.json";
-import Status from "../../_lib/Status";
+
+import Status from "@wordleverse/_lib/Status";
 
 import { getEligibleWords, saveGame, updateLetterStatuses } from "./helpers";
 
@@ -20,8 +21,7 @@ export const submitGuess = (state) => {
       row: 6,
       win: false,
     };
-    saveGame(newState);
-    return newState;
+    return saveGame(newState);
   }
 
   // Check if guess is in list of words
@@ -53,8 +53,7 @@ export const submitGuess = (state) => {
   );
   if (correct.length === 5) {
     newState.win = true;
-    saveGame(newState);
-    return newState;
+    return saveGame(newState);
   }
 
   // Move to Next Row
@@ -66,6 +65,5 @@ export const submitGuess = (state) => {
     newState.win = false;
   }
 
-  saveGame(newState);
-  return newState;
+  return saveGame(newState);
 };
