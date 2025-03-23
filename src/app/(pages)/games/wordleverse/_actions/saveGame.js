@@ -1,8 +1,8 @@
 "use server";
 
 import dateFormat from "dateformat";
-import { auth } from "@/lib/auth";
 
+import { getCurrentUser } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 
 import { updateStreak } from "./updateStreak";
@@ -13,13 +13,13 @@ import { updateStreak } from "./updateStreak";
  * @returns {Object} The updated game data or error
  */
 export async function saveGame(data) {
-  const session = await auth();
-  if (!session?.user) {
+  const user = await getCurrentUser();
+  if (!user) {
     return { error: "Unauthorized", status: 401 };
   }
 
   try {
-    const userId = session.user.id;
+    const userId = user.id;
     const {
       gameState: { board, keyboard, row, expert, win, completed, guesses = [] },
       date,

@@ -13,7 +13,16 @@ export const auth = async () => {
 
 export const getCurrentUser = async () => {
   const session = await auth();
-  return session?.user;
+  
+  if (!session?.user) return null;
+  
+  // Get user from database to ensure we have the ID
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email },
+    select: { id: true, name: true, email: true, image: true }
+  });
+  
+  return user;
 };
 
 // Function to register a new user

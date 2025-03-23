@@ -1,6 +1,6 @@
 "use server";
 
-import { auth } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 
 import { defaultState } from "@wordleverse/_lib/defaults";
@@ -12,8 +12,8 @@ import { getRandomWord } from "@wordleverse/_lib/random";
  * @returns {Object} The game data or error
  */
 export const getOrCreateGame = async (date) => {
-  const session = await auth();
-  if (!session?.user) {
+  const user = await getCurrentUser();
+  if (!user) {
     return { error: "Unauthorized", status: 401 };
   }
 
@@ -22,7 +22,7 @@ export const getOrCreateGame = async (date) => {
   }
 
   try {
-    const userId = session.user.id;
+    const userId = user.id;
     
     // Try to find an existing game for this user and date
     let game = await prisma.wordleGame.findUnique({

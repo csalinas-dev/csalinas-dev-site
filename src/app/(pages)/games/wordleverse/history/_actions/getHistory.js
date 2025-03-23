@@ -1,14 +1,14 @@
 "use server";
 
-import { auth } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 
 export const getHistory = async (options = {}) => {
-   const session = await auth();
-    if (!session?.user) {
+   const user = await getCurrentUser();
+    if (!user) {
       return { error: "Unauthorized", status: 401 };
     }
-    const userId = session.user.id;
+    const userId = user.id;
   
     try {
       // Get user's game history with streak information
