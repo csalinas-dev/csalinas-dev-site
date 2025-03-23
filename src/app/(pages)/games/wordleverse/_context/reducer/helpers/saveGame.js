@@ -24,19 +24,6 @@ export const saveGame = async (state) => {
   // If user is authenticated, save to database
   if (session?.user) {
     try {
-      // Convert enum values to strings for database storage
-      const dbBoard = game.board.map((row) =>
-        row.map((cell) => ({
-          ...cell,
-          status: cell.status.toString().toLowerCase(),
-        }))
-      );
-
-      const dbKeyboard = game.keyboard.map((key) => ({
-        ...key,
-        status: key.status.toString().toLowerCase(),
-      }));
-
       // Track guesses for history view
       const guesses = [];
       for (let i = 0; i < game.row; i++) {
@@ -48,8 +35,6 @@ export const saveGame = async (state) => {
 
       const gameState = {
         ...game,
-        board: dbBoard,
-        keyboard: dbKeyboard,
         guesses,
         completed: game.win !== null || game.row > 5,
       };

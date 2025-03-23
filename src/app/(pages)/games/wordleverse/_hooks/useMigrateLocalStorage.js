@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 
+import { getOrCreateGame } from "@wordleverse/_actions/getOrCreateGame";
 import { saveGame } from "@wordleverse/_actions/saveGame";
 import { getRandomWord } from "@wordleverse/_lib/random";
 
