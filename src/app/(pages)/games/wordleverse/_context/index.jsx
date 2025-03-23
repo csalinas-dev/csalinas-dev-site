@@ -33,7 +33,10 @@ export const ContextProvider = ({ children, date }) => {
   useEffect(() => {
     if (!loading) {
       // This ensures the reducer state is updated when initialState changes
-      dispatch({ type: "INITIALIZE_STATE", state: { ...initialState, session } });
+      dispatch({
+        type: "INITIALIZE_STATE",
+        state: { ...initialState, session, loading: false },
+      });
     }
   }, [initialState, loading, session]);
 
