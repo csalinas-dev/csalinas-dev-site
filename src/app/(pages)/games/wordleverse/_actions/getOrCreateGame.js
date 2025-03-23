@@ -1,7 +1,6 @@
 "use server";
 
-import { getSession } from "next-auth/react";
-
+import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 
 import { defaultState } from "@wordleverse/_lib/defaults";
@@ -13,7 +12,7 @@ import { getRandomWord } from "@wordleverse/_lib/random";
  * @returns {Object} The game data or error
  */
 export const getOrCreateGame = async (date) => {
-  const session = await getSession();
+  const session = await auth();
   if (!session?.user) {
     return { error: "Unauthorized", status: 401 };
   }

@@ -1,7 +1,20 @@
-import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
-import crypto from 'crypto';
-import nodemailer from 'nodemailer';
+import crypto from "crypto";
+import { getServerSession } from "next-auth";
+import nodemailer from "nodemailer";
+
+import { handler } from "@/app/api/auth/[...nextauth]/route";
+
+import { prisma } from "./prisma";
+
+export const auth = async () => {
+  return await getServerSession(handler);
+};
+
+export const getCurrentUser = async () => {
+  const session = await auth();
+  return session?.user;
+};
 
 // Function to register a new user
 export async function registerUser(name, email, password) {
@@ -27,7 +40,7 @@ export async function registerUser(name, email, password) {
   });
 
   // Create a verification token
-  const token = crypto.randomBytes(32).toString('hex');
+  const token = crypto.randomBytes(32).toString("hex");
   const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
   await prisma.verificationToken.create({
@@ -61,7 +74,7 @@ export async function sendVerificationEmail(email, token) {
   await transporter.sendMail({
     from: process.env.EMAIL_FROM,
     to: email,
-    subject: 'Verify your email address',
+    subject: "Verify your email address",
     text: `Please verify your email address by clicking the following link: ${verificationUrl}`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">

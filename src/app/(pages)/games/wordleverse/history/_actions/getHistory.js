@@ -1,10 +1,10 @@
 "use server";
 
-import { getSession } from "@/lib/auth";
+import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 
 export const getHistory = async (options = {}) => {
-   const session = await getSession();
+   const session = await auth();
     if (!session?.user) {
       return { error: "Unauthorized", status: 401 };
     }

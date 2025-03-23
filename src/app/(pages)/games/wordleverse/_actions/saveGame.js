@@ -1,7 +1,7 @@
 "use server";
 
 import dateFormat from "dateformat";
-import { getSession } from "next-auth/react";
+import { auth } from "@/lib/auth";
 
 import prisma from "@/lib/prisma";
 
@@ -13,7 +13,7 @@ import { updateStreak } from "./updateStreak";
  * @returns {Object} The updated game data or error
  */
 export async function saveGame(data) {
-  const session = await getSession();
+  const session = await auth();
   if (!session?.user) {
     return { error: "Unauthorized", status: 401 };
   }
