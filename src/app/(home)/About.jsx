@@ -9,6 +9,7 @@ import {
   String,
   Var,
 } from "@/components";
+import Link from "next/link";
 
 export const About = () => {
   const birthdate = new Date(1995, 6, 13);
@@ -39,13 +40,13 @@ export const About = () => {
         <Comment as="h3">Expertise & Innovation</Comment>
         <p>
           Since joining{" "}
-          <a
+          <Link
             href="https://iteam.consulting"
             target="_blank"
             rel="noreferrer noopener"
           >
             iTEAM Consulting
-          </a>{" "}
+          </Link>{" "}
           in <Numeric>October 2015</Numeric>, my professional path has been a
           blend of innovation and mastery. My toolbox, filled with technologies
           like <Function>ASP.NET</Function> <Parenthesis>(</Parenthesis>
@@ -70,13 +71,13 @@ export const About = () => {
           Beyond the world of coding, I pursue my passion for photography,
           capturing life&apos;s fleeting moments and transforming them into
           eternal memories. You can witness this artistic journey at{" "}
-          <a
+          <Link
             href="https://thischristography.com"
             target="_blank"
             rel="noreferrer noopener"
           >
             ThisChristography
-          </a>
+          </Link>
           . This pursuit complements my technical skills, reflecting a balance
           between precision and creativity.
         </p>
@@ -96,13 +97,13 @@ export const About = () => {
         </p>
         <p>
           At{" "}
-          <a
+          <Link
             href="https://iteam.consulting"
             target="_blank"
             rel="noreferrer noopener"
           >
             iTEAM
-          </a>
+          </Link>
           , I have not only contributed to the team but also spearheaded the
           development of bots that automate tedious tasks, especially for a
           mortgage company, showcasing my knack for creating efficient and

@@ -40,12 +40,12 @@ export const Splash = () => (
       <String>Christopher Salinas Jr</String>
     </Title>
     <Navigation>
-      <a href="#about">
+      <Link href="#about">
         <i className="fa-solid fa-fw fa-signature" /> About Me
-      </a>
-      <a href="/github">
+      </Link>
+      <Link href="/github">
         <i className="fa-brands fa-fw fa-github" /> GitHub
-      </a>
+      </Link>
       <Link href="/projects">
         <i className="fa-solid fa-fw fa-code" /> Projects
       </Link>
