@@ -52,25 +52,6 @@ body {
   overflow-y: auto;
 }
 
-@media (min-width: 1296px) {
-  body {
-    font-size: 24px;
-  }
-}
-
-/* Links */
-a,
-a:visited,
-a:active {
-  color: var(--const);
-  text-decoration: none;
-  display: inline-block;
-}
-
-a:hover {
-  text-decoration-thickness: 1px;
-}
-
 /* User Text Selection */
 ::-moz-selection {
   background: #add6ff26;

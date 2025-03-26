@@ -2,7 +2,7 @@
 
 import styled from "@emotion/styled";
 import NextImage from "next/image";
-import NextLink from "next/link";
+import { Link } from "@/components";
 import { useSession, signIn, signOut } from "next-auth/react";
 
 import logo from "@/assets/logo.png";
@@ -24,7 +24,7 @@ const Logo = styled(NextImage)`
   margin-right: 0.5rem;
 `;
 
-const Link = styled(NextLink)`
+const NavLink = styled(Link)`
   align-items: center;
   color: var(--var) !important;
   display: inline-flex;
@@ -88,7 +88,6 @@ const Menu = styled.div`
   position: absolute;
   top: 100%;
 
-
   @media (min-width: 600px) {
     left: 0;
     right: initial;
@@ -112,7 +111,7 @@ export const Nav = () => {
 
   return (
     <Header>
-      <Link href="/" className="primary">
+      <NavLink href="/" className="primary">
         <Logo
           src={logo}
           height="20"
@@ -120,35 +119,35 @@ export const Nav = () => {
           alt="Christopher Salinas Jr Portfolio Logo"
         />
         Chris Salinas Jr
-      </Link>
-      <Link href="/github">GitHub</Link>
-      <Link href="/projects">Projects</Link>
+      </NavLink>
+      <NavLink href="/github">GitHub</NavLink>
+      <NavLink href="/projects">Projects</NavLink>
       <Dropdown>
-        <Link href="/games">Games</Link>
+        <NavLink href="/games">Games</NavLink>
         <Menu className="menu">
           <SubTitle>Play</SubTitle>
-          <Link href="/games/wordleverse">Wordleverse</Link>
-          <Link href="/games/hashtag">Hashtag</Link>
+          <NavLink href="/games/wordleverse">Wordleverse</NavLink>
+          <NavLink href="/games/hashtag">Hashtag</NavLink>
           <SubTitle>Compare</SubTitle>
-          <Link href="/games/mini-motorways">Mini Motorways</Link>
+          <NavLink href="/games/mini-motorways">Mini Motorways</NavLink>
         </Menu>
       </Dropdown>
       <div style={{ flexGrow: 1 }} />
       <Dropdown>
-        <Link href="#">{session ? session.user?.name : "Account"}</Link>
+        <NavLink href="#">{session ? session.user?.name : "Account"}</NavLink>
         <Menu className="menu right">
-          {loading && <Link href="#">Loading ...</Link>}
+          {loading && <NavLink href="#">Loading ...</NavLink>}
           {!loading && !session && (
-            <Link href="#" onClick={() => signIn()}>
+            <NavLink href="#" onClick={() => signIn()}>
               <i className="fa-solid fa-sign-in-alt" />
               &nbsp;Sign in
-            </Link>
+            </NavLink>
           )}
           {!loading && session && (
-            <Link href="#" onClick={() => signOut()}>
+            <NavLink href="#" onClick={() => signOut()}>
               <i className="fa-solid fa-sign-out-alt" />
               &nbsp;Sign out
-            </Link>
+            </NavLink>
           )}
         </Menu>
       </Dropdown>

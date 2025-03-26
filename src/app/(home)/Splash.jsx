@@ -1,8 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import styled from "@emotion/styled";
-import { Var, String, Section } from "@/components";
+import { Var, String, Section, Link } from "@/components";
 
 const Title = styled.h1`
   display: inline-block;
