@@ -26,8 +26,6 @@ export const Image = styled(NextImage)`
 `;
 
 export const Article = styled("article")`
-  font-size: 1.5rem !important;
-
   h2 {
     color: var(--comment);
 

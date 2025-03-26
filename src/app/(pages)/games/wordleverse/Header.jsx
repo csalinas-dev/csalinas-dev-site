@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { useContext, useEffect } from "react";
 import styled from "@emotion/styled";
 
@@ -7,6 +6,7 @@ import {
   FormattedDate,
   Function,
   Module,
+  Link,
   Numeric,
   Parenthesis,
   Var,
