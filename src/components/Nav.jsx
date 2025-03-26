@@ -2,10 +2,10 @@
 
 import styled from "@emotion/styled";
 import NextImage from "next/image";
-import { Link } from "@/components";
 import { useSession, signIn, signOut } from "next-auth/react";
 
 import logo from "@/assets/logo.png";
+import { Link } from "@/components";
 
 const Header = styled.header`
   align-items: stretch;
@@ -53,6 +53,7 @@ const NavLink = styled(Link)`
 
   &:hover {
     background-color: var(--selectionBackground);
+    opacity: 1;
 
     .submenu {
       display: block;
