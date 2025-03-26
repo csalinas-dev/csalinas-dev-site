@@ -1,56 +1,52 @@
 "use client";
 
-import styled from "@emotion/styled";
-import { Var, String, Section, Link } from "@/components";
+import { Stack, Typography, styled } from "@mui/material";
 
-const Title = styled.h1`
-  display: inline-block;
-  font-size: 3rem;
-  font-weight: 600;
-  line-height: initial;
-  margin: 0;
-  text-align: center;
+import { Var, String, Link } from "@/components";
 
-  @media (min-width: 896px) {
-    text-align: left;
-  }
-`;
-
-const Navigation = styled.div`
-  font-size: 2rem;
+const NavLink = styled(Link)`
+  align-items: center;
+  color: var(--foreground);
   display: flex;
-  flex-flow: column nowrap;
-  margin-top: 3rem;
   gap: 1rem;
-
-  a {
-    align-items: center;
-    color: var(--foreground);
-    display: flex;
-    gap: 1rem;
-  }
+  font-size: 2rem;
 `;
 
 export const Splash = () => (
-  <Section style={{ minHeight: "100vh" }}>
-    <Title>
+  <Stack
+    direction="column"
+    alignItems={{ xs: "center", md: "flex-start" }}
+    justifyContent="center"
+    sx={{ py: 4, minHeight: "100vh" }}
+    spacing={4}
+  >
+    <Typography
+      component="h1"
+      sx={{
+        display: "flex",
+        flexFlow: "column wrap",
+        fontWeight: 600,
+        gap: "1rem",
+        textAlign: { xs: "center", md: "left" },
+      }}
+      variant="h3"
+    >
       <Var>Hello, I&apos;m</Var>
-      <br />
       <String>Christopher Salinas Jr</String>
-    </Title>
-    <Navigation>
-      <Link href="#about">
+    </Typography>
+    <Stack direction="column" spacing={2}>
+      <NavLink href="#about">
         <i className="fa-solid fa-fw fa-signature" /> About Me
-      </Link>
-      <Link href="/github">
+      </NavLink>
+      <NavLink href="/github">
         <i className="fa-brands fa-fw fa-github" /> GitHub
-      </Link>
-      <Link href="/projects">
+      </NavLink>
+      <NavLink href="/projects">
         <i className="fa-solid fa-fw fa-code" /> Projects
-      </Link>
-      <Link href="/games">
+      </NavLink>
+      <NavLink href="/games">
         <i className="fa-solid fa-fw fa-gamepad" /> Games
-      </Link>
-    </Navigation>
-  </Section>
+      </NavLink>
+    </Stack>
+  </Stack>
 );
