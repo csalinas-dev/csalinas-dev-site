@@ -13,7 +13,6 @@ const DayContainer = styled(Stack)`
 
 const DayStatus = styled(Box)`
   font-size: "1rem";
-  font-weight: "light";
 `;
 
 /**
@@ -97,7 +96,6 @@ const CalendarDay = ({
         cursor: disabled ? "default" : "pointer",
         padding: { xs: 0, md: "1rem" },
         userSelect: disabled ? "none" : "auto",
-        textShadow: mobile ? "initial" : "1px 1px var(--background)",
         "&:hover": {
           opacity: disabled ? 1 : 0.87,
         },
@@ -107,6 +105,7 @@ const CalendarDay = ({
         sx={{
           fontSize: { xs: "1rem", sm: "1.5rem", md: "2rem" },
           fontWeight: "bold",
+          textShadow: { xs: "initial", md: "1px 1px var(--background)" },
         }}
       >
         {day}
