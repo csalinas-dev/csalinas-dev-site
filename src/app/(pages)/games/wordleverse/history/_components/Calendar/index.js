@@ -12,7 +12,6 @@ const CalendarContainer = styled.div`
   display: flex;
   flex-direction: column;
   width: 100%;
-  max-width: 800px;
 `;
 
 const CalendarGrid = styled.div`
@@ -31,22 +30,24 @@ const CalendarGrid = styled.div`
  */
 const Calendar = ({ availableDates, games }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
-  
+
   // Check if current month is January 2024 (to disable previous button)
   const isPrevMonthDisabled = () => {
     return currentMonth.getFullYear() === 2024 && currentMonth.getMonth() === 0;
   };
-  
+
   // Check if current month is the current month (to disable next button)
   const isNextMonthDisabled = () => {
     const today = new Date();
-    return currentMonth.getFullYear() === today.getFullYear() &&
-           currentMonth.getMonth() === today.getMonth();
+    return (
+      currentMonth.getFullYear() === today.getFullYear() &&
+      currentMonth.getMonth() === today.getMonth()
+    );
   };
 
   const handlePrevMonth = () => {
     if (isPrevMonthDisabled()) return;
-    
+
     const newMonth = new Date(currentMonth);
     newMonth.setMonth(newMonth.getMonth() - 1);
     setCurrentMonth(newMonth);
@@ -54,7 +55,7 @@ const Calendar = ({ availableDates, games }) => {
 
   const handleNextMonth = () => {
     if (isNextMonthDisabled()) return;
-    
+
     const newMonth = new Date(currentMonth);
     newMonth.setMonth(newMonth.getMonth() + 1);
     setCurrentMonth(newMonth);

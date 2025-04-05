@@ -1,24 +1,15 @@
 "use client";
 
 import styled from "@emotion/styled";
+import { Container } from "@mui/material";
 import Link from "next/link";
 
 // Styled components
-const Container = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  padding: 2rem;
-`;
-
 const Header = styled.header`
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: 1rem;
   width: 100%;
-  max-width: 800px;
 `;
 
 const Title = styled.h1`
@@ -31,15 +22,10 @@ const BackLink = styled(Link)`
   color: #818384;
   text-decoration: none;
   margin-bottom: 1rem;
-  
+
   &:hover {
     color: white;
   }
-`;
-
-const ContentContainer = styled.div`
-  width: 100%;
-  max-width: 800px;
 `;
 
 /**
@@ -50,14 +36,21 @@ const ContentContainer = styled.div`
  */
 const Layout = ({ children }) => {
   return (
-    <Container>
+    <Container
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        paddingTop: 4,
+        paddingBottom: 10,
+        gap: 10,
+        "& > *": { width: "100%" },
+      }}
+    >
       <Header>
         <BackLink href="/games/wordleverse">← Back to Game</BackLink>
         <Title>Wordleverse History</Title>
       </Header>
-      <ContentContainer>
-        {children}
-      </ContentContainer>
+      {children}
     </Container>
   );
 };
