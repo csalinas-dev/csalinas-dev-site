@@ -5,26 +5,26 @@ import Link from "next/link";
 
 // Styled components
 const PromptContainer = styled.div`
+  align-items: center;
+  color: #818384;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  margin-top: 2rem;
   gap: 1rem;
+  margin: 2rem 0;
   text-align: center;
-  color: #818384;
 `;
 
 const SignInButton = styled.button`
   background-color: var(--comment);
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
   border-radius: 4px;
+  border: none;
+  color: white;
   cursor: pointer;
   font-weight: bold;
-  
+  padding: 0.5rem 1rem;
+
   &:hover {
-    background-color: #7ab966;
+    opacity: 0.87;
   }
 `;
 

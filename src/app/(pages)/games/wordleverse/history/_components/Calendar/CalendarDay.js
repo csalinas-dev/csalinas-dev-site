@@ -1,51 +1,19 @@
 "use client";
 
-import styled from "@emotion/styled";
+import { Box, Stack, styled } from "@mui/material";
+import Link from "next/link";
 
 // Styled components
-const DayContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+const DayContainer = styled(Stack)`
   aspect-ratio: 1;
-  background-color: ${props => 
-    props.empty ? "transparent" :
-    props.isToday && !props.completed ? "var(--var)" : // Today (not completed) - light blue
-    props.win ? "var(--comment)" : // Win - green
-    props.lose ? "var(--invalid)" : // Lose - red
-    props.played ? "#4a4a4c" : 
-    "transparent"};
-  border: 2px solid ${props => 
-    props.empty ? "transparent" : 
-    props.isToday && !props.completed ? "var(--var)" :
-    props.win ? "var(--comment)" :
-    props.lose ? "var(--invalid)" :
-    "#3a3a3c"};
   border-radius: 5px;
-  color: ${props => props.empty ? "transparent" : "white"};
-  cursor: ${props => (props.empty || (!props.playable && !props.completed)) ? "default" : "pointer"};
-  opacity: ${props => (props.empty || (!props.playable && !props.completed)) ? 0.3 : 1};
-  
-  &:hover {
-    background-color: ${props => 
-      (props.empty || (!props.playable && !props.completed)) ? 
-      (props.isToday && !props.completed ? "var(--var)" : 
-       props.win ? "var(--comment)" : 
-       props.lose ? "var(--invalid)" : 
-       props.played ? "#4a4a4c" : "transparent") : 
-      "#4a4a4c"};
-  }
+  box-shadow: 0.025rem 0.05rem 0.2rem rgba(0, 0, 0, 0.5);
+  text-decoration: none;
+  padding: 0.5rem;
+  ${"" /* transition: opacity 0.2s ease-in-out; */}
 `;
 
-const DayNumber = styled.div`
-  font-size: 1rem;
-  font-weight: ${props => props.isToday ? "bold" : "normal"};
-`;
-
-const DayStatus = styled.div`
-  font-size: 0.7rem;
-  color: white;
+const DayStatus = styled(Box)`
   font-weight: bold;
 `;
 
@@ -65,36 +33,70 @@ const DayStatus = styled.div`
  * @param {React.ReactNode} props.children - Child components
  * @returns {JSX.Element} CalendarDay component
  */
-const CalendarDay = ({ 
-  empty, 
-  isToday, 
-  played, 
-  completed, 
-  playable, 
-  win, 
-  lose, 
-  day, 
-  guesses, 
-  onClick, 
-  children 
+const CalendarDay = ({
+  empty,
+  isToday,
+  played,
+  completed,
+  playable,
+  win,
+  day,
+  date,
+  guesses,
+  children,
 }) => {
+  const disabled = !playable;
+  let backgroundColor = "var(--selectionBackground)";
+
   if (empty) {
-    return <DayContainer empty />;
+    return (
+      <DayContainer
+        sx={{
+          backgroundColor,
+          cursor: "default",
+          opacity: 0.3,
+          userSelect: "none",
+        }}
+      />
+    );
+  }
+
+  if (isToday && !completed) {
+    backgroundColor = "var(--var)"; // Today (not completed) - light blue
+  } else if (completed && win) {
+    backgroundColor = "var(--comment)"; // Win - green
+  } else if (completed && !win) {
+    backgroundColor = "var(--invalid)"; // Lose - red
+  } else if (played) {
+    backgroundColor = "var(--selector)"; // Played - orange-yellow
   }
 
   return (
     <DayContainer
-      isToday={isToday}
-      played={played}
-      completed={completed}
-      playable={playable}
-      win={win}
-      lose={lose}
-      onClick={onClick}
+      component={Link}
+      href={`/games/wordleverse?date=${date}`}
+      direction="column"
+      justifyContent="center"
+      alignItems="center"
+      sx={{
+        backgroundColor,
+        color:
+          backgroundColor === "var(--selectionBackground)"
+            ? "var(--foreground)"
+            : "var(--background)",
+        cursor: disabled ? "default" : "pointer",
+        opacity: disabled ? 0.3 : 1,
+        userSelect: disabled ? "none" : "auto",
+        "&:hover": {
+          opacity: disabled ? 0.3 : 0.87,
+        },
+      }}
     >
-      <DayNumber isToday={isToday}>{day}</DayNumber>
+      <Box sx={{ fontSize: "2rem", fontWeight: isToday ? "bold" : "normal" }}>
+        {day}
+      </Box>
       {completed && (
-        <DayStatus>
+        <DayStatus sx={{ fontSize: "1rem" }}>
           {win ? `${guesses}/6` : "X"}
         </DayStatus>
       )}

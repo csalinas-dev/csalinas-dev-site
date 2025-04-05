@@ -27,10 +27,9 @@ const CalendarGrid = styled.div`
  * @param {Object} props - Component props
  * @param {Array} props.availableDates - Array of available dates with their status
  * @param {Array} props.games - Array of games with their results
- * @param {Function} props.onDayClick - Handler for day click
  * @returns {JSX.Element} Calendar component
  */
-const Calendar = ({ availableDates, games, onDayClick }) => {
+const Calendar = ({ availableDates, games }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
   const handlePrevMonth = () => {
@@ -56,10 +55,6 @@ const Calendar = ({ availableDates, games, onDayClick }) => {
     // Get the day of week for the first day (0 = Sunday, 6 = Saturday)
     const firstDayOfWeek = firstDay.getDay();
 
-    // Calculate total days in the calendar view (including padding)
-    const totalDays = firstDayOfWeek + lastDay.getDate();
-    const totalWeeks = Math.ceil(totalDays / 7);
-
     // Create calendar days
     const days = [];
 
@@ -71,32 +66,36 @@ const Calendar = ({ availableDates, games, onDayClick }) => {
     // Add days of the month
     for (let day = 1; day <= lastDay.getDate(); day++) {
       const date = new Date(year, month, day);
+      const future = date > new Date();
       const dateStr = dateFormat(date, "yyyy-mm-dd");
-      
+      const today = dateFormat(new Date(), "yyyy-mm-dd");
+
       const dateInfo = availableDates.find((d) => d.date === dateStr) || {
         date: dateStr,
         played: false,
         completed: false,
-        isToday: dateFormat(new Date(), "yyyy-mm-dd") === dateStr,
+        isToday: today === dateStr,
       };
 
       const game = games.find((g) => g.date === dateStr);
       const isWin = game && game.win;
-      const isLose = game && !game.win;
       const guesses = game ? game.guesses : null;
+      const playable =
+        (dateInfo.played && !dateInfo.completed) ||
+        (dateInfo.isToday && !dateInfo.completed) ||
+        !future;
 
       days.push(
         <CalendarDay
           key={dateStr}
+          date={dateStr}
           day={day}
           isToday={dateInfo.isToday}
           played={dateInfo.played}
           completed={dateInfo.completed}
-          playable={!dateInfo.completed || dateInfo.isToday}
+          playable={playable}
           win={isWin}
-          lose={isLose}
           guesses={guesses}
-          onClick={() => onDayClick(dateStr, dateInfo)}
         />
       );
     }
@@ -111,9 +110,7 @@ const Calendar = ({ availableDates, games, onDayClick }) => {
         onPrevMonth={handlePrevMonth}
         onNextMonth={handleNextMonth}
       />
-      <CalendarGrid>
-        {renderCalendar()}
-      </CalendarGrid>
+      <CalendarGrid>{renderCalendar()}</CalendarGrid>
     </CalendarContainer>
   );
 };

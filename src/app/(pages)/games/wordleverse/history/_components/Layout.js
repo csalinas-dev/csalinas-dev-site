@@ -11,8 +11,6 @@ const Container = styled.div`
   justify-content: flex-start;
   min-height: 100vh;
   padding: 2rem;
-  background-color: #121213;
-  color: white;
 `;
 
 const Header = styled.header`

@@ -91,17 +91,16 @@ const Toggle = styled.span`
   user-select: none;
 `;
 
-const Header = () => {
+const Header = ({ date }) => {
   const {
     state: { expert, row, title, wordsRemaining },
     dispatch,
-    session,
   } = useContext(Context);
 
   const titleContent = title ? (
     <Module>{title}</Module>
   ) : (
-    <FormattedDate date={new Date()} />
+    <FormattedDate date={date ? new Date(date + "T00:00:00") : new Date()} />
   );
 
   useEffect(() => {

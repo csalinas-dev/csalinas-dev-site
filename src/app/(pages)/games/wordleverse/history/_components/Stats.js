@@ -16,7 +16,7 @@ const StatBox = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  background-color: #3a3a3c;
+  background-color: var(--selectionBackground);
   border-radius: 5px;
   padding: 1rem;
   min-width: 100px;

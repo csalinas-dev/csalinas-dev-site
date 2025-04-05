@@ -50,7 +50,7 @@ const Boards = styled.div`
 export default function Game() {
   const searchParams = useSearchParams();
   const date = searchParams.get("date");
-  
+
   const { container, width, height } = useResponsiveBoards();
   const actualHeight = height - 16;
   const isPortrait = width / actualHeight < 0.6298020955;
@@ -67,7 +67,7 @@ export default function Game() {
     <ContextProvider date={date}>
       <Grid>
         <Alerts />
-        <Header />
+        <Header date={date} />
         <Container ref={container}>
           <Boards>
             <Gameboard width={w} height={hGB} />
@@ -77,4 +77,4 @@ export default function Game() {
       </Grid>
     </ContextProvider>
   );
-};
+}
