@@ -2,7 +2,7 @@
   "compilerOptions": {
     "paths": {
       "@/*": ["./src/*"],
-      "@wordleverse/*": ["./src/app/(pages)/games/wordleverse/*"]
+      "@wordleverse/*": ["./src/app/(pages)/games/wordleverse/(game)/*"]
     }
   }
 }
