@@ -34,10 +34,22 @@ export const getHistoryFromDB = async (options = {}) => {
       select: { streak: true, maxStreak: true },
     });
 
+    // Calculate guess distribution
+    const guessCounts = [0, 0, 0, 0, 0, 0];
+    games.forEach((game) => {
+      if (game.win) {
+        const guessCount = game.guesses.length;
+        if (guessCount > 0 && guessCount <= 6) {
+          guessCounts[guessCount - 1]++;
+        }
+      }
+    });
+
     const history = {
       games,
       streak: userInfo?.streak || 0,
       maxStreak: userInfo?.maxStreak || 0,
+      guessCounts,
     };
 
     // If requested, include available dates

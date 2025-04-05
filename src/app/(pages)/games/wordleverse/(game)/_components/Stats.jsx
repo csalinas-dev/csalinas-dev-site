@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import dateFormat from "dateformat";
 import styled from "@emotion/styled";
 
 import { getHistory } from "@wordleverse-history/_actions/getHistory";
+import { getHistoryFromLocalStorage } from "@wordleverse-history/_lib/storage/localStorage";
 
 const StatsContainer = styled.div`
   display: flex;
@@ -149,7 +149,7 @@ export const Stats = () => {
             const counts = [0, 0, 0, 0, 0, 0];
             data.games.forEach((game) => {
               if (game.win) {
-                counts[game.guesses.length]++;
+                counts[game.guesses.length - 1]++;
               }
             });
             setGuessCounts(counts);
@@ -160,94 +160,14 @@ export const Stats = () => {
           console.error("Error fetching history:", error);
         }
       } else {
-        // Use localStorage for non-authenticated users
-        const localHistory = [];
-        let streak = 0;
-        let maxStreak = 0;
-        const counts = [0, 0, 0, 0, 0, 0];
-
-        if (typeof window !== "undefined") {
-          // Get all localStorage keys
-          for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (key.startsWith("WORDLEVERSE-")) {
-              try {
-                const gameData = JSON.parse(localStorage.getItem(key));
-
-                const guesses = [];
-                for (let j = 0; j <= gameData.row; j++) {
-                  guesses.push(
-                    gameData.board[j].map((cell) => cell.letter).join("")
-                  );
-                }
-
-                if (gameData.win !== null) {
-                  localHistory.push({
-                    date: key.replace("WORDLEVERSE-", ""),
-                    guesses,
-                    completed: gameData.win !== null,
-                    ...gameData,
-                  });
-
-                  if (gameData.win) {
-                    counts[gameData.row]++;
-                  }
-                }
-              } catch (error) {
-                console.error("Error parsing localStorage item:", error);
-              }
-            }
-          }
-
-          // Calculate streak (simplified version for localStorage)
-          if (localHistory.length > 0) {
-            // Sort by date (newest first)
-            localHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-            // Calculate current streak
-            let currentStreak = 0;
-            const today = dateFormat(new Date(), "yyyy-mm-dd");
-            const yesterday = dateFormat(
-              new Date(Date.now() - 86400000),
-              "yyyy-mm-dd"
-            );
-
-            for (let i = 0; i < localHistory.length; i++) {
-              const game = localHistory[i];
-              const gameDate = game.date;
-
-              if (
-                i === 0 &&
-                (gameDate === today || gameDate === yesterday) &&
-                game.win
-              ) {
-                currentStreak = 1;
-              } else if (i > 0) {
-                const prevGame = localHistory[i - 1];
-                const dayDiff = Math.round(
-                  (new Date(prevGame.date) - new Date(gameDate)) /
-                    (1000 * 60 * 60 * 24)
-                );
-
-                if (dayDiff === 1 && game.win) {
-                  currentStreak++;
-                } else {
-                  break;
-                }
-              }
-            }
-
-            streak = currentStreak;
-            maxStreak = 0;
-          }
-        }
-
-        setGuessCounts(counts);
+        // Use consolidated localStorage functionality from history folder
+        const localData = getHistoryFromLocalStorage();
         setHistory({
-          games: localHistory,
-          streak: streak,
-          maxStreak: maxStreak,
+          games: localData.games || [],
+          streak: localData.streak || 0,
+          maxStreak: localData.maxStreak || 0,
         });
+        setGuessCounts(localData.guessCounts || [0, 0, 0, 0, 0, 0]);
       }
 
       setLoading(false);

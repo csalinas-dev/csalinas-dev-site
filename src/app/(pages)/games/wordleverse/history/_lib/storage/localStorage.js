@@ -89,10 +89,22 @@ export const getHistoryFromLocalStorage = (options = {}) => {
     }
   }
 
+  // Calculate guess distribution
+  const guessCounts = [0, 0, 0, 0, 0, 0];
+  localHistory.forEach((game) => {
+    if (game.win) {
+      const guessCount = game.guesses.length;
+      if (guessCount > 0 && guessCount <= 6) {
+        guessCounts[guessCount - 1]++;
+      }
+    }
+  });
+
   const history = {
     games: localHistory,
     streak,
     maxStreak,
+    guessCounts,
   };
 
   // If requested, include available dates

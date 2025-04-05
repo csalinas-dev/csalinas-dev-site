@@ -17,6 +17,7 @@ export const useHistory = (options = {}) => {
     games: [],
     streak: 0,
     maxStreak: 0,
+    guessCounts: [0, 0, 0, 0, 0, 0],
   });
   const [availableDates, setAvailableDates] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -38,6 +39,7 @@ export const useHistory = (options = {}) => {
               games: data.games || [],
               streak: data.streak || 0,
               maxStreak: data.maxStreak || 0,
+              guessCounts: data.guessCounts || [0, 0, 0, 0, 0, 0],
             });
             setAvailableDates(data.availableDates || []);
           } else {
@@ -53,6 +55,7 @@ export const useHistory = (options = {}) => {
           games: localData.games,
           streak: localData.streak,
           maxStreak: localData.maxStreak,
+          guessCounts: localData.guessCounts || [0, 0, 0, 0, 0, 0],
         });
         setAvailableDates(localData.availableDates);
       }
