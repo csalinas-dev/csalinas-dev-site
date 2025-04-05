@@ -1,5 +1,5 @@
 import dateFormat from "dateformat";
-import { saveGame as save } from "@wordleverse/_actions/saveGame";
+import { saveGame as saveToStorage, saveExpertMode } from "../../../_storage";
 
 // Synchronous function for the reducer to call
 export const saveGame = (state) => {
@@ -36,36 +36,13 @@ const saveGameAsync = async (state) => {
   const today = dateFormat(new Date(), "yyyy-mm-dd");
   const date = gameDate || today;
 
-  // If user is authenticated, save to database
-  if (session?.user) {
-    try {
-      // Track guesses for history view
-      const guesses = [];
-      for (let i = 0; i < game.row; i++) {
-        const rowGuess = game.board[i].map((cell) => cell.letter).join("");
-        if (rowGuess.length === 5) {
-          guesses.push(rowGuess);
-        }
-      }
-
-      const gameState = {
-        ...game,
-        guesses,
-        completed: game.win !== null || game.row > 5,
-      };
-
-      await save({ gameState, date });
-      console.log("Game saved to database:", date);
-    } catch (error) {
-      console.error("Error saving game to database:", error);
-      // Fallback to localStorage if database save fails
-      localStorage.setItem(`WORDLEVERSE-${date}`, JSON.stringify(game));
-    }
-  } else {
-    // For non-authenticated users, use localStorage
-    localStorage.setItem(`WORDLEVERSE-${date}`, JSON.stringify(game));
+  try {
+    await saveToStorage(game, date, session);
+    console.log("Game saved:", date);
+  } catch (error) {
+    console.error("Error saving game:", error);
   }
 
-  // Always save expert mode preference to localStorage for convenience
-  localStorage.setItem("expert", game.expert);
+  // Always save expert mode preference
+  saveExpertMode(game.expert);
 };
