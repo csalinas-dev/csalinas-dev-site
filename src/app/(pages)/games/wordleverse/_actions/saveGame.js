@@ -50,6 +50,7 @@ export async function saveGame(data) {
 
     // If the game is completed, add to history and update streak
     if (completed && updatedGame.win !== null) {
+      const guesses = updatedGame.win ? row + 1 : null;
       await prisma.wordleHistory.upsert({
         where: {
           userId_date: {
@@ -58,14 +59,14 @@ export async function saveGame(data) {
           },
         },
         update: {
-          guesses: updatedGame.win ? row : null,
+          guesses,
           win: updatedGame.win,
         },
         create: {
           userId,
           date: gameDate,
           word: updatedGame.word,
-          guesses: updatedGame.win ? row : null,
+          guesses,
           win: updatedGame.win,
         },
       });

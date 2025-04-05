@@ -1,36 +1,53 @@
-import { useContext, Fragment } from "react";
+import { useContext, Fragment, useState } from "react";
 import styled from "@emotion/styled";
 
 import { Context, dismissAlert } from "./_context";
 import { useError } from "./_hooks";
-import { Clipboard, PlayAgain } from "./_components";
+import { Clipboard, PlayAgain, Stats } from "./_components";
 
 const Container = styled.div`
+  bottom: 0;
   display: flex;
   justify-content: center;
   left: 0;
-  padding: 1rem;
   position: fixed;
   right: 0;
-  top: 25vh;
+  top: 0;
   z-index: 100;
+
+  @media (min-width: 500px) and (min-height: 1000px) {
+    padding: 1rem;
+    bottom: initial;
+    top: 50vh;
+    transform: translateY(-50%);
+  }
 `;
 
 const Alert = styled.div`
   align-items: center;
-  border-radius: 1rem;
   box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.5);
   display: flex;
-  flex-flow: row nowrap;
+  flex-flow: column nowrap;
   font-size: 1.25rem;
   gap: 1rem;
-  justify-content: center;
+  justify-content: flex-start;
   line-height: 1rem;
-  max-width: 100vw;
-  padding: 1rem 2rem;
+  height: 100%;
+  width: 100%;
+  overflow-y: auto;
+  padding: 5rem 2rem 1rem;
   position: relative;
 
-  @media (min-width: 768px) {
+  @media (min-width: 500px) and (min-height: 1000px) {
+    padding: 1rem 2rem;
+    border-radius: 1rem;
+    width: auto;
+    height: auto;
+    max-height: 75vh;
+    max-width: 100vw;
+  }
+
+  @media (min-width: 768px) and (min-height: 1000px) {
     font-size: 2rem;
     gap: 2rem;
     padding: 2rem 4rem;
@@ -48,28 +65,31 @@ const Alert = styled.div`
   &.loss {
     background-color: var(--module);
     color: rgba(0, 0, 0, 0.87);
-    flex-flow: column nowrap;
   }
 
   &.win {
     background-color: var(--vscode);
     color: rgba(0, 0, 0, 0.87);
-    flex-flow: column nowrap;
   }
 `;
 
 const DismissContainer = styled.span`
   position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
+  top: 5rem;
+  right: 2rem;
   cursor: pointer;
   font-size: 1.5rem;
   line-height: 1.5rem;
   height: 1.5rem;
 
   svg {
-    margin: 0;
+    margin: 0 !important;
     padding: 0 3px;
+  }
+
+  @media (min-width: 768px) and (min-height: 1000px) {
+    top: 0.5rem;
+    right: 0.5rem;
   }
 `;
 
@@ -119,6 +139,7 @@ const Alerts = () => {
               </div>
               {title === null && <Clipboard />}
               <PlayAgain />
+              <Stats />
             </Alert>
           )}
         </Container>
