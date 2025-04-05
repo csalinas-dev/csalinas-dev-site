@@ -4,10 +4,10 @@ import dateFormat from "dateformat";
 import { cloneDeep } from "lodash";
 import { useEffect } from "react";
 
-import { getEligibleWords } from "../_context/reducer/helpers";
-import { defaultState } from "../_lib/defaults";
-import { getRandomWord } from "../_lib/random";
-import { getGame, getExpertMode } from "../_storage";
+import { getEligibleWords } from "@wordleverse/_context/reducer/helpers";
+import { defaultState } from "@wordleverse/_lib/defaults";
+import { getRandomWord } from "@wordleverse/_lib/random";
+import { getGame, getExpertMode } from "@wordleverse/_storage";
 
 export const useLoadGame = (
   date,
