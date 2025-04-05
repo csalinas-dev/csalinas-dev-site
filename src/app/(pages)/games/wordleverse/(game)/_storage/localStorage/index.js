@@ -30,13 +30,14 @@ export const saveGame = async (gameState, date) => {
   }
   
   const {
+    date: removeDate,
     error,
+    gameDate,
     guess,
+    isPastGame,
     title,
     word,
     wordsRemaining,
-    gameDate,
-    isPastGame,
     ...game
   } = gameState;
   

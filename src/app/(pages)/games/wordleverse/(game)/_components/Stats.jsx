@@ -174,14 +174,23 @@ export const Stats = () => {
               try {
                 const gameData = JSON.parse(localStorage.getItem(key));
 
+                const guesses = [];
+                for (let j = 0; j <= gameData.row; j++) {
+                  guesses.push(
+                    gameData.board[j].map((cell) => cell.letter).join("")
+                  );
+                }
+
                 if (gameData.win !== null) {
                   localHistory.push({
                     date: key.replace("WORDLEVERSE-", ""),
+                    guesses,
+                    completed: gameData.win !== null,
                     ...gameData,
                   });
 
                   if (gameData.win) {
-                    counts[gameData.guesses.length]++;
+                    counts[gameData.row]++;
                   }
                 }
               } catch (error) {

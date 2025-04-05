@@ -20,7 +20,21 @@ export const getHistoryFromLocalStorage = (options = {}) => {
         try {
           const date = key.replace("WORDLEVERSE-", "");
           const gameData = JSON.parse(localStorage.getItem(key));
-          localHistory.push({ date, ...gameData });
+
+          const guesses = [];
+          for (let j = 0; j <= Math.min(gameData.row, 5); j++) {
+            guesses.push(gameData.board[j].map((cell) => cell.letter).join(""));
+          }
+          const completed = gameData.win !== null;
+          const playable = !completed && gameData.row < 6;
+
+          localHistory.push({
+            date,
+            guesses: guesses.filter((guess) => guess !== ""),
+            completed,
+            playable,
+            ...gameData,
+          });
         } catch (error) {
           console.error("Error parsing localStorage item:", error);
         }
@@ -66,10 +80,11 @@ export const getHistoryFromLocalStorage = (options = {}) => {
       }
 
       streak = currentStreak;
+      // TODO: Calculate maxStreak based on localHistory, consecutive played games
       maxStreak = Math.max(
         ...localHistory
           .filter((game) => game.win)
-          .map((game) => game.guesses || 0)
+          .map((game) => game.guesses.length || 0)
       );
     }
   }
@@ -112,11 +127,10 @@ export const getAvailableDatesFromLocalStorage = (localHistory = []) => {
     availableDates.push({
       date: dateStr,
       played: !!game,
-      completed: !!game,
+      completed: game?.completed || false,
       isToday: i === 0,
     });
   }
 
   return availableDates;
 };
-
