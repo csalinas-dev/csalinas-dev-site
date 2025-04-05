@@ -26,9 +26,11 @@ const NavigationButton = styled.button`
   padding: 0.5rem 1rem;
   cursor: pointer;
   font-weight: bold;
+  opacity: ${(props) => (props.disabled ? 0.5 : 1)};
+  cursor: ${(props) => (props.disabled ? "not-allowed" : "pointer")};
 
   &:hover {
-    background-color: #4a4a4c;
+    background-color: ${(props) => (props.disabled ? "#3a3a3c" : "#4a4a4c")};
   }
 `;
 
@@ -58,13 +60,23 @@ const DAYS_OF_WEEK = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
  * @param {Function} props.onNextMonth - Handler for next month button
  * @returns {JSX.Element} CalendarHeader component
  */
-const CalendarHeader = ({ currentMonth, onPrevMonth, onNextMonth }) => {
+const CalendarHeader = ({ currentMonth, onPrevMonth, onNextMonth, isPrevDisabled, isNextDisabled }) => {
   return (
     <>
       <HeaderContainer>
-        <NavigationButton onClick={onPrevMonth}>Previous</NavigationButton>
+        <NavigationButton
+          onClick={onPrevMonth}
+          disabled={isPrevDisabled}
+        >
+          Previous
+        </NavigationButton>
         <MonthTitle>{dateFormat(currentMonth, "mmmm yyyy")}</MonthTitle>
-        <NavigationButton onClick={onNextMonth}>Next</NavigationButton>
+        <NavigationButton
+          onClick={onNextMonth}
+          disabled={isNextDisabled}
+        >
+          Next
+        </NavigationButton>
       </HeaderContainer>
 
       <DayHeadersContainer>
