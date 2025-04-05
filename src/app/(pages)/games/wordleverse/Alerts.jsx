@@ -1,9 +1,9 @@
-import { useContext, Fragment, useState } from "react";
+import { useContext, Fragment } from "react";
 import styled from "@emotion/styled";
 
+import { Clipboard, PlayAgain, Stats } from "./_components";
 import { Context, dismissAlert } from "./_context";
 import { useError } from "./_hooks";
-import { Clipboard, PlayAgain, Stats } from "./_components";
 
 const Container = styled.div`
   bottom: 0;

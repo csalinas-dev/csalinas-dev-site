@@ -1,5 +1,5 @@
 import { useContext, useEffect } from "react";
-import { Context, dismissError } from "../_context";
+import { Context, dismissError } from "@wordleverse/_context";
 
 export const useError = () => {
   const {

@@ -1,5 +1,4 @@
 import words from "@/data/words.json";
-import dateFormat from "dateformat";
 
 /**
  * Generates a seed based on a date

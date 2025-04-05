@@ -4,11 +4,11 @@ import { createContext, useMemo, useReducer, useEffect, useState } from "react";
 import dateFormat from "dateformat";
 import { useSession } from "next-auth/react";
 
-import { useLoadGame } from "@wordleverse/_hooks/useLoadGame";
-import { useMigrateLocalStorage } from "@wordleverse/_hooks/useMigrateLocalStorage";
+import { useLoadGame, useMigrateLocalStorage } from "@wordleverse/_hooks";
 import { defaultState } from "@wordleverse/_lib/defaults";
 
 import reducer from "./reducer";
+import { setCurrentSession } from "./reducer/helpers/saveGame";
 
 export const Context = createContext({
   state: defaultState,
@@ -19,6 +19,9 @@ export const ContextProvider = ({ children, date }) => {
   const { data: session, status } = useSession();
   const [initialState, setInitialState] = useState(defaultState);
   const [loading, setIsLoading] = useState(true);
+
+  // Set the current user session to use when saving games
+  setCurrentSession(session);
 
   // Get initial state (load or create new game)
   useLoadGame(date, session, status, setInitialState, setIsLoading);
@@ -35,18 +38,18 @@ export const ContextProvider = ({ children, date }) => {
       // This ensures the reducer state is updated when initialState changes
       dispatch({
         type: "INITIALIZE_STATE",
-        state: { ...initialState, session, loading: false },
+        state: { ...initialState, loading: false },
       });
     }
-  }, [initialState, loading, session]);
+  }, [initialState, loading]);
 
   const store = useMemo(
     () => ({
-      state: { ...state, loading, session },
+      state: { ...state, loading },
       dispatch,
       gameDate: date || dateFormat(new Date(), "yyyy-mm-dd"),
     }),
-    [dispatch, state, loading, session, date]
+    [dispatch, state, loading, date]
   );
 
   return <Context.Provider value={store}>{children}</Context.Provider>;

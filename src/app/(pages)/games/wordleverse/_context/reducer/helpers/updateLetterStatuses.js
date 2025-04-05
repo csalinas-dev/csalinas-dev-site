@@ -1,6 +1,8 @@
 import { findIndex } from "lodash";
-import { getLetterStatuses } from ".";
-import Status from "../../../_lib/Status";
+
+import Status from "@wordleverse/_lib/Status";
+
+import { getLetterStatuses } from "./getLetterStatuses";
 
 export const updateLetterStatuses = (state) => {
   const { board, keyboard, row, word, guess } = state;

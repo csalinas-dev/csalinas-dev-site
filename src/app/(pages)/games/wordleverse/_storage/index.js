@@ -8,7 +8,7 @@ import * as localStorageStorage from "./localStorage";
  * @param {Object} session - The user's session object
  * @returns {Object} The appropriate storage mechanism
  */
-export const getStorageProvider = (session) => {
+const getStorageProvider = (session) => {
   if (session?.user) {
     return databaseStorage;
   }

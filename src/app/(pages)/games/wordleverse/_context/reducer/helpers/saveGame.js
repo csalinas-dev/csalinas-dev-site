@@ -1,17 +1,27 @@
 import dateFormat from "dateformat";
-import { saveGame as saveToStorage, saveExpertMode } from "../../../_storage";
+import {
+  saveGame as saveToStorage,
+  saveExpertMode,
+} from "@wordleverse/_storage";
+
+// Get the session from the global context
+// This is a workaround to avoid having to pass the session through every component
+let currentSession = null;
+export const setCurrentSession = (session) => {
+  currentSession = session;
+};
 
 // Synchronous function for the reducer to call
 export const saveGame = (state) => {
   // This function just prepares the state for saving
   // but doesn't actually perform the async operations
   // It returns the state unchanged
-  
+
   // Schedule the actual save operation to happen asynchronously
   setTimeout(() => {
     saveGameAsync(state);
   }, 0);
-  
+
   return state;
 };
 
@@ -23,7 +33,6 @@ const saveGameAsync = async (state) => {
     title,
     word,
     wordsRemaining,
-    session,
     gameDate,
     isPastGame,
     ...game
@@ -37,7 +46,8 @@ const saveGameAsync = async (state) => {
   const date = gameDate || today;
 
   try {
-    await saveToStorage(game, date, session);
+    // Use the session from the global context
+    await saveToStorage(game, date, currentSession);
     console.log("Game saved:", date);
   } catch (error) {
     console.error("Error saving game:", error);

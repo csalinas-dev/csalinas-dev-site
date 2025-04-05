@@ -17,6 +17,10 @@ export const useLoadGame = (
   setIsLoading
 ) => {
   useEffect(() => {
+    if (status === "loading") {
+      return;
+    }
+
     (async () => {
       setIsLoading(true);
       const today = dateFormat(new Date(), "yyyy-mm-dd");
@@ -28,10 +32,6 @@ export const useLoadGame = (
       state.gameDate = gameDate;
       state.isPastGame = gameDate !== today;
       state.expert = getExpertMode();
-
-      if (status === "loading") {
-        return;
-      }
 
       // Try to load game from appropriate storage
       try {

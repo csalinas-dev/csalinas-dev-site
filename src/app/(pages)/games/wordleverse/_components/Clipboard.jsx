@@ -1,9 +1,10 @@
 import { useContext, useState } from "react";
-import styled from "@emotion/styled";
 import dateFormat from "dateformat";
 import { filter, map } from "lodash";
-import { Context } from "../_context";
-import Status from "../_lib/Status";
+import styled from "@emotion/styled";
+
+import { Context } from "@wordleverse/_context";
+import Status from "@wordleverse/_lib/Status";
 
 const Button = styled.span`
   align-items: center;

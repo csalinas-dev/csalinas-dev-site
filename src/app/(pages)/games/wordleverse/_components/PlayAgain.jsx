@@ -1,6 +1,7 @@
 import styled from "@emotion/styled";
 import { useContext } from "react";
-import { Context, playAgain } from "../_context";
+
+import { Context, playAgain } from "@wordleverse/_context";
 
 const Button = styled.span`
   background-color: var(--background);

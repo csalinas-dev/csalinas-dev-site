@@ -1,5 +1,10 @@
 import { useContext, useEffect } from "react";
-import { Context, addLetter, removeLetter, submitGuess } from "../_context";
+import {
+  Context,
+  addLetter,
+  removeLetter,
+  submitGuess,
+} from "@wordleverse/_context";
 
 export const useKeyboardInput = () => {
   const {

@@ -1,7 +1,8 @@
 import { filter } from "lodash";
 
 import words from "@/data/words.json";
-import Status from "../../../_lib/Status";
+
+import Status from "@wordleverse/_lib/Status";
 
 export const getEligibleWords = (state) => {
   const { board, wordsRemaining } = state;

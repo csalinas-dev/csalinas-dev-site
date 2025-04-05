@@ -1,4 +1,5 @@
 import { take } from "lodash";
+
 import { updateBoard } from "./helpers";
 
 export const removeLetter = (state) => {

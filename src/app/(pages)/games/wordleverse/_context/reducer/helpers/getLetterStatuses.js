@@ -1,4 +1,4 @@
-import Status from "../../../_lib/Status";
+import Status from "@wordleverse/_lib/Status";
 
 export const getLetterStatuses = (word, guess) => {
   const result = Array(guess.length).fill(Status.Absent);

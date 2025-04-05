@@ -1,8 +1,8 @@
 "use client";
 
-import { getOrCreateGame } from "../../_actions/getOrCreateGame";
-import { saveGame as saveGameAction } from "../../_actions/saveGame";
-import { convertStatus } from "../../_lib/Status";
+import { getOrCreateGame } from "@wordleverse/_actions/getOrCreateGame";
+import { saveGame as saveGameAction } from "@wordleverse/_actions/saveGame";
+import { convertStatus } from "@wordleverse/_lib/Status";
 
 /**
  * Gets a game from the database

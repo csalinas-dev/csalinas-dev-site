@@ -1,9 +1,10 @@
-import { useContext, useEffect, useState } from "react";
-import styled from "@emotion/styled";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import dateFormat from "dateformat";
-import { getHistory } from "../history/_actions/getHistory";
+import styled from "@emotion/styled";
+
+import { getHistory } from "@wordleverse/history/_actions/getHistory";
 
 const StatsContainer = styled.div`
   display: flex;
