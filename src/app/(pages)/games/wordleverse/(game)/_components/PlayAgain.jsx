@@ -14,6 +14,5 @@ const Button = styled.span`
 
 export const PlayAgain = () => {
   const { dispatch } = useContext(Context);
-
   return <Button onClick={() => dispatch(playAgain())}>Play again!</Button>;
 };

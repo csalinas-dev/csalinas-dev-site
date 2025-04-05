@@ -1,7 +1,10 @@
 import { useContext, Fragment } from "react";
 import styled from "@emotion/styled";
 
-import { Clipboard, PlayAgain, Stats } from "./_components";
+import Stats from "@wordleverse-history/_components/Stats";
+
+import { Clipboard } from "./_components/Clipboard";
+import { PlayAgain } from "./_components/PlayAgain";
 import { Context, dismissAlert } from "./_context";
 import { useError } from "./_hooks";
 
@@ -139,7 +142,7 @@ const Alerts = () => {
               </div>
               {title === null && <Clipboard />}
               <PlayAgain />
-              <Stats />
+              <Stats compact={true} />
             </Alert>
           )}
         </Container>
