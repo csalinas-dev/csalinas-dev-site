@@ -19,7 +19,7 @@ export const getHistoryFromDB = async (options = {}) => {
 
   try {
     // Get user's game history
-    const games = await prisma.wordleHistory.findMany({
+    const games = await prisma.wordleGame.findMany({
       where: {
         userId,
       },
@@ -27,7 +27,7 @@ export const getHistoryFromDB = async (options = {}) => {
         date: "desc",
       },
     });
-  
+
     // Get user's streak information
     const userInfo = await prisma.user.findUnique({
       where: { id: userId },
@@ -43,13 +43,12 @@ export const getHistoryFromDB = async (options = {}) => {
     // If requested, include available dates
     const includeAvailableDates = options.includeAvailableDates === true;
     if (includeAvailableDates) {
-      const availableDates = await getAvailableDatesFromDB(userId);
       return {
         ...history,
-        availableDates
+        availableDates: getAvailableDatesFromDB(history.games),
       };
     }
-    
+
     return history;
   } catch (error) {
     console.error("Error getting history from DB:", error);
@@ -62,11 +61,9 @@ export const getHistoryFromDB = async (options = {}) => {
  * @param {String} userId - User ID
  * @returns {Array} Array of available dates with their status
  */
-export async function getAvailableDatesFromDB(userId) {
-  if (!userId) return [];
-
+function getAvailableDatesFromDB(games) {
   // Get all dates from the beginning of the game to today
-  const startDate = new Date("2024-01-01");
+  const startDate = new Date("2024-01-01T00:00:00");
   const today = new Date();
   const allDates = [];
 
@@ -74,20 +71,9 @@ export async function getAvailableDatesFromDB(userId) {
     allDates.push(dateFormat(d, "yyyy-mm-dd"));
   }
 
-  // Get all games the user has played
-  const playedGames = await prisma.wordleGame.findMany({
-    where: {
-      userId,
-    },
-    select: {
-      date: true,
-      completed: true,
-    },
-  });
-
-  const playedDates = new Set(playedGames.map((game) => game.date));
+  const playedDates = new Set(games.map((game) => game.date));
   const completedDates = new Set(
-    playedGames.filter((game) => game.completed).map((game) => game.date)
+    games.filter((game) => game.completed).map((game) => game.date)
   );
 
   // Return all dates with their status
@@ -98,50 +84,3 @@ export async function getAvailableDatesFromDB(userId) {
     isToday: date === dateFormat(today, "yyyy-mm-dd"),
   }));
 }
-
-/**
- * Get game details from the database
- * @param {String} date - Date in yyyy-mm-dd format
- * @returns {Object} Game details or error
- */
-export const getGameDetailsFromDB = async (date) => {
-  const user = await getCurrentUser();
-  if (!user) {
-    return { error: "Unauthorized", status: 401 };
-  }
-
-  try {
-    const userId = user.id;
-    
-    // Find the game in history
-    const game = await prisma.wordleHistory.findFirst({
-      where: {
-        userId,
-        date,
-      },
-    });
-
-    if (!game) {
-      return { error: "Game not found", status: 404 };
-    }
-
-    // Get the full game details if needed
-    const gameDetails = await prisma.wordleGame.findUnique({
-      where: {
-        userId_date: {
-          userId,
-          date,
-        },
-      },
-    });
-
-    return {
-      ...game,
-      board: gameDetails?.board || null,
-      guesses: gameDetails?.guesses || [],
-    };
-  } catch (error) {
-    console.error("Error getting game details from DB:", error);
-    return { error: "Failed to get game details", status: 500 };
-  }
-};

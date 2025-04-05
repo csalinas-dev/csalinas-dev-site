@@ -79,7 +79,7 @@ const Calendar = ({ availableDates, games }) => {
 
       const game = games.find((g) => g.date === dateStr);
       const isWin = game && game.win;
-      const guesses = game ? game.guesses : null;
+      const guesses = game ? game.guesses.length : null;
       const playable =
         (dateInfo.played && !dateInfo.completed) ||
         (dateInfo.isToday && !dateInfo.completed) ||

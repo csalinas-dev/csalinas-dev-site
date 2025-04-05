@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import Link from "next/link";
 import dateFormat from "dateformat";
 import styled from "@emotion/styled";
 
@@ -105,7 +105,7 @@ const Bar = styled.div`
   width: ${(props) => props.width}%;
 `;
 
-const Button = styled.span`
+const Button = styled(Link)`
   background-color: var(--background);
   border-radius: 0.5rem;
   color: var(--foreground);
@@ -113,15 +113,10 @@ const Button = styled.span`
   padding: 0.5rem 1rem;
   font-size: 1rem;
   margin-top: 1rem;
-
-  &:hover {
-    background-color: var(--foreground);
-    color: var(--background);
-  }
+  text-decoration: none;
 `;
 
 export const Stats = () => {
-  const router = useRouter();
   const { data: session, status } = useSession();
   const [history, setHistory] = useState({
     games: [],
@@ -153,8 +148,8 @@ export const Stats = () => {
             // Calculate guess distribution
             const counts = [0, 0, 0, 0, 0, 0];
             data.games.forEach((game) => {
-              if (game.win && game.guesses >= 1 && game.guesses <= 6) {
-                counts[game.guesses - 1]++;
+              if (game.win) {
+                counts[game.guesses.length]++;
               }
             });
             setGuessCounts(counts);
@@ -182,13 +177,11 @@ export const Stats = () => {
                 if (gameData.win !== null) {
                   localHistory.push({
                     date: key.replace("WORDLEVERSE-", ""),
-                    word: gameData.word || "?????",
-                    guesses: gameData.win ? gameData.row : null,
-                    win: gameData.win,
+                    ...gameData,
                   });
 
-                  if (gameData.win && gameData.row >= 1 && gameData.row <= 6) {
-                    counts[gameData.row - 1]++;
+                  if (gameData.win) {
+                    counts[gameData.guesses.length]++;
                   }
                 }
               } catch (error) {
@@ -236,12 +229,7 @@ export const Stats = () => {
             }
 
             streak = currentStreak;
-            maxStreak = Math.max(
-              ...localHistory
-                .filter((game) => game.win)
-                .map((game) => game.guesses || 0),
-              0
-            );
+            maxStreak = 0;
           }
         }
 
@@ -259,16 +247,12 @@ export const Stats = () => {
     fetchHistory();
   }, [session, status]);
 
-  const totalGames = history.games.length;
+  const totalGames = history.games.filter((game) => game.completed).length;
   const gamesWon = history.games.filter((game) => game.win).length;
   const winPercentage =
     totalGames > 0 ? Math.round((gamesWon / totalGames) * 100) : 0;
 
   const maxGuessCount = Math.max(...guessCounts, 1);
-
-  const viewFullHistory = () => {
-    router.push("/games/wordleverse/history");
-  };
 
   if (loading) {
     return <div>Loading stats...</div>;
@@ -309,7 +293,7 @@ export const Stats = () => {
         ))}
       </BarChartContainer>
 
-      <Button onClick={viewFullHistory}>View Full History</Button>
+      <Button href="/games/wordleverse/history">View Full History</Button>
     </StatsContainer>
   );
 };

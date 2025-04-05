@@ -3,8 +3,8 @@
 import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
 
-import { getHistoryFromDB, getGameDetailsFromDB } from "./database";
-import { getHistoryFromLocalStorage, getGameDetailsFromLocalStorage } from "./localStorage";
+import { getHistoryFromDB  } from "./database";
+import { getHistoryFromLocalStorage } from "./localStorage";
 
 /**
  * Custom hook to get user's game history
@@ -64,18 +64,4 @@ export const useHistory = (options = {}) => {
   }, [session, status]);
 
   return { history, availableDates, loading };
-};
-
-/**
- * Get game details based on authentication status
- * @param {String} date - Date in yyyy-mm-dd format
- * @param {Boolean} isAuthenticated - Whether the user is authenticated
- * @returns {Promise<Object>} Game details or error
- */
-export const getGameDetails = async (date, isAuthenticated) => {
-  if (isAuthenticated) {
-    return await getGameDetailsFromDB(date);
-  } else {
-    return getGameDetailsFromLocalStorage(date);
-  }
 };

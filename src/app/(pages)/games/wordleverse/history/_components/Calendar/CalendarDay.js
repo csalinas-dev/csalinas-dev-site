@@ -1,6 +1,6 @@
 "use client";
 
-import { Box, Stack, styled } from "@mui/material";
+import { Box, Stack, styled, useTheme, useMediaQuery } from "@mui/material";
 import Link from "next/link";
 
 // Styled components
@@ -9,12 +9,11 @@ const DayContainer = styled(Stack)`
   border-radius: 5px;
   box-shadow: 0.025rem 0.05rem 0.2rem rgba(0, 0, 0, 0.5);
   text-decoration: none;
-  padding: 0.5rem;
-  ${"" /* transition: opacity 0.2s ease-in-out; */}
 `;
 
 const DayStatus = styled(Box)`
-  font-weight: bold;
+  font-size: "1rem";
+  font-weight: "light";
 `;
 
 /**
@@ -45,16 +44,19 @@ const CalendarDay = ({
   guesses,
   children,
 }) => {
+  const theme = useTheme();
+  const mobile = useMediaQuery(theme.breakpoints.down("md"));
   const disabled = !playable;
   let backgroundColor = "var(--selectionBackground)";
+  let color = "white";
 
   if (empty) {
     return (
       <DayContainer
         sx={{
-          backgroundColor,
           cursor: "default",
-          opacity: 0.3,
+          backgroundColor: "var(--absentBackground)",
+          color: "var(--absentForeground)",
           userSelect: "none",
         }}
       />
@@ -63,42 +65,57 @@ const CalendarDay = ({
 
   if (isToday && !completed) {
     backgroundColor = "var(--var)"; // Today (not completed) - light blue
+    color = "var(--background)";
   } else if (completed && win) {
     backgroundColor = "var(--comment)"; // Win - green
   } else if (completed && !win) {
     backgroundColor = "var(--invalid)"; // Lose - red
   } else if (played) {
     backgroundColor = "var(--selector)"; // Played - orange-yellow
+  } else if (disabled) {
+    backgroundColor = "var(--absentBackground)"; // disabled - gray
+    color = "var(--absentForeground)";
+  }
+
+  const props = {};
+  if (disabled) {
+    props["aria-disabled"] = true;
+  } else {
+    props.component = Link;
+    props.href = `/games/wordleverse?date=${date}`;
   }
 
   return (
     <DayContainer
-      component={Link}
-      href={`/games/wordleverse?date=${date}`}
+      {...props}
       direction="column"
-      justifyContent="center"
+      justifyContent={disabled || mobile ? "center" : "space-between"}
       alignItems="center"
       sx={{
         backgroundColor,
-        color:
-          backgroundColor === "var(--selectionBackground)"
-            ? "var(--foreground)"
-            : "var(--background)",
+        color,
         cursor: disabled ? "default" : "pointer",
-        opacity: disabled ? 0.3 : 1,
+        padding: { xs: 0, md: "1rem" },
         userSelect: disabled ? "none" : "auto",
+        textShadow: mobile ? "initial" : "1px 1px var(--background)",
         "&:hover": {
-          opacity: disabled ? 0.3 : 0.87,
+          opacity: disabled ? 1 : 0.87,
         },
       }}
     >
-      <Box sx={{ fontSize: "2rem", fontWeight: isToday ? "bold" : "normal" }}>
+      <Box
+        sx={{
+          fontSize: { xs: "1rem", sm: "1.5rem", md: "2rem" },
+          fontWeight: "bold",
+        }}
+      >
         {day}
       </Box>
-      {completed && (
-        <DayStatus sx={{ fontSize: "1rem" }}>
-          {win ? `${guesses}/6` : "X"}
-        </DayStatus>
+      {!mobile && (
+        <>
+          {completed && <DayStatus>{win ? `${guesses}/6` : "X"}</DayStatus>}
+          {!completed && !disabled && <DayStatus>Play</DayStatus>}
+        </>
       )}
       {children}
     </DayContainer>

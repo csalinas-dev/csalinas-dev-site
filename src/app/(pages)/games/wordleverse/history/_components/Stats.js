@@ -25,7 +25,7 @@ const StatBox = styled.div`
 const StatValue = styled.div`
   font-size: 2rem;
   font-weight: bold;
-  color: ${props => props.highlight ? "var(--comment)" : "white"};
+  color: ${(props) => (props.highlight ? "var(--comment)" : "white")};
 `;
 
 const StatLabel = styled.div`
@@ -43,8 +43,12 @@ const StatLabel = styled.div`
  */
 const Stats = ({ history }) => {
   const { games, streak, maxStreak } = history;
-  const gamesPlayed = games.length;
-  const gamesWon = games.filter(game => game.win).length;
+  const gamesPlayed = games.filter((game) => game.completed).length;
+  const gamesWon = games.filter((game) => game.win).length;
+
+  if (gamesPlayed === 0) {
+    return null;
+  }
 
   return (
     <StatsContainer>
@@ -55,6 +59,10 @@ const Stats = ({ history }) => {
       <StatBox>
         <StatValue>{gamesWon}</StatValue>
         <StatLabel>Won</StatLabel>
+      </StatBox>
+      <StatBox>
+        <StatValue>{Math.round(gamesWon / gamesPlayed * 100, 0)}%</StatValue>
+        <StatLabel>Win %</StatLabel>
       </StatBox>
       <StatBox>
         <StatValue highlight={true}>{streak}</StatValue>

@@ -20,15 +20,7 @@ export const getHistoryFromLocalStorage = (options = {}) => {
         try {
           const date = key.replace("WORDLEVERSE-", "");
           const gameData = JSON.parse(localStorage.getItem(key));
-
-          if (gameData.win !== null) {
-            localHistory.push({
-              date,
-              word: gameData.word || "?????",
-              guesses: gameData.win ? gameData.row : null,
-              win: gameData.win,
-            });
-          }
+          localHistory.push({ date, ...gameData });
         } catch (error) {
           console.error("Error parsing localStorage item:", error);
         }
@@ -91,13 +83,12 @@ export const getHistoryFromLocalStorage = (options = {}) => {
   // If requested, include available dates
   const includeAvailableDates = options.includeAvailableDates === true;
   if (includeAvailableDates) {
-    const availableDates = getAvailableDatesFromLocalStorage(localHistory);
     return {
       ...history,
-      availableDates
+      availableDates: getAvailableDatesFromLocalStorage(localHistory),
     };
   }
-  
+
   return history;
 };
 
@@ -110,7 +101,7 @@ export const getAvailableDatesFromLocalStorage = (localHistory = []) => {
   // Create available dates for localStorage (simplified)
   const today = new Date();
   const availableDates = [];
-  
+
   // Go back 90 days to show a reasonable calendar history
   for (let i = 0; i < 90; i++) {
     const date = new Date(today);
@@ -129,35 +120,3 @@ export const getAvailableDatesFromLocalStorage = (localHistory = []) => {
   return availableDates;
 };
 
-/**
- * Get game details from localStorage
- * @param {String} date - Date in yyyy-mm-dd format
- * @returns {Object} Game details or error
- */
-export const getGameDetailsFromLocalStorage = (date) => {
-  if (typeof window === "undefined") {
-    return { error: "Cannot access localStorage", status: 500 };
-  }
-
-  try {
-    const key = `WORDLEVERSE-${date}`;
-    const gameData = localStorage.getItem(key);
-    
-    if (!gameData) {
-      return { error: "Game not found", status: 404 };
-    }
-
-    const parsedData = JSON.parse(gameData);
-    
-    return {
-      date,
-      word: parsedData.word || "?????",
-      guesses: parsedData.win ? parsedData.row : null,
-      win: parsedData.win,
-      board: parsedData.board || null,
-    };
-  } catch (error) {
-    console.error("Error getting game details from localStorage:", error);
-    return { error: "Failed to get game details", status: 500 };
-  }
-};

@@ -9,7 +9,6 @@ const Container = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  min-height: 100vh;
   padding: 2rem;
 `;
 
@@ -17,7 +16,7 @@ const Header = styled.header`
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
   width: 100%;
   max-width: 800px;
 `;

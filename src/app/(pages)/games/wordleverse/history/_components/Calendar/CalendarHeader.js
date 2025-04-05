@@ -1,6 +1,7 @@
 "use client";
 
 import styled from "@emotion/styled";
+import { Box } from "@mui/material";
 import dateFormat from "dateformat";
 
 // Styled components
@@ -25,7 +26,7 @@ const NavigationButton = styled.button`
   padding: 0.5rem 1rem;
   cursor: pointer;
   font-weight: bold;
-  
+
   &:hover {
     background-color: #4a4a4c;
   }
@@ -39,7 +40,7 @@ const DayHeadersContainer = styled.div`
   margin-bottom: 0.5rem;
 `;
 
-const DayHeader = styled.div`
+const DayHeader = styled(Box)`
   text-align: center;
   font-weight: bold;
   color: #818384;
@@ -65,10 +66,15 @@ const CalendarHeader = ({ currentMonth, onPrevMonth, onNextMonth }) => {
         <MonthTitle>{dateFormat(currentMonth, "mmmm yyyy")}</MonthTitle>
         <NavigationButton onClick={onNextMonth}>Next</NavigationButton>
       </HeaderContainer>
-      
+
       <DayHeadersContainer>
-        {DAYS_OF_WEEK.map(day => (
-          <DayHeader key={day}>{day}</DayHeader>
+        {DAYS_OF_WEEK.map((day) => (
+          <DayHeader
+            key={day}
+            sx={{ fontSize: { xs: "0.75rem", sm: "1rem", md: "1.5rem" } }}
+          >
+            {day}
+          </DayHeader>
         ))}
       </DayHeadersContainer>
     </>
