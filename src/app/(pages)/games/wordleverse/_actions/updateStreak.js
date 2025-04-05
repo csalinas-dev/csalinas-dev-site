@@ -8,14 +8,14 @@ import prisma from "@/lib/prisma";
 export const updateStreak = async (userId, isWin) => {
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { streak, maxStreak, lastPlayedDate },
+    select: { streak: true, maxStreak: true, lastPlayedDate: true },
   });
 
   if (!user) return;
 
   const today = dateFormat(new Date(), "yyyy-mm-dd");
   const yesterday = dateFormat(new Date(Date.now() - 86400000), "yyyy-mm-dd");
-  
+
   let newStreak = 0;
   let newMaxStreak = user.maxStreak;
 
@@ -28,7 +28,7 @@ export const updateStreak = async (userId, isWin) => {
     else {
       newStreak = 1;
     }
-    
+
     // Update max streak if needed
     if (newStreak > user.maxStreak) {
       newMaxStreak = newStreak;
@@ -47,4 +47,4 @@ export const updateStreak = async (userId, isWin) => {
       lastPlayedDate: today,
     },
   });
-}
+};
