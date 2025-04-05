@@ -5,6 +5,7 @@ import styled from "@emotion/styled";
 // Styled components
 const StatsContainer = styled.div`
   display: flex;
+  flex-flow: row wrap;
   justify-content: center;
   gap: 2rem;
   margin-bottom: 2rem;
