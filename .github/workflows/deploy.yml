@@ -25,9 +25,6 @@ jobs:
       - name: Install dependencies
         run: npm i
 
-      - name: Install / update prisma
-        run: npm i prisma -g
-
       - name: Migrate database
         run: prisma migrate deploy
 
