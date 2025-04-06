@@ -1,13 +1,13 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import styled from "@emotion/styled";
 import { Fragment } from "react";
 
 import {
   Comment,
   Function,
+  Link,
   Parenthesis,
   Section,
   String,
@@ -101,8 +101,8 @@ export const WordleverseInstructions = () => (
           alt="Example of double letters, one correct and one in the wrong spot."
         />
         <p>
-          The word contains two <strong>S</strong>&apos;s. The first is correct, the
-          second is in the wrong spot.
+          The word contains two <strong>S</strong>&apos;s. The first is correct,
+          the second is in the wrong spot.
         </p>
       </Example>
       <Example>

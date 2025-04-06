@@ -1,6 +1,9 @@
-import Link from "next/link";
+"use client";
+
 import { useContext } from "react";
 import styled from "@emotion/styled";
+
+import { Link } from "@/components";
 
 import { Context } from "./context";
 

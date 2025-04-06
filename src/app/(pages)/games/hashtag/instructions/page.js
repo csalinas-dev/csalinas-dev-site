@@ -1,10 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import Image from "next/image";
 import styled from "@emotion/styled";
 
-import { Comment, Section, String, Title, Var } from "@/components";
+import { Comment, Section, Link, String, Title, Var } from "@/components";
 
 import correct from "./correct.png";
 import present from "./present.png";

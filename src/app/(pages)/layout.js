@@ -1,11 +1,14 @@
 import { Fragment } from "react";
 import { Nav } from "@/components";
+import { Stack } from "@mui/material";
 
 export default function PagesLayout({ children }) {
   return (
     <Fragment>
       <Nav />
-      <main>{children}</main>
+      <Stack component="main" direction="column" sx={{ flex: "1 1 0px" }}>
+        {children}
+      </Stack>
     </Fragment>
   );
 }

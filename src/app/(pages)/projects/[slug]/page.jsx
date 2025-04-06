@@ -1,11 +1,10 @@
-import Link from "next/link";
 import Markdown from "react-markdown";
 import { camelCase, startCase } from "lodash";
 
-import { FormattedDate, Title } from "@/components";
+import { FormattedDate, Link, Section, Title } from "@/components";
 
 import { getProject } from "./action";
-import { Article, Container, Image, Links } from "./components";
+import { Article, Image, Links } from "./components";
 
 export async function generateMetadata({ params: { slug } }) {
   return {
@@ -22,7 +21,7 @@ export default async function Page({ params: { slug } }) {
     updatedAt,
   } = await getProject(slug);
   return (
-    <Container>
+    <Section sx={{ gap: "2rem" }}>
       <Links>
         <Link href="/projects">
           <i className="fas fa-chevron-left" /> Back to Projects
@@ -39,6 +38,6 @@ export default async function Page({ params: { slug } }) {
       <Article>
         <Markdown>{content}</Markdown>
       </Article>
-    </Container>
+    </Section>
   );
 }

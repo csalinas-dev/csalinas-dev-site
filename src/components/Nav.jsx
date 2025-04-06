@@ -1,10 +1,12 @@
 "use client";
 
-import NextImage from "next/image";
-import NextLink from "next/link";
 import styled from "@emotion/styled";
+import NextImage from "next/image";
+import { useSession, signIn, signOut } from "next-auth/react";
 
 import logo from "@/assets/logo.png";
+import { Link } from "@/components";
+import { Box } from "@mui/material";
 
 const Header = styled.header`
   align-items: stretch;
@@ -23,7 +25,7 @@ const Logo = styled(NextImage)`
   margin-right: 0.5rem;
 `;
 
-const Link = styled(NextLink)`
+const NavLink = styled(Link)`
   align-items: center;
   color: var(--var) !important;
   display: inline-flex;
@@ -52,6 +54,7 @@ const Link = styled(NextLink)`
 
   &:hover {
     background-color: var(--selectionBackground);
+    opacity: 1;
 
     .submenu {
       display: block;
@@ -90,6 +93,11 @@ const Menu = styled.div`
   @media (min-width: 600px) {
     left: 0;
     right: initial;
+
+    &.right {
+      left: initial;
+      right: 0;
+    }
   }
 `;
 
@@ -99,28 +107,54 @@ const SubTitle = styled.small`
   padding: 0.5rem 0.75rem;
 `;
 
-export const Nav = () => (
-  <Header>
-    <Link href="/" className="primary">
-      <Logo
-        src={logo}
-        height="20"
-        width="20"
-        alt="Christopher Salinas Jr Portfolio Logo"
-      />
-      Chris Salinas Jr
-    </Link>
-    <Link href="/github">GitHub</Link>
-    <Link href="/projects">Projects</Link>
-    <Dropdown>
-      <Link href="/games">Games</Link>
-      <Menu className="menu">
-        <SubTitle>Play</SubTitle>
-        <Link href="/games/wordleverse">Wordleverse</Link>
-        <Link href="/games/hashtag">Hashtag</Link>
-        <SubTitle>Compare</SubTitle>
-        <Link href="/games/mini-motorways">Mini Motorways</Link>
-      </Menu>
-    </Dropdown>
-  </Header>
-);
+export const Nav = () => {
+  const { data: session, status } = useSession();
+  const loading = status === "loading";
+
+  return (
+    <Header>
+      <NavLink href="/" className="primary">
+        <Logo
+          src={logo}
+          height="20"
+          width="20"
+          alt="Christopher Salinas Jr Portfolio Logo"
+        />
+        <Box sx={{ display: { xs: "none", md: "inline" } }}>
+          Chris Salinas Jr
+        </Box>
+      </NavLink>
+      <NavLink href="/github">GitHub</NavLink>
+      <NavLink href="/projects">Projects</NavLink>
+      <Dropdown>
+        <NavLink href="/games">Games</NavLink>
+        <Menu className="menu">
+          <SubTitle>Play</SubTitle>
+          <NavLink href="/games/wordleverse">Wordleverse</NavLink>
+          <NavLink href="/games/hashtag">Hashtag</NavLink>
+          <SubTitle>Compare</SubTitle>
+          <NavLink href="/games/mini-motorways">Mini Motorways</NavLink>
+        </Menu>
+      </Dropdown>
+      <div style={{ flexGrow: 1 }} />
+      <Dropdown>
+        <NavLink href="#">{session ? session.user?.name : "Account"}</NavLink>
+        <Menu className="menu right">
+          {loading && <NavLink href="#">Loading ...</NavLink>}
+          {!loading && !session && (
+            <NavLink href="#" onClick={() => signIn()}>
+              <i className="fa-solid fa-sign-in-alt" />
+              &nbsp;Sign in
+            </NavLink>
+          )}
+          {!loading && session && (
+            <NavLink href="#" onClick={() => signOut()}>
+              <i className="fa-solid fa-sign-out-alt" />
+              &nbsp;Sign out
+            </NavLink>
+          )}
+        </Menu>
+      </Dropdown>
+    </Header>
+  );
+};

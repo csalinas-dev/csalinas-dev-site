@@ -1,20 +1,9 @@
 "use client";
 
 import NextImage from "next/image";
-import styled from "@emotion/styled";
-import { Section } from "@/components";
+import { Box, styled } from "@mui/material";
 
-export const Container = styled(Section)`
-  display: flex;
-  flex-flow: column nowrap;
-  gap: 2rem;
-
-  & > * {
-    margin: 0;
-  }
-`;
-
-export const Links = styled.div`
+export const Links = styled(Box)`
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -36,7 +25,7 @@ export const Image = styled(NextImage)`
   width: 100%;
 `;
 
-export const Article = styled.article`
+export const Article = styled("article")`
   h2 {
     color: var(--comment);
 

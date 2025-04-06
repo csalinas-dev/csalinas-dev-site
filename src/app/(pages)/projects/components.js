@@ -1,17 +1,10 @@
 "use client";
 
-import Link from "next/link";
-import styled from "@emotion/styled";
+import { styled } from "@mui/material";
 
-import { Section } from "@/components";
+import { Link } from "@/components";
 
-export const Container = styled(Section)`
-  display: flex;
-  flex-flow: column nowrap;
-  gap: 2rem;
-`;
-
-export const Name = styled.h1`
+export const Name = styled("h1")`
   color: white;
   margin: 0;
 `;
@@ -30,6 +23,10 @@ export const Project = styled(Link)`
   position: relative;
   user-select: none;
   width: 100%;
+
+  &:hover {
+    opacity: 1;
+  }
 
   @media (min-width: 696px) {
     aspect-ratio: 3 / 2;
