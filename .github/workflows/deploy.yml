@@ -19,7 +19,8 @@ jobs:
       - name: Clone repository
         run: |
           git reset --hard
-          git pull
+          git fetch --all
+          git checkout ${{ github.sha }}
 
       - name: Install dependencies
         run: npm i
