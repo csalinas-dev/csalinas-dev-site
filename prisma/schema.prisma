@@ -24,7 +24,6 @@ model User {
   accounts       Account[]
   sessions       Session[]
   wordleGames    WordleGame[]
-  wordleHistory  WordleHistory[]
   streak         Int             @default(0)
   maxStreak      Int             @default(0)
   lastPlayedDate String? // Format: yyyy-mm-dd
@@ -84,19 +83,6 @@ model WordleGame {
   playable  Boolean  @default(true) // Whether this game can still be played (for past games)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  @@unique([userId, date])
-}
-
-model WordleHistory {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  date      String // Format: yyyy-mm-dd
-  word      String
-  guesses   Int // Number of guesses (1-6, or null if failed)
-  win       Boolean
-  createdAt DateTime @default(now())
 
   @@unique([userId, date])
 }
