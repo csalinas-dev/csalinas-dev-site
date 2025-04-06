@@ -2,7 +2,7 @@ import Script from "next/script";
 import { Sono } from "next/font/google";
 import { GoogleTagManager } from "@next/third-parties/google";
 
-import { AuthProvider, ReCaptchaProvider, ThemeProvider } from "@/providers";
+import { AuthProvider, ThemeProvider } from "@/providers";
 
 import "./globals.css";
 
@@ -19,9 +19,7 @@ export default function RootLayout({ children }) {
       <GoogleTagManager gtmId="G-V3GE5HTDV2" />
       <body className={sono.className}>
         <AuthProvider>
-          <ThemeProvider>
-            <ReCaptchaProvider>{children}</ReCaptchaProvider>
-          </ThemeProvider>
+          <ThemeProvider>{children}</ThemeProvider>
         </AuthProvider>
         <Script
           src="https://kit.fontawesome.com/1e18be7ee9.js"
