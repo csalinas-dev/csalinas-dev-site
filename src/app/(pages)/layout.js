@@ -1,5 +1,5 @@
 import { Fragment } from "react";
-import { Nav } from "@/components";
+import { Nav, Footer } from "@/components";
 import { Stack } from "@mui/material";
 
 export default function PagesLayout({ children }) {
@@ -9,6 +9,7 @@ export default function PagesLayout({ children }) {
       <Stack component="main" direction="column" sx={{ flex: "1 1 0px" }}>
         {children}
       </Stack>
+      <Footer />
     </Fragment>
   );
 }
