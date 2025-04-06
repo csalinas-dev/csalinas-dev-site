@@ -61,7 +61,6 @@ export const saveGame = async (gameState, date) => {
     };
 
     const result = await saveGameAction({ gameState: gameData, date });
-    console.log("Game saved to database:", date);
     return result;
   } catch (error) {
     console.error("Error saving game to database:", error);

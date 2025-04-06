@@ -1,120 +1,30 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
-import styled from "@emotion/styled";
+import NextLink from "next/link";
 import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
+import {
+  Box,
+  Paper,
+  Typography,
+  TextField,
+  Button,
+  Alert,
+  FormControl,
+  Link,
+  Stack,
+  styled,
+} from "@mui/material";
 
-const Container = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  padding: 2rem;
-`;
-
-const FormContainer = styled.div`
-  width: 100%;
-  max-width: 400px;
-  padding: 2rem;
-  background-color: #2a2a2a;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-`;
-
-const Title = styled.h1`
-  font-size: 1.5rem;
-  margin-bottom: 1.5rem;
-  text-align: center;
-  color: var(--foreground);
-`;
-
-const Form = styled.form`
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-`;
-
-const FormGroup = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-`;
-
-const Label = styled.label`
-  font-weight: 500;
-  color: var(--foreground);
-`;
-
-const Input = styled.input`
-  padding: 0.75rem;
-  border: 1px solid #4a4a4a;
-  border-radius: 4px;
-  font-size: 1rem;
-  background-color: #333333;
-  color: var(--foreground);
-  
-  &:focus {
-    outline: none;
-    border-color: var(--vscode);
-    box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
-  }
-  
-  &::placeholder {
-    color: #6b7280;
-  }
-`;
-
-const Button = styled.button`
-  padding: 0.75rem 1rem;
-  background-color: var(--vscode);
-  color: white;
-  border: none;
-  border-radius: 4px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.2s;
-  
-  &:hover {
-    background-color: #006cc1;
-  }
-  
-  &:disabled {
-    background-color: #9ca3af;
-    cursor: not-allowed;
-  }
-`;
-
-const ErrorMessage = styled.div`
-  color: #f87171;
-  font-size: 0.875rem;
-  margin-top: 0.5rem;
-`;
-
-const SuccessMessage = styled.div`
-  color: #34d399;
-  font-size: 0.875rem;
-  margin-top: 0.5rem;
-  text-align: center;
-`;
-
-const LinkText = styled.p`
-  margin-top: 1rem;
-  text-align: center;
-  font-size: 0.875rem;
-  color: var(--foreground);
-  
-  a {
-    color: var(--const);
-    text-decoration: none;
-    
-    &:hover {
-      text-decoration: underline;
-    }
-  }
-`;
+// Use styled from @mui/material
+const StyledPaper = styled(Paper)(({ theme }) => ({
+  width: "100%",
+  maxWidth: 400,
+  padding: theme.spacing(4),
+  borderRadius: theme.shape.borderRadius,
+  boxShadow: theme.shadows[4],
+}));
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -131,27 +41,27 @@ export default function RegisterPage() {
 
   const validateForm = () => {
     const newErrors = {};
-    
+
     if (!formData.name.trim()) {
       newErrors.name = "Name is required";
     }
-    
+
     if (!formData.email.trim()) {
       newErrors.email = "Email is required";
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = "Email is invalid";
     }
-    
+
     if (!formData.password) {
       newErrors.password = "Password is required";
     } else if (formData.password.length < 8) {
       newErrors.password = "Password must be at least 8 characters";
     }
-    
+
     if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = "Passwords do not match";
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -166,22 +76,22 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
-    
+
     if (!executeRecaptcha) {
       setErrors({ form: "reCAPTCHA not available" });
       return;
     }
-    
+
     setIsSubmitting(true);
-    
+
     try {
       // Execute reCAPTCHA
       const recaptchaToken = await executeRecaptcha("register");
-      
+
       // Submit registration
       const response = await fetch("/api/auth/register", {
         method: "POST",
@@ -195,16 +105,16 @@ export default function RegisterPage() {
           recaptchaToken,
         }),
       });
-      
+
       const data = await response.json();
-      
+
       if (!response.ok) {
         throw new Error(data.error || "Registration failed");
       }
-      
+
       // Show success message
       setSuccessMessage(data.message);
-      
+
       // Clear form
       setFormData({
         name: "",
@@ -212,12 +122,11 @@ export default function RegisterPage() {
         password: "",
         confirmPassword: "",
       });
-      
+
       // Redirect to verification page after a delay
       setTimeout(() => {
         router.push("/auth/verify-request");
       }, 3000);
-      
     } catch (error) {
       setErrors({ form: error.message });
     } finally {
@@ -226,83 +135,114 @@ export default function RegisterPage() {
   };
 
   return (
-    <Container>
-      <FormContainer>
-        <Title>Create an Account</Title>
-        
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        minHeight: "100vh",
+        padding: 2,
+      }}
+    >
+      <StyledPaper>
+        <Typography variant="h5" component="h1" align="center" gutterBottom>
+          Create an Account
+        </Typography>
+
         {successMessage && (
-          <SuccessMessage>{successMessage}</SuccessMessage>
+          <Alert severity="success" sx={{ mb: 2 }}>
+            {successMessage}
+          </Alert>
         )}
-        
+
         {errors.form && (
-          <ErrorMessage>{errors.form}</ErrorMessage>
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {errors.form}
+          </Alert>
         )}
-        
-        <Form onSubmit={handleSubmit}>
-          <FormGroup>
-            <Label htmlFor="name">Name</Label>
-            <Input
-              id="name"
-              name="name"
-              type="text"
-              value={formData.name}
-              onChange={handleChange}
+
+        <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
+          <Stack spacing={2}>
+            <FormControl error={!!errors.name} fullWidth>
+              <TextField
+                id="name"
+                name="name"
+                label="Name"
+                value={formData.name}
+                onChange={handleChange}
+                disabled={isSubmitting}
+                error={!!errors.name}
+                helperText={errors.name}
+                fullWidth
+              />
+            </FormControl>
+
+            <FormControl error={!!errors.email} fullWidth>
+              <TextField
+                id="email"
+                name="email"
+                label="Email"
+                type="email"
+                value={formData.email}
+                onChange={handleChange}
+                disabled={isSubmitting}
+                error={!!errors.email}
+                helperText={errors.email}
+                fullWidth
+              />
+            </FormControl>
+
+            <FormControl error={!!errors.password} fullWidth>
+              <TextField
+                id="password"
+                name="password"
+                label="Password"
+                type="password"
+                value={formData.password}
+                onChange={handleChange}
+                disabled={isSubmitting}
+                error={!!errors.password}
+                helperText={errors.password}
+                fullWidth
+              />
+            </FormControl>
+
+            <FormControl error={!!errors.confirmPassword} fullWidth>
+              <TextField
+                id="confirmPassword"
+                name="confirmPassword"
+                label="Confirm Password"
+                type="password"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                disabled={isSubmitting}
+                error={!!errors.confirmPassword}
+                helperText={errors.confirmPassword}
+                fullWidth
+              />
+            </FormControl>
+
+            <Button
+              type="submit"
+              variant="contained"
+              color="primary"
               disabled={isSubmitting}
-            />
-            {errors.name && <ErrorMessage>{errors.name}</ErrorMessage>}
-          </FormGroup>
-          
-          <FormGroup>
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              value={formData.email}
-              onChange={handleChange}
-              disabled={isSubmitting}
-            />
-            {errors.email && <ErrorMessage>{errors.email}</ErrorMessage>}
-          </FormGroup>
-          
-          <FormGroup>
-            <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              name="password"
-              type="password"
-              value={formData.password}
-              onChange={handleChange}
-              disabled={isSubmitting}
-            />
-            {errors.password && <ErrorMessage>{errors.password}</ErrorMessage>}
-          </FormGroup>
-          
-          <FormGroup>
-            <Label htmlFor="confirmPassword">Confirm Password</Label>
-            <Input
-              id="confirmPassword"
-              name="confirmPassword"
-              type="password"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              disabled={isSubmitting}
-            />
-            {errors.confirmPassword && (
-              <ErrorMessage>{errors.confirmPassword}</ErrorMessage>
-            )}
-          </FormGroup>
-          
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Registering..." : "Register"}
-          </Button>
-        </Form>
-        
-        <LinkText>
+              fullWidth
+              sx={{ mt: 2 }}
+            >
+              {isSubmitting ? "Registering..." : "Register"}
+            </Button>
+          </Stack>
+        </Box>
+
+        <Typography align="center" variant="body2" sx={{ mt: 2 }}>
           Already have an account?{" "}
-          <Link href="/auth/signin">Sign in</Link>
-        </LinkText>
-      </FormContainer>
-    </Container>
+          <Link component={NextLink} href="/auth/signin" color="primary">
+            Sign in
+          </Link>
+        </Typography>
+      </StyledPaper>
+    </Box>
   );
 }

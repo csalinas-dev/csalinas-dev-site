@@ -48,7 +48,6 @@ const saveGameAsync = async (state) => {
   try {
     // Use the session from the global context
     await saveToStorage(game, date, currentSession);
-    console.log("Game saved:", date);
   } catch (error) {
     console.error("Error saving game:", error);
   }

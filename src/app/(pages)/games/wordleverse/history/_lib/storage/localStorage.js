@@ -62,7 +62,6 @@ export const getHistoryFromLocalStorage = (options = {}) => {
       
       if (i === 0 && (gameDate === today || gameDate === yesterday)) {
         currentStreak = 1;
-        console.log("Game", {gameDate, currentStreak, latestStreak, maxStreak});
         continue;
       }
 
@@ -71,7 +70,6 @@ export const getHistoryFromLocalStorage = (options = {}) => {
       const dayDiff = Math.round(diff / (1000 * 60 * 60 * 24));
       if (dayDiff === 1) {
         currentStreak++;
-        console.log("Game", {gameDate, currentStreak, latestStreak, maxStreak});
         continue;
       }
 
@@ -82,7 +80,6 @@ export const getHistoryFromLocalStorage = (options = {}) => {
 
       maxStreak = Math.max(maxStreak, currentStreak);
       currentStreak = 1;
-      console.log("Game", {gameDate, currentStreak, latestStreak, maxStreak});
     }
 
     maxStreak = Math.max(maxStreak, currentStreak);
