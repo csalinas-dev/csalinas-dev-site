@@ -10,6 +10,7 @@ export const ReCaptchaProvider = ({ children }) => (
       defer: true,
       appendTo: "head",
     }}
+    container="recaptcha-badge-container"
   >
     {children}
   </GoogleReCaptchaProvider>

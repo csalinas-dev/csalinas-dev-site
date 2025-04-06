@@ -65,3 +65,18 @@ body {
 i.fa-fw, svg.fa-fw {
   width: 40px;
 }
+
+/* Hide Google ReCaptcha Badge */
+.grecaptcha-badge {
+  visibility: hidden !important;
+}
+
+/* Container for ReCaptcha - hidden but accessible for screen readers */
+#recaptcha-badge-container {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}

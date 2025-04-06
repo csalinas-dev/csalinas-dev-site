@@ -1,3 +1,4 @@
+export * from "./Footer";
 export * from "./FormattedDate";
 export * from "./Link";
 export * from "./Nav";
