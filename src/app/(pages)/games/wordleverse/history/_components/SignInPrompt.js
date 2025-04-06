@@ -1,6 +1,7 @@
 "use client";
 
 import styled from "@emotion/styled";
+import { Typography } from "@mui/material";
 import Link from "next/link";
 
 // Styled components
@@ -34,7 +35,7 @@ const SignInButton = styled.button`
 const SignInPrompt = () => {
   return (
     <PromptContainer>
-      <p>Sign in to save your game history across devices!</p>
+      <Typography variant="body1">Sign in to save your game history across devices!</Typography>
       <Link href="/auth/signin" passHref>
         <SignInButton>Sign In</SignInButton>
       </Link>

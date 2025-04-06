@@ -12,81 +12,80 @@ export const getHistoryFromLocalStorage = (options = {}) => {
   let streak = 0;
   let maxStreak = 0;
 
-  if (typeof window !== "undefined") {
-    // Get all localStorage keys
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key.startsWith("WORDLEVERSE-")) {
-        try {
-          const date = key.replace("WORDLEVERSE-", "");
-          const gameData = JSON.parse(localStorage.getItem(key));
+  if (typeof window === "undefined") {
+    return;
+  }
 
-          const guesses = [];
-          for (let j = 0; j <= Math.min(gameData.row, 5); j++) {
-            guesses.push(gameData.board[j].map((cell) => cell.letter).join(""));
-          }
-          const completed = gameData.win !== null;
-          const playable = !completed && gameData.row < 6;
+  // Get all localStorage keys
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key.startsWith("WORDLEVERSE-")) {
+      try {
+        const date = key.replace("WORDLEVERSE-", "");
+        const gameData = JSON.parse(localStorage.getItem(key));
 
-          localHistory.push({
-            date,
-            guesses: guesses.filter((guess) => guess !== ""),
-            completed,
-            playable,
-            ...gameData,
-          });
-        } catch (error) {
-          console.error("Error parsing localStorage item:", error);
+        const guesses = [];
+        for (let j = 0; j <= Math.min(gameData.row, 5); j++) {
+          guesses.push(gameData.board[j].map((cell) => cell.letter).join(""));
         }
+        const completed = gameData.win !== null;
+        const playable = !completed && gameData.row < 6;
+
+        localHistory.push({
+          date,
+          guesses: guesses.filter((guess) => guess !== ""),
+          completed,
+          playable,
+          ...gameData,
+        });
+      } catch (error) {
+        console.error("Error parsing localStorage item:", error);
       }
     }
+  }
 
-    // Calculate streak (simplified version for localStorage)
-    if (localHistory.length > 0) {
-      // Sort by date (newest first)
-      localHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
+  // Calculate streak (simplified version for localStorage)
+  if (localHistory.length > 0) {
+    // Sort by date (newest first)
+    localHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-      // Calculate current streak
-      let currentStreak = 0;
-      const today = dateFormat(new Date(), "yyyy-mm-dd");
-      const yesterday = dateFormat(
-        new Date(Date.now() - 86400000),
-        "yyyy-mm-dd"
-      );
+    // Calculate current streak
+    const today = dateFormat(new Date(), "yyyy-mm-dd");
+    const yesterday = dateFormat(new Date(Date.now() - 86400000), "yyyy-mm-dd");
 
-      for (let i = 0; i < localHistory.length; i++) {
-        const game = localHistory[i];
-        const gameDate = game.date;
+    let latestStreak = true;
+    let currentStreak = 0;
+    for (let i = 0; i < localHistory.length; i++) {
+      const game = localHistory[i];
+      const gameDate = game.date;
 
-        if (
-          i === 0 &&
-          (gameDate === today || gameDate === yesterday) &&
-          game.win
-        ) {
-          currentStreak = 1;
-        } else if (i > 0) {
-          const prevGame = localHistory[i - 1];
-          const dayDiff = Math.round(
-            (new Date(prevGame.date) - new Date(gameDate)) /
-              (1000 * 60 * 60 * 24)
-          );
-
-          if (dayDiff === 1 && game.win) {
-            currentStreak++;
-          } else {
-            break;
-          }
-        }
+      
+      if (i === 0 && (gameDate === today || gameDate === yesterday)) {
+        currentStreak = 1;
+        console.log("Game", {gameDate, currentStreak, latestStreak, maxStreak});
+        continue;
       }
 
-      streak = currentStreak;
-      // TODO: Calculate maxStreak based on localHistory, consecutive played games
-      maxStreak = Math.max(
-        ...localHistory
-          .filter((game) => game.win)
-          .map((game) => game.guesses.length || 0)
-      );
+      const prevGame = localHistory[i - 1];
+      const diff = new Date(prevGame.date) - new Date(gameDate);
+      const dayDiff = Math.round(diff / (1000 * 60 * 60 * 24));
+      if (dayDiff === 1) {
+        currentStreak++;
+        console.log("Game", {gameDate, currentStreak, latestStreak, maxStreak});
+        continue;
+      }
+
+      if (latestStreak) {
+        streak = currentStreak;
+        latestStreak = false;
+      }
+
+      maxStreak = Math.max(maxStreak, currentStreak);
+      currentStreak = 1;
+      console.log("Game", {gameDate, currentStreak, latestStreak, maxStreak});
     }
+
+    maxStreak = Math.max(maxStreak, currentStreak);
   }
 
   // Calculate guess distribution
