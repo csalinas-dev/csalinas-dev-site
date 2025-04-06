@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import NextLink from "next/link";
@@ -43,8 +43,8 @@ const SocialButton = styled(Button)(({ theme }) => ({
     width: "1.25rem",
   },
 }));
-
-export default function SignIn() {
+// Component that uses useSearchParams
+function SignInContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
@@ -287,5 +287,36 @@ export default function SignIn() {
         </Grid>
       </StyledPaper>
     </Box>
+  );
+}
+
+// Fallback component to show while loading
+function SignInFallback() {
+  return (
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        minHeight: "100vh",
+        padding: 2,
+      }}
+    >
+      <StyledPaper>
+        <Typography variant="h5" component="h1" align="center" gutterBottom>
+          Loading...
+        </Typography>
+      </StyledPaper>
+    </Box>
+  );
+}
+
+// Main component with Suspense boundary
+export default function SignIn() {
+  return (
+    <Suspense fallback={<SignInFallback />}>
+      <SignInContent />
+    </Suspense>
   );
 }

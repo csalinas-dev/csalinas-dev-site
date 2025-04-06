@@ -1,14 +1,22 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+// Add export config for static generation
+export const dynamic = 'force-static';
+
+// Generate static paths for verification tokens
+export async function generateStaticParams() {
+  return []; // Empty array as we can't predict verification tokens
+}
+
 export async function GET(request) {
   try {
-    // Get token from URL
-    const { searchParams } = new URL(request.url);
-    const token = searchParams.get("token");
+    // Get token from URL - using a static approach
+    const url = new URL(request.url);
+    const token = url.searchParams.get("token");
 
     if (!token) {
-      return NextResponse.redirect(new URL("/auth/error?error=MissingToken", request.url));
+      return NextResponse.redirect(new URL("/auth/error?error=MissingToken", url.origin));
     }
 
     // Find the verification token
@@ -17,7 +25,7 @@ export async function GET(request) {
     });
 
     if (!verificationToken) {
-      return NextResponse.redirect(new URL("/auth/error?error=InvalidToken", request.url));
+      return NextResponse.redirect(new URL("/auth/error?error=InvalidToken", url.origin));
     }
 
     // Check if token is expired
@@ -25,7 +33,7 @@ export async function GET(request) {
       await prisma.verificationToken.delete({
         where: { token },
       });
-      return NextResponse.redirect(new URL("/auth/error?error=TokenExpired", request.url));
+      return NextResponse.redirect(new URL("/auth/error?error=TokenExpired", url.origin));
     }
 
     // Find the user by email
@@ -34,7 +42,7 @@ export async function GET(request) {
     });
 
     if (!user) {
-      return NextResponse.redirect(new URL("/auth/error?error=UserNotFound", request.url));
+      return NextResponse.redirect(new URL("/auth/error?error=UserNotFound", url.origin));
     }
 
     // Update user's emailVerified field
@@ -49,9 +57,9 @@ export async function GET(request) {
     });
 
     // Redirect to success page
-    return NextResponse.redirect(new URL("/auth/signin?verified=true", request.url));
+    return NextResponse.redirect(new URL("/auth/signin?verified=true", url.origin));
   } catch (error) {
     console.error("Email verification error:", error);
-    return NextResponse.redirect(new URL("/auth/error?error=VerificationFailed", request.url));
+    return NextResponse.redirect(new URL("/auth/error?error=VerificationFailed", url.origin));
   }
 }

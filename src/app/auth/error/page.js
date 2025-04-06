@@ -4,8 +4,10 @@ import { useSearchParams } from "next/navigation";
 import NextLink from "next/link";
 import { Box, Paper, Typography, Button, Alert } from "@mui/material";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
+import { Suspense } from "react";
 
-export default function AuthError() {
+// Create a component that uses useSearchParams
+function AuthErrorContent() {
   const searchParams = useSearchParams();
   const error = searchParams.get("error");
 
@@ -66,5 +68,43 @@ export default function AuthError() {
         </Button>
       </Paper>
     </Box>
+  );
+}
+
+// Fallback component to show while loading
+function AuthErrorFallback() {
+  return (
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        minHeight: "100vh",
+        padding: 2,
+      }}
+    >
+      <Paper
+        sx={{
+          width: "100%",
+          maxWidth: "md",
+          p: 4,
+          textAlign: "center",
+        }}
+      >
+        <Typography variant="h4" component="h1" gutterBottom>
+          Loading...
+        </Typography>
+      </Paper>
+    </Box>
+  );
+}
+
+// Main component with Suspense boundary
+export default function AuthError() {
+  return (
+    <Suspense fallback={<AuthErrorFallback />}>
+      <AuthErrorContent />
+    </Suspense>
   );
 }
