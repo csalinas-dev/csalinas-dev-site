@@ -48,33 +48,9 @@ export async function saveGame(data) {
       },
     });
 
-    // If the game is completed, add to history and update streak
-    if (completed && updatedGame.win !== null) {
-      const guesses = updatedGame.win ? row + 1 : null;
-      await prisma.wordleHistory.upsert({
-        where: {
-          userId_date: {
-            userId,
-            date: gameDate,
-          },
-        },
-        update: {
-          guesses,
-          win: updatedGame.win,
-        },
-        create: {
-          userId,
-          date: gameDate,
-          word: updatedGame.word,
-          guesses,
-          win: updatedGame.win,
-        },
-      });
-
-      // Only update streak for today's game
-      if (gameDate === today) {
-        await updateStreak(userId, updatedGame.win);
-      }
+    // If the game is completed, update streak
+    if (completed && updatedGame.win !== null && gameDate === today) {
+      await updateStreak(userId, updatedGame.win);
     }
 
     return updatedGame;
