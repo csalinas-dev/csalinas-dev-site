@@ -14,6 +14,7 @@ import {
 import words from "@/data/words.json";
 
 import { Context, toggleExpert } from "./_context";
+import { Box } from "@mui/material";
 
 const Container = styled.header`
   align-items: center;
@@ -114,8 +115,19 @@ const Header = ({ date }) => {
   return (
     <Container>
       <Toolbar>
-        <div>Wordleverse</div>
-        <div>{titleContent}</div>
+        <Box sx={{ display: { xs: "none !important", md: "flex !important" } }}>
+          Wordleverse
+        </Box>
+        <Box
+          sx={{
+            justifyContent: {
+              xs: "flex-start !important",
+              md: "center !important",
+            },
+          }}
+        >
+          {titleContent}
+        </Box>
         <div>
           <NavLinks>
             <Link href="/games/wordleverse/history">

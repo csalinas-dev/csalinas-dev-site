@@ -6,6 +6,7 @@ import { useSession, signIn, signOut } from "next-auth/react";
 
 import logo from "@/assets/logo.png";
 import { Link } from "@/components";
+import { Box } from "@mui/material";
 
 const Header = styled.header`
   align-items: stretch;
@@ -119,7 +120,9 @@ export const Nav = () => {
           width="20"
           alt="Christopher Salinas Jr Portfolio Logo"
         />
-        Chris Salinas Jr
+        <Box sx={{ display: { xs: "none", md: "inline" } }}>
+          Chris Salinas Jr
+        </Box>
       </NavLink>
       <NavLink href="/github">GitHub</NavLink>
       <NavLink href="/projects">Projects</NavLink>
