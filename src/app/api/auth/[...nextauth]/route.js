@@ -43,7 +43,7 @@ async function sendVerificationEmail(email, token) {
   });
 }
 
-const handler = NextAuth({
+export const handler = NextAuth({
   adapter: PrismaAdapter(prisma),
   providers: [
     GoogleProvider({
