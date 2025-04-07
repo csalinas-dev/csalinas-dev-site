@@ -65,12 +65,14 @@ export const getHistoryFromLocalStorage = (options = {}) => {
         continue;
       }
 
-      const prevGame = localHistory[i - 1];
-      const diff = new Date(prevGame.date) - new Date(gameDate);
-      const dayDiff = Math.round(diff / (1000 * 60 * 60 * 24));
-      if (dayDiff === 1) {
-        currentStreak++;
-        continue;
+      if (i > 0) {
+        const prevGame = localHistory[i - 1];
+        const diff = new Date(prevGame.date) - new Date(gameDate);
+        const dayDiff = Math.round(diff / (1000 * 60 * 60 * 24));
+        if (dayDiff === 1) {
+          currentStreak++;
+          continue;
+        }
       }
 
       if (latestStreak) {
