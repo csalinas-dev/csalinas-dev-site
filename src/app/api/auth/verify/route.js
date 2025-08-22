@@ -1,13 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-// Add export config for static generation
-export const dynamic = 'force-static';
-
-// Generate static paths for verification tokens
-export async function generateStaticParams() {
-  return []; // Empty array as we can't predict verification tokens
-}
+// This route needs to be dynamic to handle verification tokens
+export const dynamic = 'force-dynamic';
 
 export async function GET(request) {
   try {

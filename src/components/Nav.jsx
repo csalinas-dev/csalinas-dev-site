@@ -148,10 +148,16 @@ export const Nav = () => {
             </NavLink>
           )}
           {!loading && session && (
-            <NavLink href="#" onClick={() => signOut()}>
-              <i className="fa-solid fa-sign-out-alt" />
-              &nbsp;Sign out
-            </NavLink>
+            <>
+              <NavLink href="/profile">
+                <i className="fa-solid fa-user-gear" />
+                &nbsp;Profile
+              </NavLink>
+              <NavLink href="#" onClick={() => signOut()}>
+                <i className="fa-solid fa-sign-out-alt" />
+                &nbsp;Sign out
+              </NavLink>
+            </>
           )}
         </Menu>
       </Dropdown>

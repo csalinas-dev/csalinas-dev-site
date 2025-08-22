@@ -116,26 +116,80 @@ export const handler = NextAuth({
     }),
   ],
   callbacks: {
-    async session({ session, user, token }) {
-      if (session.user) {
-        if (user) {
-          session.user.id = user.id;
-        } else if (token) {
-          session.user.id = token.sub;
-        }
+    async jwt({ token, user, account }) {
+      // Initial sign in
+      if (account && user) {
+        return {
+          ...token,
+          userId: user.id,
+          provider: account.provider,
+        };
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      if (session.user && token) {
+        session.user.id = token.sub || token.userId;
+        session.provider = token.provider;
       }
       return session;
     },
-    async signIn({ user, account, credentials }) {
+    async signIn({ user, account, profile }) {
       // Allow OAuth providers to sign in without email verification
       if (account?.provider === "google" || account?.provider === "github") {
-        return true;
+        try {
+          // Check if user already exists with this email
+          const existingUser = await prisma.user.findUnique({
+            where: { email: user.email },
+            include: { accounts: true },
+          });
+
+          // If user exists but doesn't have this provider account, link them
+          if (existingUser) {
+            // Check if this provider account already exists
+            const existingAccount = existingUser.accounts.find(
+              (acc) => acc.provider === account.provider && acc.providerAccountId === account.providerAccountId
+            );
+
+            // If account doesn't exist, create it and link to user
+            if (!existingAccount) {
+              await prisma.account.create({
+                data: {
+                  userId: existingUser.id,
+                  type: account.type,
+                  provider: account.provider,
+                  providerAccountId: account.providerAccountId,
+                  refresh_token: account.refresh_token,
+                  access_token: account.access_token,
+                  expires_at: account.expires_at,
+                  token_type: account.token_type,
+                  scope: account.scope,
+                  id_token: account.id_token,
+                  session_state: account.session_state,
+                },
+              });
+            }
+            
+            // Update user's email verification if not already verified
+            if (!existingUser.emailVerified) {
+              await prisma.user.update({
+                where: { id: existingUser.id },
+                data: { emailVerified: new Date() },
+              });
+            }
+          }
+          
+          return true;
+        } catch (error) {
+          console.error("Error in OAuth sign in:", error);
+          return true; // Still allow sign in even if linking fails
+        }
       }
 
       // For credentials provider, check if email is verified
-      if (account?.provider === "credentials" && credentials) {
+      if (account?.provider === "credentials") {
         const dbUser = await prisma.user.findUnique({
-          where: { email: credentials.email },
+          where: { email: user.email },
         });
         
         if (dbUser && !dbUser.emailVerified) {
@@ -145,22 +199,22 @@ export const handler = NextAuth({
 
           // Delete any existing tokens
           await prisma.verificationToken.deleteMany({
-            where: { identifier: credentials.email },
+            where: { identifier: user.email },
           });
 
           // Create a new token
           await prisma.verificationToken.create({
             data: {
-              identifier: credentials.email,
+              identifier: user.email,
               token,
               expires,
             },
           });
 
           // Send verification email
-          await sendVerificationEmail(credentials.email, token);
+          await sendVerificationEmail(user.email, token);
           
-          return `/auth/signin?error=EMAIL_NOT_VERIFIED&email=${encodeURIComponent(credentials.email)}`;
+          return `/auth/signin?error=EMAIL_NOT_VERIFIED&email=${encodeURIComponent(user.email)}`;
         }
       }
       
@@ -206,6 +260,7 @@ export const handler = NextAuth({
     verifyRequest: "/auth/verify-request",
     newUser: "/auth/register",
   },
+  debug: process.env.NEXTAUTH_DEBUG === "true",
   session: {
     strategy: "jwt",
   },
