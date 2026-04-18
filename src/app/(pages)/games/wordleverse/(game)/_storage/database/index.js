@@ -45,9 +45,10 @@ export const getGame = async (date) => {
  */
 export const saveGame = async (gameState, date) => {
   try {
-    // Track guesses for history view
+    // Track guesses for history view; on a win, row is the winning row (not incremented)
     const guesses = [];
-    for (let i = 0; i < gameState.row; i++) {
+    const guessLimit = gameState.win ? gameState.row + 1 : gameState.row;
+    for (let i = 0; i < guessLimit; i++) {
       const rowGuess = gameState.board[i].map((cell) => cell.letter).join("");
       if (rowGuess.length === 5) {
         guesses.push(rowGuess);

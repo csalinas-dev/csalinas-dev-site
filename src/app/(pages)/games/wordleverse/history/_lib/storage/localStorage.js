@@ -31,9 +31,10 @@ export const getHistoryFromLocalStorage = (options = {}) => {
       const date = key.replace("WORDLEVERSE-", "");
       const gameData = JSON.parse(localStorage.getItem(key));
 
-      // Collect only submitted guesses (rows 0..row-1)
+      // Collect only submitted guesses; on a win, row is the winning row (not incremented)
       const guesses = [];
-      for (let j = 0; j < gameData.row; j++) {
+      const guessLimit = gameData.win ? gameData.row + 1 : gameData.row;
+      for (let j = 0; j < guessLimit; j++) {
         const word = gameData.board[j].map((cell) => cell.letter).join("");
         if (word.length === 5) guesses.push(word);
       }
