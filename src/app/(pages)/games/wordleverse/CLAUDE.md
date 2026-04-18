@@ -58,7 +58,7 @@ On login, `useMigrateLocalStorage` (in `_hooks/`) migrates all localStorage game
 
 - `getOrCreateGame(date)` — idempotent, creates DB record if missing
 - `saveGame(data)` — **upsert** (handles both in-flight saves and migration)
-- `updateStreak(userId, isWin)` — called after a game completes on today's date
+- `updateStreak(userId, isWin)` — called after a game completes on today's date; streak counts consecutive days *played* (not just wins)
 - All actions call `getCurrentUser()` to get the authenticated user by email
 
 ## Key Invariants

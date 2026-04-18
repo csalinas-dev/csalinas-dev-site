@@ -19,23 +19,15 @@ export const updateStreak = async (userId, isWin) => {
   let newStreak = 0;
   let newMaxStreak = user.maxStreak;
 
-  if (isWin) {
-    // If user won and played yesterday, increment streak
-    if (user.lastPlayedDate === yesterday) {
-      newStreak = user.streak + 1;
-    }
-    // If user won but didn't play yesterday, reset streak to 1
-    else {
-      newStreak = 1;
-    }
-
-    // Update max streak if needed
-    if (newStreak > user.maxStreak) {
-      newMaxStreak = newStreak;
-    }
+  // Streak = consecutive days played (completed), win or loss
+  if (user.lastPlayedDate === yesterday) {
+    newStreak = user.streak + 1;
   } else {
-    // If user lost, reset streak to 0
-    newStreak = 0;
+    newStreak = 1;
+  }
+
+  if (newStreak > user.maxStreak) {
+    newMaxStreak = newStreak;
   }
 
   // Update user's streak information

@@ -59,19 +59,19 @@ export const getHistoryFromLocalStorage = (options = {}) => {
   const today = dateFormat(new Date(), "yyyy-mm-dd");
   const yesterday = dateFormat(new Date(Date.now() - 86400000), "yyyy-mm-dd");
 
-  // Current streak: consecutive winning days ending on today or yesterday
-  const winningGames = localHistory.filter((g) => g.win === true);
+  // Streak = consecutive days played (completed), win or loss
+  const completedGames = localHistory.filter((g) => g.completed);
   let streak = 0;
-  for (let i = 0; i < winningGames.length; i++) {
+  for (let i = 0; i < completedGames.length; i++) {
     if (i === 0) {
-      if (winningGames[i].date === today || winningGames[i].date === yesterday) {
+      if (completedGames[i].date === today || completedGames[i].date === yesterday) {
         streak = 1;
       } else {
-        break; // Most recent win was before yesterday — no active streak
+        break; // Most recent game was before yesterday — no active streak
       }
     } else {
-      const prev = new Date(winningGames[i - 1].date);
-      const curr = new Date(winningGames[i].date);
+      const prev = new Date(completedGames[i - 1].date);
+      const curr = new Date(completedGames[i].date);
       const dayDiff = Math.round((prev - curr) / (1000 * 60 * 60 * 24));
       if (dayDiff === 1) {
         streak++;
@@ -81,15 +81,15 @@ export const getHistoryFromLocalStorage = (options = {}) => {
     }
   }
 
-  // Max streak: longest consecutive-win run across all history
+  // Max streak: longest consecutive-day-played run across all history
   let maxStreak = 0;
   let runStreak = 0;
-  for (let i = 0; i < winningGames.length; i++) {
+  for (let i = 0; i < completedGames.length; i++) {
     if (i === 0) {
       runStreak = 1;
     } else {
-      const prev = new Date(winningGames[i - 1].date);
-      const curr = new Date(winningGames[i].date);
+      const prev = new Date(completedGames[i - 1].date);
+      const curr = new Date(completedGames[i].date);
       const dayDiff = Math.round((prev - curr) / (1000 * 60 * 60 * 24));
       if (dayDiff === 1) {
         runStreak++;
