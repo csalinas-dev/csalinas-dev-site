@@ -14,10 +14,17 @@ export const useLoadGame = (
   session,
   status,
   setInitialState,
-  setIsLoading
+  setIsLoading,
+  migrationDone = true
 ) => {
   useEffect(() => {
     if (status === "loading") {
+      return;
+    }
+
+    // If the user is authenticated, wait for localStorage migration to finish
+    // before loading from the database so migrated games aren't overwritten.
+    if (session && !migrationDone) {
       return;
     }
 
@@ -56,5 +63,5 @@ export const useLoadGame = (
       setInitialState(state);
       setIsLoading(false);
     })();
-  }, [session, status, date, setInitialState, setIsLoading]);
+  }, [session, status, date, setInitialState, setIsLoading, migrationDone]);
 };

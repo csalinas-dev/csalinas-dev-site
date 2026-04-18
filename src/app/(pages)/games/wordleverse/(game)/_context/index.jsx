@@ -23,11 +23,12 @@ export const ContextProvider = ({ children, date }) => {
   // Set the current user session to use when saving games
   setCurrentSession(session);
 
-  // Get initial state (load or create new game)
-  useLoadGame(date, session, status, setInitialState, setIsLoading);
+  // Migrate localStorage games to DB when user logs in.
+  // Returns true once complete (or immediately if unauthenticated).
+  const migrationDone = useMigrateLocalStorage(session, status);
 
-  // Migrate localStorage games to database when user logs in
-  useMigrateLocalStorage(session, status);
+  // Load the game only after migration is done to avoid overwriting migrated data.
+  useLoadGame(date, session, status, setInitialState, setIsLoading, migrationDone);
 
   // Initialize reducer with the loaded state
   const [state, dispatch] = useReducer(reducer, initialState);
