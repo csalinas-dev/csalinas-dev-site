@@ -21,7 +21,8 @@ export const useMigrateLocalStorage = (session, status) => {
       return;
     }
 
-    // Authenticated: migrate then signal completion
+    // Authenticated: clear any stale completion state, then migrate
+    setDone(false);
     migrateGames(session).finally(() => setDone(true));
   }, [session, status]);
 
