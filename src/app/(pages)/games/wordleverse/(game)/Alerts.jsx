@@ -108,7 +108,7 @@ const Dismiss = () => {
 
 const Alerts = () => {
   const {
-    state: { word, win, title },
+    state: { word, win, row, title },
   } = useContext(Context);
 
   const error = useError();
@@ -142,7 +142,7 @@ const Alerts = () => {
               </div>
               {title === null && <Clipboard />}
               <PlayAgain />
-              <Stats compact={true} />
+              <Stats compact={true} currentGame={{ win: true, guessCount: row + 1 }} />
             </Alert>
           )}
         </Container>

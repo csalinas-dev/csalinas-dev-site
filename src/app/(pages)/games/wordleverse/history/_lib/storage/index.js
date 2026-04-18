@@ -43,10 +43,12 @@ export const useHistory = (options = {}) => {
             });
             setAvailableDates(data.availableDates || []);
           } else {
-            console.error("Failed to fetch history");
+            console.error("Failed to fetch history:", data.error);
           }
         } catch (error) {
           console.error("Error fetching history:", error);
+        } finally {
+          setLoading(false);
         }
       } else {
         // Use localStorage for non-authenticated users

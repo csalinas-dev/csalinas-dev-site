@@ -1,7 +1,5 @@
-import dynamic from "next/dynamic";
-const Game = dynamic(() => import("./Game"), { ssr: false });
-
 import { ContextProvider } from "./context";
+import GameLoader from "./GameLoader";
 
 export const metadata = {
   title: "Hashtag | Christopher Salinas Jr.",
@@ -9,7 +7,7 @@ export const metadata = {
 
 export const Hashtag = () => (
   <ContextProvider>
-    <Game />
+    <GameLoader />
   </ContextProvider>
 );
 

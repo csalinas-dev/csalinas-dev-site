@@ -4,6 +4,7 @@ import dateFormat from "dateformat";
 
 import { getCurrentUser } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { getRandomWord } from "@wordleverse/_lib/random";
 
 import { updateStreak } from "./updateStreak";
 
@@ -28,15 +29,15 @@ export async function saveGame(data) {
     const gameDate = date || dateFormat(new Date(), "yyyy-mm-dd");
     const today = dateFormat(new Date(), "yyyy-mm-dd");
 
-    // Update the game
-    const updatedGame = await prisma.wordleGame.update({
+    // Upsert the game — handles both active gameplay and migration from localStorage
+    const updatedGame = await prisma.wordleGame.upsert({
       where: {
         userId_date: {
           userId,
           date: gameDate,
         },
       },
-      data: {
+      update: {
         board,
         keyboard,
         guesses,
@@ -44,6 +45,19 @@ export async function saveGame(data) {
         expert,
         win,
         completed,
+        playable: !completed,
+      },
+      create: {
+        userId,
+        date: gameDate,
+        word: getRandomWord(gameDate),
+        board,
+        keyboard,
+        guesses,
+        row,
+        expert: expert ?? false,
+        win: win ?? null,
+        completed: completed ?? false,
         playable: !completed,
       },
     });

@@ -134,11 +134,12 @@ const Button = styled(Link)`
  * @param {boolean} props.showHistoryLink - Whether to show the link to history page
  * @returns {JSX.Element} Stats component
  */
-const SharedStats = ({ 
-  history: providedHistory, 
-  historyPage = false, 
+const SharedStats = ({
+  history: providedHistory,
+  historyPage = false,
   compact = false,
-  showHistoryLink = true
+  showHistoryLink = true,
+  currentGame = null,
 }) => {
   const { data: session, status } = useSession();
   const [history, setHistory] = useState(providedHistory || {
@@ -198,9 +199,18 @@ const SharedStats = ({
     fetchHistory();
   }, [session, status, providedHistory]);
 
-  const { games, streak, maxStreak, guessCounts = [0, 0, 0, 0, 0, 0] } = history;
-  const gamesPlayed = games.filter((game) => game.completed).length;
-  const gamesWon = games.filter((game) => game.win).length;
+  const { games, streak, maxStreak, guessCounts: fetchedGuessCounts = [0, 0, 0, 0, 0, 0] } = history;
+
+  // Merge currentGame into stats to account for saves that haven't completed yet
+  const extraPlayed = currentGame ? 1 : 0;
+  const extraWon = currentGame?.win ? 1 : 0;
+  const guessCounts = fetchedGuessCounts.map((count, i) => {
+    if (currentGame?.win && currentGame.guessCount - 1 === i) return count + 1;
+    return count;
+  });
+
+  const gamesPlayed = games.filter((game) => game.completed).length + extraPlayed;
+  const gamesWon = games.filter((game) => game.win).length + extraWon;
   const winPercentage = gamesPlayed > 0 ? Math.round((gamesWon / gamesPlayed) * 100) : 0;
 
   // Calculate the maximum value for scaling the bars
@@ -210,7 +220,7 @@ const SharedStats = ({
     return <div>Loading stats...</div>;
   }
 
-  if (gamesPlayed === 0) {
+  if (gamesPlayed === 0 && !currentGame) {
     return null;
   }
 
