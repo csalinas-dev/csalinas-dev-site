@@ -49,7 +49,6 @@ export const useHistory = (options = {}) => {
           console.error("Error fetching history:", error);
         } finally {
           setLoading(false);
-          return;
         }
       } else {
         // Use localStorage for non-authenticated users
