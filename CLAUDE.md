@@ -2,12 +2,12 @@
 
 ## Project Overview
 
-Next.js 14 (App Router) personal portfolio site for Christopher Salinas Jr. Includes blog posts, games, and other pages. The main game is **Wordleverse**, a Wordle clone with user auth and gameplay history.
+Next.js 15 (App Router) personal portfolio site for Christopher Salinas Jr. Includes blog posts, games, and other pages. The main game is **Wordleverse**, a Wordle clone with user auth and gameplay history.
 
 ## Tech Stack
 
-- **Framework**: Next.js 14 (App Router, no TypeScript — all `.js`/`.jsx`)
-- **UI**: Material-UI (MUI) v5 + Emotion
+- **Framework**: Next.js 15 + React 19 (App Router; codebase is primarily `.js`/`.jsx`, with TypeScript included as a devDependency)
+- **UI**: Material-UI (MUI) v6 + Emotion
 - **Auth**: NextAuth v4 (JWT sessions, credentials + OAuth)
 - **ORM**: Prisma with MySQL
 - **Email**: Nodemailer (SMTP)
