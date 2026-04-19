@@ -7,10 +7,10 @@ import { Context } from "./_context";
 import { useKeyboardInput } from "./_hooks";
 
 // --- Timing constants (keep in sync with Alerts.jsx) ---
-const LIVE_FLIP_HALF = 200;        // ms for each half of the flip (hide phase + show phase)
-const LIVE_TILE_STAGGER = 75;      // ms between consecutive tiles on a live guess
-const HISTORY_FLIP_HALF = 125;     // ms per half for history replay
-const HISTORY_TILE_STAGGER = 75;   // ms between consecutive tiles on history replay
+const LIVE_FLIP_DURATION = 400;
+const LIVE_TILE_STAGGER = 75;
+const HISTORY_FLIP_DURATION = 250;
+const HISTORY_TILE_STAGGER = 75;
 export const WIN_BOUNCE_DURATION = 600;
 export const WIN_BOUNCE_STAGGER = 75;
 
@@ -21,24 +21,35 @@ const tileShake = keyframes`
   20%, 40%, 60%, 80% { transform: translateX(6px); }
 `;
 
-// Phase 1: tile rotates to 90° (edge-on, invisible) — color is still default
-const flipHide = keyframes`
-  0% { transform: rotateX(0deg); }
-  100% { transform: rotateX(-90deg); }
+// Each flip keyframe embeds the background-color change at the midpoint so
+// the color swap happens while the tile is edge-on (invisible).
+const flipAbsent = keyframes`
+  0%   { transform: rotateX(0deg);   background-color: var(--selectionBackground); color: var(--foreground); }
+  40%  { transform: rotateX(-90deg); background-color: var(--selectionBackground); color: var(--foreground); }
+  60%  { transform: rotateX(-90deg); background-color: var(--absentBackground);    color: rgba(204, 204, 204, 0.54); }
+  100% { transform: rotateX(0deg);   background-color: var(--absentBackground);    color: rgba(204, 204, 204, 0.54); }
 `;
 
-// Phase 2: tile rotates from 90° back to 0° — color has already changed to status color
-const flipShow = keyframes`
-  0% { transform: rotateX(-90deg); }
-  100% { transform: rotateX(0deg); }
+const flipPresent = keyframes`
+  0%   { transform: rotateX(0deg);   background-color: var(--selectionBackground); color: var(--foreground); }
+  40%  { transform: rotateX(-90deg); background-color: var(--selectionBackground); color: var(--foreground); }
+  60%  { transform: rotateX(-90deg); background-color: var(--selector);            color: var(--background); }
+  100% { transform: rotateX(0deg);   background-color: var(--selector);            color: var(--background); }
+`;
+
+const flipCorrect = keyframes`
+  0%   { transform: rotateX(0deg);   background-color: var(--selectionBackground); color: var(--foreground); }
+  40%  { transform: rotateX(-90deg); background-color: var(--selectionBackground); color: var(--foreground); }
+  60%  { transform: rotateX(-90deg); background-color: var(--comment);             color: var(--foreground); }
+  100% { transform: rotateX(0deg);   background-color: var(--comment);             color: var(--foreground); }
 `;
 
 const tileBounce = keyframes`
   0%, 100% { transform: translateY(0); }
-  30% { transform: translateY(-20px); }
-  50% { transform: translateY(0); }
-  70% { transform: translateY(-10px); }
-  85% { transform: translateY(0); }
+  30%       { transform: translateY(-20px); }
+  50%       { transform: translateY(0); }
+  70%       { transform: translateY(-10px); }
+  85%       { transform: translateY(0); }
 `;
 
 // --- Styled components ---
@@ -86,17 +97,42 @@ const Tile = styled.div`
     background-color: var(--comment);
   }
 
-  /* Two-phase flip: hide (rotate to 90°) then show (rotate back to 0°) */
-  &.flip-hide {
-    animation: ${flipHide} var(--flip-half) ease-in forwards;
+  /*
+   * Flip animations: longhand properties so CSS custom properties work reliably.
+   * fill-mode: both = use 0% keyframe during delay (shows default bg before flip)
+   *                  + use 100% keyframe after animation (holds status color until
+   *                    the CSS class takes over seamlessly).
+   */
+  &.flipping-absent {
+    animation-name: ${flipAbsent};
+    animation-duration: var(--flip-duration);
+    animation-timing-function: ease-in-out;
+    animation-delay: var(--flip-delay);
+    animation-fill-mode: both;
   }
 
-  &.flip-show {
-    animation: ${flipShow} var(--flip-half) ease-out forwards;
+  &.flipping-present {
+    animation-name: ${flipPresent};
+    animation-duration: var(--flip-duration);
+    animation-timing-function: ease-in-out;
+    animation-delay: var(--flip-delay);
+    animation-fill-mode: both;
+  }
+
+  &.flipping-correct {
+    animation-name: ${flipCorrect};
+    animation-duration: var(--flip-duration);
+    animation-timing-function: ease-in-out;
+    animation-delay: var(--flip-delay);
+    animation-fill-mode: both;
   }
 
   &.bouncing {
-    animation: ${tileBounce} var(--bounce-duration) ease-in-out var(--bounce-delay) both;
+    animation-name: ${tileBounce};
+    animation-duration: var(--bounce-duration);
+    animation-timing-function: ease-in-out;
+    animation-delay: var(--bounce-delay);
+    animation-fill-mode: both;
   }
 `;
 
@@ -110,66 +146,59 @@ const Gameboard = ({ width, height }) => {
   const tileSize = width ? (width - 32) / 5 : (height - 40) / 6;
   const font = tileSize * 0.75;
 
-  // Tiles that should display their actual status color (vs. default)
+  // Tiles currently animating: { [key]: { duration, delay } }
+  const [animatingTiles, setAnimatingTiles] = useState({});
+  // Tiles whose status color should be visible (either revealed by animation or shown immediately)
   const [revealedTiles, setRevealedTiles] = useState(new Set());
-  // Tiles currently mid-animation: { [key]: 'hide' | 'show' }
-  const [animPhase, setAnimPhase] = useState({});
   const [shakeRow, setShakeRow] = useState(null);
   const [bounceRow, setBounceRow] = useState(null);
 
   const prevBoardRef = useRef(board);
   const prevErrorRef = useRef(error);
-  // Tracks whether the initial INITIALIZE_STATE load has been processed
+  // False until the first board change (INITIALIZE_STATE) has been processed.
+  // Live guesses only animate when this is true.
   const isGameLoadedRef = useRef(false);
 
-  // Animate a single row using two-phase flip
   const scheduleFlipAnimation = useCallback(
     (boardRow, rowIndex, isHistory, isWin) => {
-      const halfDuration = isHistory ? HISTORY_FLIP_HALF : LIVE_FLIP_HALF;
+      const duration = isHistory ? HISTORY_FLIP_DURATION : LIVE_FLIP_DURATION;
       const stagger = isHistory ? HISTORY_TILE_STAGGER : LIVE_TILE_STAGGER;
 
+      const newAnims = {};
       boardRow.forEach((tile, colIndex) => {
         if (tile.status === "default") return;
-        const { key } = tile;
-        const startAt = colIndex * stagger;
+        newAnims[tile.key] = { duration, delay: colIndex * stagger };
+      });
+      setAnimatingTiles((prev) => ({ ...prev, ...newAnims }));
 
-        // Phase 1: hide
+      // After each tile's animation completes: hand off from animation to CSS class
+      boardRow.forEach((tile, colIndex) => {
+        if (tile.status === "default") return;
         setTimeout(() => {
-          setAnimPhase((prev) => ({ ...prev, [key]: "hide" }));
-        }, startAt);
-
-        // Phase 2: reveal status color + show
-        setTimeout(() => {
-          setRevealedTiles((prev) => new Set([...prev, key]));
-          setAnimPhase((prev) => ({ ...prev, [key]: "show" }));
-        }, startAt + halfDuration);
-
-        // Done: clear animation phase
-        setTimeout(() => {
-          setAnimPhase((prev) => {
+          setRevealedTiles((prev) => new Set([...prev, tile.key]));
+          setAnimatingTiles((prev) => {
             const next = { ...prev };
-            delete next[key];
+            delete next[tile.key];
             return next;
           });
-        }, startAt + halfDuration * 2 + 10);
+        }, colIndex * stagger + duration);
       });
 
-      // After last tile finishes, trigger win bounce if applicable
       if (isWin) {
-        const lastStart = (boardRow.length - 1) * stagger;
+        const lastTileEnd = (boardRow.length - 1) * stagger + duration;
         setTimeout(() => {
           setBounceRow(rowIndex);
           setTimeout(
             () => setBounceRow(null),
             WIN_BOUNCE_DURATION + WIN_BOUNCE_STAGGER * 4 + 100
           );
-        }, lastStart + halfDuration * 2 + 50);
+        }, lastTileEnd + 50);
       }
     },
     []
   );
 
-  // Shake on invalid guess
+  // Shake the current row when an invalid guess is submitted
   useEffect(() => {
     if (!error || prevErrorRef.current === error) return;
     prevErrorRef.current = error;
@@ -181,54 +210,50 @@ const Gameboard = ({ width, height }) => {
     if (!error) prevErrorRef.current = null;
   }, [error]);
 
-  // Detect board changes: initial load vs. live guess
+  // Handle board changes: distinguish initial load (INITIALIZE_STATE) from live guesses
   useEffect(() => {
     const prevBoard = prevBoardRef.current;
     prevBoardRef.current = board;
     if (prevBoard === board) return;
 
-    const hasNewlyCommitted = board.some((boardRow, rowIndex) =>
-      boardRow.some(
-        (tile, i) =>
-          tile.status !== "default" && prevBoard[rowIndex][i].status === "default"
-      )
-    );
-
-    if (!hasNewlyCommitted) return;
-
     if (!isGameLoadedRef.current) {
-      // This is the INITIALIZE_STATE update (game just loaded)
+      // First board change is always INITIALIZE_STATE (game loading complete).
+      // Mark loaded and set up initial tile visibility — then stop.
       isGameLoadedRef.current = true;
 
       if (isPastGame) {
-        // History replay: animate all committed tiles sequentially
+        // Animate all committed tiles in reading order (W1L1 → W1L2 → … → W6L5)
         let idx = 0;
+        const newAnims = {};
         board.forEach((boardRow) =>
           boardRow.forEach((tile) => {
             if (tile.status === "default") return;
-            const { key } = tile;
-            const startAt = idx++ * HISTORY_TILE_STAGGER;
+            newAnims[tile.key] = {
+              duration: HISTORY_FLIP_DURATION,
+              delay: idx++ * HISTORY_TILE_STAGGER,
+            };
+          })
+        );
+        setAnimatingTiles(newAnims);
 
+        // Hand off each tile after its animation ends
+        let i = 0;
+        board.forEach((boardRow) =>
+          boardRow.forEach((tile) => {
+            if (tile.status === "default") return;
+            const delay = i++ * HISTORY_TILE_STAGGER;
             setTimeout(() => {
-              setAnimPhase((prev) => ({ ...prev, [key]: "hide" }));
-            }, startAt);
-
-            setTimeout(() => {
-              setRevealedTiles((prev) => new Set([...prev, key]));
-              setAnimPhase((prev) => ({ ...prev, [key]: "show" }));
-            }, startAt + HISTORY_FLIP_HALF);
-
-            setTimeout(() => {
-              setAnimPhase((prev) => {
+              setRevealedTiles((prev) => new Set([...prev, tile.key]));
+              setAnimatingTiles((prev) => {
                 const next = { ...prev };
-                delete next[key];
+                delete next[tile.key];
                 return next;
               });
-            }, startAt + HISTORY_FLIP_HALF * 2 + 10);
+            }, delay + HISTORY_FLIP_DURATION);
           })
         );
       } else {
-        // Current game resumed: reveal all existing tiles immediately, no animation
+        // Resumed current game: show all committed tiles immediately, no animation
         const toReveal = new Set();
         board.forEach((boardRow) =>
           boardRow.forEach((tile) => {
@@ -254,19 +279,22 @@ const Gameboard = ({ width, height }) => {
 
   const letterToTile = (tile, rowIndex, colIndex) => {
     const { key, letter, status } = tile;
-    const phase = animPhase[key];
+    const anim = animatingTiles[key];
     const isRevealed = revealedTiles.has(key);
     const isBouncing = bounceRow === rowIndex;
 
-    // Only show status color once revealed (prevents flash before animation)
+    // Show default color until the animation reveals the tile
     const displayStatus = isRevealed ? status : "default";
 
     const classNames = [displayStatus];
     const cssVars = { lineHeight: font + "px", fontSize: font + "px" };
 
-    if (phase) {
-      classNames.push(`flip-${phase}`);
-      cssVars["--flip-half"] = (phase === "hide" ? LIVE_FLIP_HALF : LIVE_FLIP_HALF) + "ms";
+    if (anim) {
+      // Use the actual status for the animation keyframe class even though
+      // displayStatus is "default" — the keyframe handles the color reveal
+      classNames.push(`flipping-${status}`);
+      cssVars["--flip-duration"] = anim.duration + "ms";
+      cssVars["--flip-delay"] = anim.delay + "ms";
     } else if (isBouncing) {
       classNames.push("bouncing");
       cssVars["--bounce-duration"] = WIN_BOUNCE_DURATION + "ms";
