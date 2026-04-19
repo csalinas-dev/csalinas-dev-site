@@ -44,10 +44,10 @@ export const getHistoryFromLocalStorage = (options = {}) => {
 
       localHistory.push({
         date,
-        guesses,
         completed,
         playable,
         ...gameData,
+        guesses,
       });
     } catch (error) {
       console.error("Error parsing localStorage item:", error);
