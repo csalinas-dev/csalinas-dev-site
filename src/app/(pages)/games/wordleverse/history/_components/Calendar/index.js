@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import styled from "@emotion/styled";
 import dateFormat from "dateformat";
 
@@ -21,6 +22,31 @@ const CalendarGrid = styled.div`
   width: 100%;
 `;
 
+const MIN_YEAR = 2024;
+const MIN_MONTH = 0; // January (0-indexed)
+
+/**
+ * Parse and validate a ?month=YYYY-MM param. Returns a Date set to the 1st
+ * of that month, or null if invalid or out of range.
+ */
+function parseMonthParam(param) {
+  if (!param || !/^\d{4}-\d{2}$/.test(param)) return null;
+  const [year, month] = param.split("-").map(Number);
+  if (isNaN(year) || isNaN(month) || month < 1 || month > 12) return null;
+
+  const date = new Date(year, month - 1, 1);
+  const today = new Date();
+  const minDate = new Date(MIN_YEAR, MIN_MONTH, 1);
+  const maxDate = new Date(today.getFullYear(), today.getMonth(), 1);
+
+  if (date < minDate || date > maxDate) return null;
+  return date;
+}
+
+function toMonthParam(date) {
+  return dateFormat(date, "yyyy-mm");
+}
+
 /**
  * Calendar component to display a monthly calendar with game results
  * @param {Object} props - Component props
@@ -29,11 +55,24 @@ const CalendarGrid = styled.div`
  * @returns {JSX.Element} Calendar component
  */
 const Calendar = ({ availableDates, games }) => {
-  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const monthParam = searchParams.get("month");
+  const currentMonth = parseMonthParam(monthParam) ?? new Date();
+
+  const setCurrentMonth = useCallback(
+    (newMonth) => {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("month", toMonthParam(newMonth));
+      router.push(`?${params.toString()}`, { scroll: false });
+    },
+    [router, searchParams]
+  );
 
   // Check if current month is January 2024 (to disable previous button)
   const isPrevMonthDisabled = () => {
-    return currentMonth.getFullYear() === 2024 && currentMonth.getMonth() === 0;
+    return currentMonth.getFullYear() === MIN_YEAR && currentMonth.getMonth() === MIN_MONTH;
   };
 
   // Check if current month is the current month (to disable next button)
@@ -96,7 +135,9 @@ const Calendar = ({ availableDates, games }) => {
 
       const game = games.find((g) => g.date === dateStr);
       const isWin = game && game.win;
-      const guesses = game ? game.guesses.length : null;
+      const guesses = game
+        ? (game.guesses?.length ?? (game.win ? game.row + 1 : game.row))
+        : null;
       const playable =
         (dateInfo.played && !dateInfo.completed) ||
         (dateInfo.isToday && !dateInfo.completed) ||

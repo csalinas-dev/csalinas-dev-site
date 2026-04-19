@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { useSession } from "next-auth/react";
 
 import Calendar from "./_components/Calendar";
@@ -24,7 +25,9 @@ export default function HistoryPage() {
     <Layout>
       {!session && <SignInPrompt />}
       <Stats history={history} historyPage={true} showHistoryLink={false} />
-      <Calendar availableDates={availableDates} games={history.games} />
+      <Suspense>
+        <Calendar availableDates={availableDates} games={history.games} />
+      </Suspense>
     </Layout>
   );
 }
