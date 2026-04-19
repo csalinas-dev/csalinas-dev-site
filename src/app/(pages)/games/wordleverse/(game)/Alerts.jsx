@@ -9,11 +9,11 @@ import { Context, dismissAlert } from "./_context";
 import { useError } from "./_hooks";
 
 // Keep in sync with Gameboard.jsx timing constants
-const LIVE_FLIP_DURATION = 400;
-const LIVE_TILE_STAGGER = 280;
+const LIVE_FLIP_DURATION = 400;   // LIVE_FLIP_HALF * 2
+const LIVE_TILE_STAGGER = 75;
 const WIN_BOUNCE_DURATION = 600;
-const HISTORY_FLIP_DURATION = 250;
-const HISTORY_TILE_STAGGER = 80;
+const HISTORY_FLIP_DURATION = 250; // HISTORY_FLIP_HALF * 2
+const HISTORY_TILE_STAGGER = 75;
 
 const Container = styled.div`
   bottom: 0;
