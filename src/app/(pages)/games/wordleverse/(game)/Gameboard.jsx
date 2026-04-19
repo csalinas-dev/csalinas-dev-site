@@ -8,11 +8,11 @@ import { useKeyboardInput } from "./_hooks";
 
 // --- Timing constants (keep in sync with Alerts.jsx) ---
 const LIVE_FLIP_DURATION = 400;
-const LIVE_TILE_STAGGER = 280;
+const LIVE_TILE_STAGGER = 75;
 const HISTORY_FLIP_DURATION = 250;
-const HISTORY_TILE_STAGGER = 80;
+const HISTORY_TILE_STAGGER = 75;
 export const WIN_BOUNCE_DURATION = 600;
-export const WIN_BOUNCE_STAGGER = 80;
+export const WIN_BOUNCE_STAGGER = 75;
 
 // --- Keyframes ---
 const tileShake = keyframes`
