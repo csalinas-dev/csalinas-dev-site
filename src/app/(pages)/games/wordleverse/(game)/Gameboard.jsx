@@ -21,8 +21,8 @@ const tileShake = keyframes`
   20%, 40%, 60%, 80% { transform: translateX(6px); }
 `;
 
-// Each flip keyframe embeds the background-color change at the midpoint so
-// the color swap happens while the tile is edge-on (invisible).
+// Background-color change is embedded at the midpoint so the swap happens
+// while the tile is edge-on (invisible at 40-60%).
 const flipAbsent = keyframes`
   0%   { transform: rotateX(0deg);   background-color: var(--selectionBackground); color: var(--foreground); }
   40%  { transform: rotateX(-90deg); background-color: var(--selectionBackground); color: var(--foreground); }
@@ -98,10 +98,10 @@ const Tile = styled.div`
   }
 
   /*
-   * Flip animations: longhand properties so CSS custom properties work reliably.
-   * fill-mode: both = use 0% keyframe during delay (shows default bg before flip)
-   *                  + use 100% keyframe after animation (holds status color until
-   *                    the CSS class takes over seamlessly).
+   * Flip animations use longhand properties so CSS custom properties resolve
+   * correctly. fill-mode:both = hold 0% keyframe during delay (default bg
+   * before the flip starts) + hold 100% keyframe after end (status bg until
+   * the CSS class takes over at the same color).
    */
   &.flipping-absent {
     animation-name: ${flipAbsent};
@@ -148,15 +148,17 @@ const Gameboard = ({ width, height }) => {
 
   // Tiles currently animating: { [key]: { duration, delay } }
   const [animatingTiles, setAnimatingTiles] = useState({});
-  // Tiles whose status color should be visible (either revealed by animation or shown immediately)
+  // Tiles whose status color should be shown (revealed by animation or immediately)
   const [revealedTiles, setRevealedTiles] = useState(new Set());
   const [shakeRow, setShakeRow] = useState(null);
   const [bounceRow, setBounceRow] = useState(null);
 
   const prevBoardRef = useRef(board);
   const prevErrorRef = useRef(error);
-  // False until the first board change (INITIALIZE_STATE) has been processed.
-  // Live guesses only animate when this is true.
+  // Synced when init fires so Effect 2 doesn't re-animate already-loaded rows
+  const prevRowRef = useRef(row);
+  const prevWinRef = useRef(win);
+  // True once INITIALIZE_STATE has been processed
   const isGameLoadedRef = useRef(false);
 
   const scheduleFlipAnimation = useCallback(
@@ -171,7 +173,7 @@ const Gameboard = ({ width, height }) => {
       });
       setAnimatingTiles((prev) => ({ ...prev, ...newAnims }));
 
-      // After each tile's animation completes: hand off from animation to CSS class
+      // Hand off each tile to its CSS class after the animation ends
       boardRow.forEach((tile, colIndex) => {
         if (tile.status === "default") return;
         setTimeout(() => {
@@ -198,7 +200,7 @@ const Gameboard = ({ width, height }) => {
     []
   );
 
-  // Shake the current row when an invalid guess is submitted
+  // Shake on invalid guess
   useEffect(() => {
     if (!error || prevErrorRef.current === error) return;
     prevErrorRef.current = error;
@@ -210,72 +212,86 @@ const Gameboard = ({ width, height }) => {
     if (!error) prevErrorRef.current = null;
   }, [error]);
 
-  // Handle board changes: distinguish initial load (INITIALIZE_STATE) from live guesses
+  // Effect 1 — Initialization: fires when board reference changes (INITIALIZE_STATE
+  // always returns a fresh cloneDeep board, so the ref genuinely changes here).
+  // updateLetterStatuses mutates board in place, so live guesses do NOT change the
+  // board ref and will NOT trigger this effect.
   useEffect(() => {
     const prevBoard = prevBoardRef.current;
     prevBoardRef.current = board;
-    if (prevBoard === board) return;
 
-    if (!isGameLoadedRef.current) {
-      // First board change is always INITIALIZE_STATE (game loading complete).
-      // Mark loaded and set up initial tile visibility — then stop.
-      isGameLoadedRef.current = true;
+    if (prevBoard === board) return; // same ref = not INITIALIZE_STATE
+    if (isGameLoadedRef.current) return; // already initialized
 
-      if (isPastGame) {
-        // Animate all committed tiles in reading order (W1L1 → W1L2 → … → W6L5)
-        let idx = 0;
-        const newAnims = {};
-        board.forEach((boardRow) =>
-          boardRow.forEach((tile) => {
-            if (tile.status === "default") return;
-            newAnims[tile.key] = {
-              duration: HISTORY_FLIP_DURATION,
-              delay: idx++ * HISTORY_TILE_STAGGER,
-            };
-          })
-        );
-        setAnimatingTiles(newAnims);
+    isGameLoadedRef.current = true;
+    // Sync prevRow/prevWin so Effect 2 doesn't re-animate already-loaded rows
+    prevRowRef.current = row;
+    prevWinRef.current = win;
 
-        // Hand off each tile after its animation ends
-        let i = 0;
-        board.forEach((boardRow) =>
-          boardRow.forEach((tile) => {
-            if (tile.status === "default") return;
-            const delay = i++ * HISTORY_TILE_STAGGER;
-            setTimeout(() => {
-              setRevealedTiles((prev) => new Set([...prev, tile.key]));
-              setAnimatingTiles((prev) => {
-                const next = { ...prev };
-                delete next[tile.key];
-                return next;
-              });
-            }, delay + HISTORY_FLIP_DURATION);
-          })
-        );
-      } else {
-        // Resumed current game: show all committed tiles immediately, no animation
-        const toReveal = new Set();
-        board.forEach((boardRow) =>
-          boardRow.forEach((tile) => {
-            if (tile.status !== "default") toReveal.add(tile.key);
-          })
-        );
-        setRevealedTiles(toReveal);
-      }
+    if (isPastGame) {
+      // Animate all committed tiles W1L1 → W1L2 → … → W6L5
+      let idx = 0;
+      const newAnims = {};
+      board.forEach((boardRow) =>
+        boardRow.forEach((tile) => {
+          if (tile.status === "default") return;
+          newAnims[tile.key] = {
+            duration: HISTORY_FLIP_DURATION,
+            delay: idx++ * HISTORY_TILE_STAGGER,
+          };
+        })
+      );
+      setAnimatingTiles(newAnims);
+
+      let i = 0;
+      board.forEach((boardRow) =>
+        boardRow.forEach((tile) => {
+          if (tile.status === "default") return;
+          const delay = i++ * HISTORY_TILE_STAGGER;
+          setTimeout(() => {
+            setRevealedTiles((prev) => new Set([...prev, tile.key]));
+            setAnimatingTiles((prev) => {
+              const next = { ...prev };
+              delete next[tile.key];
+              return next;
+            });
+          }, delay + HISTORY_FLIP_DURATION);
+        })
+      );
+    } else {
+      // Resumed current game: reveal all committed tiles immediately
+      const toReveal = new Set();
+      board.forEach((boardRow) =>
+        boardRow.forEach((tile) => {
+          if (tile.status !== "default") toReveal.add(tile.key);
+        })
+      );
+      setRevealedTiles(toReveal);
+    }
+  }, [board, isPastGame, row, win]);
+
+  // Effect 2 — Live guesses: board ref does NOT change (mutation in place), so we
+  // detect submissions via row/win changes instead.
+  useEffect(() => {
+    const prevRow = prevRowRef.current;
+    const prevWin = prevWinRef.current;
+    prevRowRef.current = row;
+    prevWinRef.current = win;
+
+    if (!isGameLoadedRef.current) return;
+
+    // Winning guess — row not incremented; win just became true
+    if (win === true && prevWin !== true) {
+      scheduleFlipAnimation(board[row], row, false, true);
       return;
     }
 
-    // Live guess: find the newly committed row and animate it
-    board.forEach((boardRow, rowIndex) => {
-      const isNewlyCommitted = boardRow.some(
-        (tile, i) =>
-          tile.status !== "default" && prevBoard[rowIndex][i].status === "default"
-      );
-      if (isNewlyCommitted) {
-        scheduleFlipAnimation(boardRow, rowIndex, false, win === true);
-      }
-    });
-  }, [board, win, isPastGame, scheduleFlipAnimation]);
+    // Losing or normal guess — row was incremented
+    if (row > prevRow) {
+      const submittedRow = row - 1;
+      scheduleFlipAnimation(board[submittedRow], submittedRow, false, false);
+    }
+  }, [row, win, board, scheduleFlipAnimation]);
 
   const letterToTile = (tile, rowIndex, colIndex) => {
     const { key, letter, status } = tile;
@@ -283,15 +299,16 @@ const Gameboard = ({ width, height }) => {
     const isRevealed = revealedTiles.has(key);
     const isBouncing = bounceRow === rowIndex;
 
-    // Show default color until the animation reveals the tile
+    // Hold at default color until the animation reveals the tile, preventing
+    // any flash of the final color before the flip starts.
     const displayStatus = isRevealed ? status : "default";
 
     const classNames = [displayStatus];
     const cssVars = { lineHeight: font + "px", fontSize: font + "px" };
 
     if (anim) {
-      // Use the actual status for the animation keyframe class even though
-      // displayStatus is "default" — the keyframe handles the color reveal
+      // Use actual status for the animation class; displayStatus stays "default"
+      // so the base background color is correct at the start of the flip.
       classNames.push(`flipping-${status}`);
       cssVars["--flip-duration"] = anim.duration + "ms";
       cssVars["--flip-delay"] = anim.delay + "ms";
