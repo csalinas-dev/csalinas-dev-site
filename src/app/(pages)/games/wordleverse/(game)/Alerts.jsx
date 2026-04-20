@@ -9,11 +9,12 @@ import { Context, dismissAlert } from "./_context";
 import { useError } from "./_hooks";
 
 // Keep in sync with Gameboard.jsx timing constants
-const LIVE_FLIP_DURATION = 400;   // LIVE_FLIP_HALF * 2
-const LIVE_TILE_STAGGER = 75;
-const WIN_BOUNCE_DURATION = 600;
-const HISTORY_FLIP_DURATION = 250; // HISTORY_FLIP_HALF * 2
-const HISTORY_TILE_STAGGER = 75;
+const LIVE_FLIP_DURATION = 750;
+const LIVE_TILE_STAGGER = 500;
+const WIN_BOUNCE_DURATION = 750;
+const WIN_BOUNCE_STAGGER = 250;
+const HISTORY_FLIP_DURATION = 300;
+const HISTORY_TILE_STAGGER = 50;
 
 const Container = styled.div`
   bottom: 0;
@@ -138,11 +139,15 @@ const Alerts = () => {
     if (isPastGame) {
       const committedCount = board.flat().filter((t) => t.status !== "default").length;
       delay =
-        (committedCount - 1) * HISTORY_TILE_STAGGER + HISTORY_FLIP_DURATION + 300;
+        (committedCount - 1) * HISTORY_TILE_STAGGER + HISTORY_FLIP_DURATION + 2000;
     } else if (win) {
-      delay = LIVE_TILE_STAGGER * 4 + LIVE_FLIP_DURATION + WIN_BOUNCE_DURATION + 300;
+      // Last tile finishes flipping, then bounce plays (staggered across 5 tiles),
+      // then 2-second pause before the modal appears.
+      const lastFlipEnd = LIVE_TILE_STAGGER * 4 + LIVE_FLIP_DURATION;
+      const bounceTotalDuration = WIN_BOUNCE_STAGGER * 4 + WIN_BOUNCE_DURATION;
+      delay = lastFlipEnd + bounceTotalDuration + 2000;
     } else {
-      delay = LIVE_TILE_STAGGER * 4 + LIVE_FLIP_DURATION + 300;
+      delay = LIVE_TILE_STAGGER * 4 + LIVE_FLIP_DURATION + 2000;
     }
 
     timerRef.current = setTimeout(() => {
