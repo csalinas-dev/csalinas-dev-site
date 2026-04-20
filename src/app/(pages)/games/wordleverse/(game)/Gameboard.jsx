@@ -7,12 +7,12 @@ import { Context } from "./_context";
 import { useKeyboardInput } from "./_hooks";
 
 // --- Timing constants (keep in sync with Alerts.jsx) ---
-const LIVE_FLIP_DURATION = 400;
-const LIVE_TILE_STAGGER = 75;
-const HISTORY_FLIP_DURATION = 250;
-const HISTORY_TILE_STAGGER = 75;
-export const WIN_BOUNCE_DURATION = 600;
-export const WIN_BOUNCE_STAGGER = 75;
+const LIVE_FLIP_DURATION = 750;
+const LIVE_TILE_STAGGER = 500;
+const HISTORY_FLIP_DURATION = 300;
+const HISTORY_TILE_STAGGER = 50;
+export const WIN_BOUNCE_DURATION = 750;
+export const WIN_BOUNCE_STAGGER = 250;
 
 // --- Keyframes ---
 const tileShake = keyframes`
@@ -192,7 +192,7 @@ const Gameboard = ({ width, height }) => {
           setBounceRow(rowIndex);
           setTimeout(
             () => setBounceRow(null),
-            WIN_BOUNCE_DURATION + WIN_BOUNCE_STAGGER * 4 + 100
+            WIN_BOUNCE_DURATION + WIN_BOUNCE_STAGGER * 4 + 1000
           );
         }, lastTileEnd + 50);
       }
