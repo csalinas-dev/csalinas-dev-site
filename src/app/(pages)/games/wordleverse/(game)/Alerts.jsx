@@ -7,21 +7,21 @@ import { Clipboard } from "./_components/Clipboard";
 import { PlayAgain } from "./_components/PlayAgain";
 import { Context, dismissAlert } from "./_context";
 import { useError } from "./_hooks";
+import {
+  LIVE_FLIP_DURATION,
+  LIVE_TILE_STAGGER,
+  WIN_BOUNCE_DURATION,
+  WIN_BOUNCE_STAGGER,
+  HISTORY_FLIP_DURATION,
+  HISTORY_TILE_STAGGER,
+} from "./Gameboard";
 
-// Keep in sync with Gameboard.jsx timing constants
-const LIVE_FLIP_DURATION = 750;
-const LIVE_TILE_STAGGER = 500;
-const WIN_BOUNCE_DURATION = 750;
-const WIN_BOUNCE_STAGGER = 250;
-const HISTORY_FLIP_DURATION = 300;
-const HISTORY_TILE_STAGGER = 50;
 const MODAL_PAUSE_DELAY = 2000;
 
-// Total time from guess submit until all live flip animations finish
+// Last tile starts at stagger*4, finishes one duration later
 const LIVE_FLIP_TOTAL = LIVE_TILE_STAGGER * 4 + LIVE_FLIP_DURATION;
-// Total time from guess submit until win bounce finishes (+50ms matches Gameboard bounce start offset)
-const WIN_ANIMATION_TOTAL =
-  LIVE_FLIP_TOTAL + 50 + WIN_BOUNCE_STAGGER * 4 + WIN_BOUNCE_DURATION;
+// +50ms matches Gameboard's bounce start offset; last bounce tile ends at stagger*4 + duration
+const WIN_ANIMATION_TOTAL = LIVE_FLIP_TOTAL + 50 + WIN_BOUNCE_STAGGER * 4 + WIN_BOUNCE_DURATION;
 
 const Container = styled.div`
   bottom: 0;
@@ -126,6 +126,16 @@ const Alerts = () => {
   const [showAlert, setShowAlert] = useState(false);
   const timerRef = useRef(null);
   const prevWinRef = useRef(win);
+  // True when a past game was loaded as unplayed — live guesses will animate with LIVE timing
+  const liveOnPastGameRef = useRef(false);
+
+  // When win resets to null, capture whether this is a fresh (unplayed) past game load.
+  // This must be declared before the main effect so it runs first within the same render.
+  useEffect(() => {
+    if (win === null) {
+      liveOnPastGameRef.current = isPastGame;
+    }
+  }, [win, isPastGame]);
 
   useEffect(() => {
     if (win === null) {
@@ -143,7 +153,8 @@ const Alerts = () => {
     prevWinRef.current = win;
 
     let delay;
-    if (isPastGame) {
+    if (isPastGame && !liveOnPastGameRef.current) {
+      // Past game loaded already completed — history replay animation plays on mount
       const committedCount = board.flat().filter((t) => t.status !== "default").length;
       delay =
         (committedCount - 1) * HISTORY_TILE_STAGGER + HISTORY_FLIP_DURATION + MODAL_PAUSE_DELAY;

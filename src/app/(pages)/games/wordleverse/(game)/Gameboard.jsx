@@ -6,11 +6,11 @@ import { map } from "lodash";
 import { Context } from "./_context";
 import { useKeyboardInput } from "./_hooks";
 
-// --- Timing constants (keep in sync with Alerts.jsx) ---
-const LIVE_FLIP_DURATION = 750;
-const LIVE_TILE_STAGGER = 500;
-const HISTORY_FLIP_DURATION = 300;
-const HISTORY_TILE_STAGGER = 50;
+// --- Timing constants ---
+export const LIVE_FLIP_DURATION = 750;
+export const LIVE_TILE_STAGGER = 500;
+export const HISTORY_FLIP_DURATION = 300;
+export const HISTORY_TILE_STAGGER = 50;
 export const WIN_BOUNCE_DURATION = 750;
 export const WIN_BOUNCE_STAGGER = 250;
 
