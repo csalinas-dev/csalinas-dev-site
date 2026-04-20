@@ -15,6 +15,13 @@ const WIN_BOUNCE_DURATION = 750;
 const WIN_BOUNCE_STAGGER = 250;
 const HISTORY_FLIP_DURATION = 300;
 const HISTORY_TILE_STAGGER = 50;
+const MODAL_PAUSE_DELAY = 2000;
+
+// Total time from guess submit until all live flip animations finish
+const LIVE_FLIP_TOTAL = LIVE_TILE_STAGGER * 4 + LIVE_FLIP_DURATION;
+// Total time from guess submit until win bounce finishes (+50ms matches Gameboard bounce start offset)
+const WIN_ANIMATION_TOTAL =
+  LIVE_FLIP_TOTAL + 50 + WIN_BOUNCE_STAGGER * 4 + WIN_BOUNCE_DURATION;
 
 const Container = styled.div`
   bottom: 0;
@@ -139,15 +146,11 @@ const Alerts = () => {
     if (isPastGame) {
       const committedCount = board.flat().filter((t) => t.status !== "default").length;
       delay =
-        (committedCount - 1) * HISTORY_TILE_STAGGER + HISTORY_FLIP_DURATION + 2000;
+        (committedCount - 1) * HISTORY_TILE_STAGGER + HISTORY_FLIP_DURATION + MODAL_PAUSE_DELAY;
     } else if (win) {
-      // Last tile finishes flipping, then bounce plays (staggered across 5 tiles),
-      // then 2-second pause before the modal appears.
-      const lastFlipEnd = LIVE_TILE_STAGGER * 4 + LIVE_FLIP_DURATION;
-      const bounceTotalDuration = WIN_BOUNCE_STAGGER * 4 + WIN_BOUNCE_DURATION;
-      delay = lastFlipEnd + bounceTotalDuration + 2000;
+      delay = WIN_ANIMATION_TOTAL + MODAL_PAUSE_DELAY;
     } else {
-      delay = LIVE_TILE_STAGGER * 4 + LIVE_FLIP_DURATION + 2000;
+      delay = LIVE_FLIP_TOTAL + MODAL_PAUSE_DELAY;
     }
 
     timerRef.current = setTimeout(() => {
