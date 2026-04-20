@@ -1,4 +1,4 @@
-import { useContext, Fragment } from "react";
+import { useContext, Fragment, useState, useEffect, useRef } from "react";
 import styled from "@emotion/styled";
 
 import Stats from "@wordleverse-history/_components/Stats";
@@ -7,6 +7,21 @@ import { Clipboard } from "./_components/Clipboard";
 import { PlayAgain } from "./_components/PlayAgain";
 import { Context, dismissAlert } from "./_context";
 import { useError } from "./_hooks";
+
+// Keep in sync with Gameboard.jsx timing constants
+const LIVE_FLIP_DURATION = 750;
+const LIVE_TILE_STAGGER = 500;
+const WIN_BOUNCE_DURATION = 750;
+const WIN_BOUNCE_STAGGER = 250;
+const HISTORY_FLIP_DURATION = 300;
+const HISTORY_TILE_STAGGER = 50;
+const MODAL_PAUSE_DELAY = 2000;
+
+// Total time from guess submit until all live flip animations finish
+const LIVE_FLIP_TOTAL = LIVE_TILE_STAGGER * 4 + LIVE_FLIP_DURATION;
+// Total time from guess submit until win bounce finishes (+50ms matches Gameboard bounce start offset)
+const WIN_ANIMATION_TOTAL =
+  LIVE_FLIP_TOTAL + 50 + WIN_BOUNCE_STAGGER * 4 + WIN_BOUNCE_DURATION;
 
 const Container = styled.div`
   bottom: 0;
@@ -60,11 +75,6 @@ const Alert = styled.div`
     margin-right: 1rem;
   }
 
-  &.error {
-    background-color: var(--invalid);
-    color: rgba(255, 255, 255, 0.87);
-  }
-
   &.loss {
     background-color: var(--module);
     color: rgba(0, 0, 0, 0.87);
@@ -108,20 +118,55 @@ const Dismiss = () => {
 
 const Alerts = () => {
   const {
-    state: { word, win, row, title },
+    state: { word, win, row, title, board, isPastGame },
   } = useContext(Context);
 
-  const error = useError();
-  const show = error !== null || win !== null;
+  useError();
+
+  const [showAlert, setShowAlert] = useState(false);
+  const timerRef = useRef(null);
+  const prevWinRef = useRef(win);
+
+  useEffect(() => {
+    if (win === null) {
+      setShowAlert(false);
+      prevWinRef.current = null;
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
+      return;
+    }
+
+    // Only trigger once when win first becomes non-null
+    if (prevWinRef.current !== null) return;
+    prevWinRef.current = win;
+
+    let delay;
+    if (isPastGame) {
+      const committedCount = board.flat().filter((t) => t.status !== "default").length;
+      delay =
+        (committedCount - 1) * HISTORY_TILE_STAGGER + HISTORY_FLIP_DURATION + MODAL_PAUSE_DELAY;
+    } else if (win) {
+      delay = WIN_ANIMATION_TOTAL + MODAL_PAUSE_DELAY;
+    } else {
+      delay = LIVE_FLIP_TOTAL + MODAL_PAUSE_DELAY;
+    }
+
+    timerRef.current = setTimeout(() => {
+      setShowAlert(true);
+      timerRef.current = null;
+    }, delay);
+
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [win, board, isPastGame]);
+
   return (
     <Fragment>
-      {show && (
+      {showAlert && win !== null && (
         <Container>
-          {error && (
-            <Alert className="error">
-              <i className="fa-solid fa-triangle-exclamation"></i> {error}
-            </Alert>
-          )}
           {win === false && (
             <Alert className="loss">
               <Dismiss />

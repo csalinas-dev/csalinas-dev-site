@@ -29,8 +29,8 @@ const Error = ({ children }) => (
   </Stack>
 );
 
-export default function Wordleverse({ searchParams }) {
-  const { date } = searchParams;
+export default async function Wordleverse({ searchParams }) {
+  const { date } = await searchParams;
   if (date) {
     const dateObj = new Date(date + "T00:00:00");
     const today = new Date();
