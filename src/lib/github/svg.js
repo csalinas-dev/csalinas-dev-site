@@ -1,4 +1,5 @@
 import { palette, fontFamily } from "./palette";
+import { sonoFontFace } from "./font";
 
 // ---------------------------------------------------------------------------
 // Formatting helpers
@@ -48,6 +49,7 @@ function windowFrame({ width, height, filename, body }) {
   return `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"
      xmlns="http://www.w3.org/2000/svg" role="img" font-family="${fontFamily}">
   <style>
+    ${sonoFontFace()}
     /* Base state is visible; the animation only fades in. Renderers that
        don't run CSS animations still show the content at full opacity. */
     .fade { animation: fadeIn 0.8s ease-in-out; }
@@ -66,6 +68,69 @@ function windowFrame({ width, height, filename, body }) {
 
 const label = (x, y, text, { size = 12, fill = palette.muted, anchor = "middle", weight = 400 } = {}) =>
   `<text x="${x}" y="${y}" text-anchor="${anchor}" font-size="${size}" font-weight="${weight}" fill="${fill}">${esc(text)}</text>`;
+
+// ---------------------------------------------------------------------------
+// Hero banner — name + a syntax-highlighted TypeScript "profile object".
+// Mirrors the README intro so the whole profile reads as one code file.
+// ---------------------------------------------------------------------------
+export function heroCard() {
+  const W = 760;
+  const c = {
+    kw: palette.const, // keyword (const)
+    name: palette.var, // identifiers / property keys
+    type: palette.type, // type name
+    str: palette.string, // string literals
+    punct: palette.foreground, // colons, commas
+    brace: palette.parenthesis, // braces / brackets
+  };
+
+  // A code line is a list of {t: text, c: color} tokens rendered as tspans.
+  const line = (x, y, tokens) =>
+    `<text x="${x}" y="${y}" font-size="14" xml:space="preserve">` +
+    tokens.map((t) => `<tspan fill="${t.c}">${esc(t.t)}</tspan>`).join("") +
+    `</text>`;
+
+  // Helper: render a quoted string array value ["a", "b", ...].
+  const arr = (items) => [
+    { t: "[", c: c.brace },
+    ...items.flatMap((it, i) => [
+      { t: `"${it}"`, c: c.str },
+      { t: i < items.length - 1 ? ", " : "", c: c.punct },
+    ]),
+    { t: "]", c: c.brace },
+    { t: ",", c: c.punct },
+  ];
+
+  const kv = (key, value) => [{ t: `  ${key}`, c: c.name }, ...value];
+  const str = (s, trailing = ",") => [
+    { t: `"${s}"`, c: c.str },
+    { t: trailing, c: c.punct },
+  ];
+
+  const x = 26;
+  const codeX = 26;
+  let y = 150;
+  const step = 26;
+  const rows = [
+    [{ t: "const ", c: c.kw }, { t: "chris", c: c.name }, { t: ": ", c: c.punct }, { t: "SoftwareEngineer", c: c.type }, { t: " = ", c: c.punct }, { t: "{", c: c.brace }],
+    kv("location:  ", str("Albuquerque, NM")),
+    kv("role:      ", str("Senior Software Engineer @ Netsurit (formerly iTEAM Consulting)")),
+    kv("education: ", str("B.S. Computer Science, University of New Mexico")),
+    kv("stack:     ", arr(["TypeScript", "React", "Next.js", "C#", ".NET", "GraphQL", "SQL", "Azure"])),
+    kv("website:   ", str("https://csalinas.dev")),
+    kv("hobbies:   ", arr(["📷 photography", "⛳ golf", "🎮 building games"])),
+    [{ t: "}", c: c.brace }, { t: ";", c: c.punct }],
+  ];
+
+  const codeBody = rows.map((tokens) => { const el = line(codeX, y, tokens); y += step; return el; }).join("");
+  const H = y + 12;
+
+  const header =
+    `<text x="${x}" y="74" font-size="30" font-weight="700" fill="${palette.foreground}">Christopher Salinas Jr.</text>` +
+    `<text x="${x}" y="104" font-size="14" fill="${palette.comment}">// Senior Software Engineer · Albuquerque, NM · building for the web since 2014</text>`;
+
+  return windowFrame({ width: W, height: H, filename: "chris.ts", body: header + codeBody });
+}
 
 // ---------------------------------------------------------------------------
 // Streak card — Total Contributions | Current Streak | Longest Streak
