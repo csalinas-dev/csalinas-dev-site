@@ -54,13 +54,14 @@ export const About = () => {
         <Typography variant="body1">
           Since joining{" "}
           <Link
-            href="https://iteam.consulting"
+            href="https://www.netsurit.com"
             target="_blank"
             rel="noreferrer noopener"
           >
-            iTEAM Consulting
+            Netsurit
           </Link>{" "}
-          in <Numeric>October 2015</Numeric>, my professional path has been a
+          (formerly iTEAM Consulting) in <Numeric>October 2015</Numeric>, my
+          professional path has been a
           blend of innovation and mastery. My toolbox, filled with technologies
           like <Function>ASP.NET</Function>, <Var>C#</Var>,{" "}
           <Function>NextJS</Function>, <Function>ReactJS</Function>,{" "}
@@ -109,11 +110,11 @@ export const About = () => {
         <Typography variant="body1">
           At{" "}
           <Link
-            href="https://iteam.consulting"
+            href="https://www.netsurit.com"
             target="_blank"
             rel="noreferrer noopener"
           >
-            iTEAM
+            Netsurit
           </Link>
           , I have not only contributed to the team but also spearheaded the
           development of bots that automate tedious tasks, especially for a

@@ -24,10 +24,27 @@ const esc = (s) =>
   String(s).replace(/[<>&'"]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", "'": "&apos;", '"': "&quot;" }[c]));
 
 // ---------------------------------------------------------------------------
-// Editor-window chrome shared by every card
+// Editor-window chrome shared by every card.
+// Windows-style: filename on the left, minimize / maximize / close controls on
+// the right (thin line icons — no macOS traffic lights).
 // ---------------------------------------------------------------------------
+const BAR = 36;
+
+function windowControls(width) {
+  const cy = BAR / 2;
+  const close = width - 20;
+  const max = width - 46;
+  const min = width - 72;
+  const s = 4.5;
+  const stroke = `stroke="${palette.muted}" stroke-width="1.4" stroke-linecap="round"`;
+  return `
+    <line x1="${min - s}" y1="${cy}" x2="${min + s}" y2="${cy}" ${stroke} />
+    <rect x="${max - s}" y="${cy - s}" width="${s * 2}" height="${s * 2}" rx="1" fill="none" ${stroke} />
+    <line x1="${close - s}" y1="${cy - s}" x2="${close + s}" y2="${cy + s}" ${stroke} />
+    <line x1="${close - s}" y1="${cy + s}" x2="${close + s}" y2="${cy - s}" ${stroke} />`;
+}
+
 function windowFrame({ width, height, filename, body }) {
-  const bar = 36;
   return `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"
      xmlns="http://www.w3.org/2000/svg" role="img" font-family="${fontFamily}">
   <style>
@@ -40,12 +57,9 @@ function windowFrame({ width, height, filename, body }) {
   <rect x="0.5" y="0.5" width="${width - 1}" height="${height - 1}" rx="10"
         fill="${palette.background}" stroke="${palette.border}" />
   <!-- title bar -->
-  <circle cx="20" cy="${bar / 2}" r="6" fill="${palette.regex}" />
-  <circle cx="40" cy="${bar / 2}" r="6" fill="${palette.selector}" />
-  <circle cx="60" cy="${bar / 2}" r="6" fill="${palette.comment}" />
-  <text x="${width - 16}" y="${bar / 2 + 4}" text-anchor="end" font-size="12"
-        fill="${palette.muted}">${esc(filename)}</text>
-  <line x1="0" y1="${bar}" x2="${width}" y2="${bar}" stroke="${palette.border}" />
+  <text x="16" y="${BAR / 2 + 4}" font-size="12" fill="${palette.muted}">${esc(filename)}</text>
+  ${windowControls(width)}
+  <line x1="0" y1="${BAR}" x2="${width}" y2="${BAR}" stroke="${palette.border}" />
   <g class="fade">${body}</g>
 </svg>`;
 }
@@ -55,6 +69,8 @@ const label = (x, y, text, { size = 12, fill = palette.muted, anchor = "middle",
 
 // ---------------------------------------------------------------------------
 // Streak card — Total Contributions | Current Streak | Longest Streak
+// The three columns share number / label / date baselines so everything lines
+// up horizontally, and the block is vertically centred in the card body.
 // ---------------------------------------------------------------------------
 export function streakCard(s) {
   const W = 500;
@@ -63,36 +79,43 @@ export function streakCard(s) {
   const div1 = W / 3;
   const div2 = (W * 2) / 3;
 
+  // Shared baselines (aligned across all three columns).
+  const yNum = 112; // big number baseline (left/right)
+  const yLabel = 148;
+  const yDate = 174;
+
   const divider = (x) =>
-    `<line x1="${x}" y1="54" x2="${x}" y2="${H - 16}" stroke="${palette.border}" />`;
+    `<line x1="${x}" y1="54" x2="${x}" y2="${H - 18}" stroke="${palette.border}" />`;
 
-  // Left: total contributions
   const left = [
-    label(cols[0], 92, fmtNum(s.total), { size: 30, fill: palette.foreground, weight: 700 }),
-    label(cols[0], 120, "Total Contributions", { size: 11.5, fill: palette.muted }),
-    label(cols[0], 152, fmtRange(s.firstContribution, null, { openEnded: true }), { size: 10.5, fill: palette.comment }),
+    label(cols[0], yNum, fmtNum(s.total), { size: 30, fill: palette.foreground, weight: 700 }),
+    label(cols[0], yLabel, "Total Contributions", { size: 11.5, fill: palette.muted }),
+    label(cols[0], yDate, fmtRange(s.firstContribution, null, { openEnded: true }), { size: 10.5, fill: palette.comment }),
   ].join("");
 
-  // Right: longest streak
   const right = [
-    label(cols[2], 92, fmtNum(s.longest.length), { size: 30, fill: palette.foreground, weight: 700 }),
-    label(cols[2], 120, "Longest Streak", { size: 11.5, fill: palette.muted }),
-    label(cols[2], 152, fmtRange(s.longest.start, s.longest.end), { size: 10.5, fill: palette.comment }),
+    label(cols[2], yNum, fmtNum(s.longest.length), { size: 30, fill: palette.foreground, weight: 700 }),
+    label(cols[2], yLabel, "Longest Streak", { size: 11.5, fill: palette.muted }),
+    label(cols[2], yDate, fmtRange(s.longest.start, s.longest.end), { size: 10.5, fill: palette.comment }),
   ].join("");
 
-  // Center: current streak inside a ring, highlighted
+  // Center: current streak inside a ring; its number sits on the same visual
+  // axis as the left/right numbers, and its label/date share the baselines.
   const cx = cols[1];
+  const ringCy = 98;
+  const r = 34;
+  const circ = 2 * Math.PI * r;
   const ring = `
-    <circle cx="${cx}" cy="90" r="40" fill="none" stroke="${palette.border}" stroke-width="6" />
-    <circle cx="${cx}" cy="90" r="40" fill="none" stroke="${palette.const}" stroke-width="6"
-            stroke-linecap="round" stroke-dasharray="251" stroke-dashoffset="63"
-            transform="rotate(-90 ${cx} 90)" />`;
+    <circle cx="${cx}" cy="${ringCy}" r="${r}" fill="none" stroke="${palette.border}" stroke-width="6" />
+    <circle cx="${cx}" cy="${ringCy}" r="${r}" fill="none" stroke="${palette.const}" stroke-width="6"
+            stroke-linecap="round" stroke-dasharray="${circ.toFixed(1)}" stroke-dashoffset="${(circ * 0.28).toFixed(1)}"
+            transform="rotate(-90 ${cx} ${ringCy})" />`;
   const center = [
     ring,
-    label(cx, 50, "🔥", { size: 18 }),
-    label(cx, 98, fmtNum(s.current.length), { size: 26, fill: palette.foreground, weight: 700 }),
-    label(cx, 150, "Current Streak", { size: 12, fill: palette.const, weight: 700 }),
-    label(cx, 172, s.current.length ? fmtRange(s.current.start, s.current.end) : "—", { size: 10.5, fill: palette.comment }),
+    label(cx, ringCy - r - 4, "🔥", { size: 18 }),
+    label(cx, ringCy + 8, fmtNum(s.current.length), { size: 24, fill: palette.foreground, weight: 700 }),
+    label(cx, yLabel, "Current Streak", { size: 12, fill: palette.const, weight: 700 }),
+    label(cx, yDate, s.current.length ? fmtRange(s.current.start, s.current.end) : "—", { size: 10.5, fill: palette.comment }),
   ].join("");
 
   return windowFrame({
@@ -108,7 +131,6 @@ export function streakCard(s) {
 // ---------------------------------------------------------------------------
 export function statsCard(o) {
   const W = 480;
-  const H = 210;
   const rows = [
     { icon: "★", color: palette.parenthesis, label: "Total Stars Earned", value: o.stars },
     { icon: "⚇", color: palette.type, label: "Total Commits (incl. private)", value: o.commits },
@@ -118,8 +140,13 @@ export function statsCard(o) {
     { icon: "♡", color: palette.regex, label: "Followers", value: o.followers },
   ];
 
-  const startY = 66;
-  const stepY = 23;
+  const commentY = 62;
+  const startY = 92;
+  const stepY = 21;
+  const H = startY + (rows.length - 1) * stepY + 22;
+
+  const title = `<text x="26" y="${commentY}" font-size="13" fill="${palette.comment}">// ${esc(o.name)} — GitHub stats</text>`;
+
   const body = rows
     .map((r, i) => {
       const y = startY + i * stepY;
@@ -130,9 +157,6 @@ export function statsCard(o) {
       );
     })
     .join("");
-
-  const title =
-    `<text x="26" y="34" font-size="13" fill="${palette.comment}">// ${esc(o.name)} — GitHub stats</text>`;
 
   return windowFrame({ width: W, height: H, filename: "stats.ts", body: title + body });
 }
@@ -147,22 +171,24 @@ export function languagesCard(o, { count = 6 } = {}) {
   // Renormalise the shown languages so the bar fills the width.
   const norm = langs.map((l) => ({ ...l, pct: (l.percent / shown) * 100 }));
 
-  const legendRows = Math.ceil(norm.length / 2);
-  const H = 70 + legendRows * 22 + 12;
-
+  const commentY = 60;
   const barX = 26;
-  const barY = 52;
+  const barY = 76;
   const barW = W - 52;
   const barH = 12;
+  const legendStartY = 108;
+  const legendStep = 22;
+  const legendRows = Math.ceil(norm.length / 2);
+  const H = legendStartY + (legendRows - 1) * legendStep + 18;
 
   let cursor = barX;
   const segments = norm
     .map((l, i) => {
       const w = (l.pct / 100) * barW;
-      const rx = i === 0 ? `<clipPath id="lc"><rect x="${barX}" y="${barY}" width="${barW}" height="${barH}" rx="6"/></clipPath>` : "";
+      const clip = i === 0 ? `<clipPath id="lc"><rect x="${barX}" y="${barY}" width="${barW}" height="${barH}" rx="6"/></clipPath>` : "";
       const seg = `<rect x="${cursor.toFixed(2)}" y="${barY}" width="${(w + 0.6).toFixed(2)}" height="${barH}" fill="${l.color || palette.muted}" clip-path="url(#lc)" />`;
       cursor += w;
-      return rx + seg;
+      return clip + seg;
     })
     .join("");
 
@@ -171,7 +197,7 @@ export function languagesCard(o, { count = 6 } = {}) {
       const col = i % 2;
       const row = Math.floor(i / 2);
       const x = barX + col * (barW / 2);
-      const y = 84 + row * 22;
+      const y = legendStartY + row * legendStep;
       return (
         `<circle cx="${x + 6}" cy="${y - 4}" r="5" fill="${l.color || palette.muted}" />` +
         `<text x="${x + 18}" y="${y}" font-size="12" fill="${palette.foreground}">${esc(l.name)}</text>` +
@@ -180,7 +206,7 @@ export function languagesCard(o, { count = 6 } = {}) {
     })
     .join("");
 
-  const title = `<text x="26" y="34" font-size="13" fill="${palette.comment}">// most used languages</text>`;
+  const title = `<text x="26" y="${commentY}" font-size="13" fill="${palette.comment}">// most used languages</text>`;
 
   return windowFrame({ width: W, height: H, filename: "languages.ts", body: title + segments + legend });
 }
