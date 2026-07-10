@@ -48,7 +48,8 @@ npx prisma db push # apply schema changes
 - Client components that need server data call server actions directly (Next.js handles the RPC boundary)
 - `sendVerificationEmail` lives in `src/lib/auth.js` — do not duplicate it elsewhere
 - `getCurrentUser()` in `src/lib/auth.js` looks up the authenticated user by email from the session; all server actions use this to get `userId`
-- GitHub stat cards for the profile README are served from `src/app/api/github/{streak,stats,languages}`. They render themed SVG (VS Code palette) via `src/lib/github/{api,svg,palette}.js`, cached 6h. Consumed by the `csalinas-dev/csalinas-dev` profile repo as `<img src="https://csalinas.dev/api/github/...">`.
+- GitHub profile cards are served from `src/app/api/github/{hero,streak,stats,languages}`. They render themed SVG (VS Code palette) via `src/lib/github/{api,svg,palette}.js`, cached 6h (24h for the static `hero`). `hero` is a syntax-highlighted intro banner (no GitHub data); the others use the GitHub GraphQL API. Consumed by the `csalinas-dev/csalinas-dev` profile repo as `<img src="https://csalinas.dev/api/github/...">`.
+- `src/lib/github/font.js` embeds the Sono latin variable woff2 as a base64 data URI; `svg.js` injects it as an `@font-face` so cards render in Sono inside GitHub's `<img>` sandbox (external fonts can't load there). Regenerate by re-downloading the latin woff2 from the Google Fonts css2 API and base64-encoding it.
 
 ## Database
 
