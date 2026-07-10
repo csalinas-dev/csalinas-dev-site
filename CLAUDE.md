@@ -30,6 +30,8 @@ GITHUB_CLIENT_ID / GITHUB_CLIENT_SECRET
 EMAIL_SERVER_HOST / EMAIL_SERVER_PORT / EMAIL_SERVER_USER / EMAIL_SERVER_PASSWORD
 EMAIL_FROM
 RECAPTCHA_SECRET_KEY
+GITHUB_STATS_TOKEN          # GitHub PAT (classic: read:user + repo) for the /api/github/* stat cards; enables private contribution counts
+GITHUB_STATS_USERNAME       # optional; defaults to "csalinas-dev"
 ```
 
 ## Development
@@ -46,6 +48,7 @@ npx prisma db push # apply schema changes
 - Client components that need server data call server actions directly (Next.js handles the RPC boundary)
 - `sendVerificationEmail` lives in `src/lib/auth.js` — do not duplicate it elsewhere
 - `getCurrentUser()` in `src/lib/auth.js` looks up the authenticated user by email from the session; all server actions use this to get `userId`
+- GitHub stat cards for the profile README are served from `src/app/api/github/{streak,stats,languages}`. They render themed SVG (VS Code palette) via `src/lib/github/{api,svg,palette}.js`, cached 6h. Consumed by the `csalinas-dev/csalinas-dev` profile repo as `<img src="https://csalinas.dev/api/github/...">`.
 
 ## Database
 
