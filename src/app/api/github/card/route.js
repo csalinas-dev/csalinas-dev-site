@@ -1,12 +1,12 @@
-import { getOverview } from "@/lib/github/api";
-import { statsCard } from "@/lib/github/svg";
+import { getOverview, getStreak } from "@/lib/github/api";
+import { profileCard } from "@/lib/github/svg";
 
 export const revalidate = 21600; // 6h
 
 export async function GET() {
   try {
-    const overview = await getOverview();
-    return new Response(statsCard(overview), {
+    const [overview, streak] = await Promise.all([getOverview(), getStreak()]);
+    return new Response(profileCard(overview, streak), {
       headers: {
         "Content-Type": "image/svg+xml; charset=utf-8",
         "Cache-Control":
