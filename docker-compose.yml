@@ -1,0 +1,25 @@
+name: csalinas-dev
+services:
+  app:
+    build: .
+    image: csalinas-dev:local
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:13010:3000"
+  db:
+    image: mysql:8.0
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - dbdata:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+volumes:
+  dbdata:
