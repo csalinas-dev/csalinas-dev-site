@@ -32,6 +32,8 @@ EMAIL_FROM
 RECAPTCHA_SECRET_KEY
 GITHUB_STATS_TOKEN          # GitHub PAT (classic: read:user + repo) for the /api/github/* stat cards; enables private contribution counts
 GITHUB_STATS_USERNAME       # optional; defaults to "csalinas-dev"
+GITHUB_CARD_KEY             # shared secret required on /api/github/card requests; must match the ?key=... in the profile README <img>
+GITHUB_CARD_RATE_LIMIT      # optional; requests/minute/IP for the card route (defaults to 30)
 ```
 
 ## Development
@@ -48,7 +50,8 @@ npx prisma db push # apply schema changes
 - Client components that need server data call server actions directly (Next.js handles the RPC boundary)
 - `sendVerificationEmail` lives in `src/lib/auth.js` — do not duplicate it elsewhere
 - `getCurrentUser()` in `src/lib/auth.js` looks up the authenticated user by email from the session; all server actions use this to get `userId`
-- GitHub profile cards are served from `src/app/api/github/{hero,streak,stats,languages}`. They render themed SVG (VS Code palette) via `src/lib/github/{api,svg,palette}.js`, cached 6h (24h for the static `hero`). `hero` is a syntax-highlighted intro banner (no GitHub data); the others use the GitHub GraphQL API. Consumed by the `csalinas-dev/csalinas-dev` profile repo as `<img src="https://csalinas.dev/api/github/...">`.
+- The GitHub profile card is served from `src/app/api/github/card`. It renders the whole profile (hero intro + streak + stats/languages) as one themed SVG (VS Code palette) via `src/lib/github/{api,svg,palette}.js`. Consumed by the `csalinas-dev/csalinas-dev` profile repo as `<img src="https://csalinas.dev/api/github/card?key=...">`.
+- The card route is gated: requests must come from GitHub's Camo image proxy (`github-camo` User-Agent — README `<img>`s are proxied, never fetched by the viewer's browser, so there is no `Referer` to match on) **and** carry the `GITHUB_CARD_KEY` secret as `?key=`. It is rate-limited in-memory (`src/lib/rate-limit.js`, 30 req/min/IP by default). Upstream GitHub GraphQL results are memoized with `unstable_cache` (6h) in `src/lib/github/api.js` (`getOverview`/`getStreak`) so the PAT is called at most every 6h regardless of request volume — this is what keeps `GITHUB_STATS_TOKEN` from being rate-limited.
 - `src/lib/github/font.js` embeds the Sono latin variable woff2 as a base64 data URI; `svg.js` injects it as an `@font-face` so cards render in Sono inside GitHub's `<img>` sandbox (external fonts can't load there). Regenerate by re-downloading the latin woff2 from the Google Fonts css2 API and base64-encoding it.
 
 ## Database

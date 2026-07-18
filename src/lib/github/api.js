@@ -6,6 +6,8 @@
 // (otherwise only public ones are counted). The token is read server-side only
 // and never leaves the server.
 
+import { unstable_cache } from "next/cache";
+
 const GRAPHQL = "https://api.github.com/graphql";
 const USERNAME = process.env.GITHUB_STATS_USERNAME || "csalinas-dev";
 
@@ -54,7 +56,7 @@ async function getYears() {
 // ---------------------------------------------------------------------------
 // Overview stats (stars, commits, PRs, issues, followers, repos, languages)
 // ---------------------------------------------------------------------------
-export async function getOverview() {
+async function fetchOverview() {
   const { years } = await getYears();
 
   // Lifetime commits incl. private: sum public commit contributions and
@@ -145,7 +147,7 @@ export async function getOverview() {
 // ---------------------------------------------------------------------------
 // Lifetime contribution calendar + streak math (includes private)
 // ---------------------------------------------------------------------------
-export async function getStreak() {
+async function fetchStreak() {
   // GitHub caps a contributionsCollection window at one year, so we fetch the
   // calendar year-by-year (aliased into a single request) from account
   // creation to today and stitch the days together.
@@ -224,3 +226,23 @@ function computeStreakStats(days) {
 
   return { total, firstContribution, current, longest };
 }
+
+// ---------------------------------------------------------------------------
+// Cached public API.
+//
+// The card route reads request headers (for Camo/key gating), which makes the
+// route dynamic — Next can no longer full-route-cache it, so the handler runs
+// on every request. These wrappers keep the PAT safe by memoizing the upstream
+// GitHub GraphQL results in the Data Cache for 6h, independent of how often the
+// route is hit. This is the primary defense against burning the token's rate
+// limit; the gate + rate limiter in the route are defense-in-depth on top.
+// ---------------------------------------------------------------------------
+export const getOverview = unstable_cache(fetchOverview, ["github-overview"], {
+  revalidate: REVALIDATE_SECONDS,
+  tags: ["github-card"],
+});
+
+export const getStreak = unstable_cache(fetchStreak, ["github-streak"], {
+  revalidate: REVALIDATE_SECONDS,
+  tags: ["github-card"],
+});
