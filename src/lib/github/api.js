@@ -53,24 +53,66 @@ async function getYears() {
   return { years, createdAt: data.user.createdAt };
 }
 
+const yearWindow = (y) => ({
+  from: `${y}-01-01T00:00:00Z`,
+  to: `${y}-12-31T23:59:59Z`,
+});
+
+// One year of commit contributions (public + private). Kept as its own request
+// per year: GitHub scores a single query containing many contributionsCollection
+// blocks as too expensive ("Resource limits for this query exceeded"), so we
+// fan out to cheap per-year queries and sum in JS. Cached upstream, so this
+// burst only happens once per revalidation window.
+async function fetchCommitYear(year) {
+  const { from, to } = yearWindow(year);
+  const data = await gql(
+    `query ($login: String!, $from: DateTime!, $to: DateTime!) {
+      user(login: $login) {
+        contributionsCollection(from: $from, to: $to) {
+          totalCommitContributions
+          restrictedContributionsCount
+        }
+      }
+    }`,
+    { login: USERNAME, from, to }
+  );
+  const c = data.user.contributionsCollection;
+  return c.totalCommitContributions + c.restrictedContributionsCount;
+}
+
+// One year of the contribution calendar (day-by-day counts). Split per year for
+// the same query-cost reason as fetchCommitYear.
+async function fetchCalendarYear(year) {
+  const { from, to } = yearWindow(year);
+  const data = await gql(
+    `query ($login: String!, $from: DateTime!, $to: DateTime!) {
+      user(login: $login) {
+        contributionsCollection(from: $from, to: $to) {
+          contributionCalendar {
+            weeks { contributionDays { date contributionCount } }
+          }
+        }
+      }
+    }`,
+    { login: USERNAME, from, to }
+  );
+  return data.user.contributionsCollection.contributionCalendar.weeks;
+}
+
 // ---------------------------------------------------------------------------
 // Overview stats (stars, commits, PRs, issues, followers, repos, languages)
 // ---------------------------------------------------------------------------
 async function fetchOverview() {
   const { years } = await getYears();
 
-  // Lifetime commits incl. private: sum public commit contributions and
-  // restricted (private) contributions across every year.
-  const commitAliases = years
-    .map(
-      (y) => `c${y}: contributionsCollection(
-        from: "${y}-01-01T00:00:00Z"
-        to: "${y}-12-31T23:59:59Z"
-      ) { totalCommitContributions restrictedContributionsCount }`
-    )
-    .join("\n");
-
-  const data = await gql(
+  // Lifetime commits incl. private: sum public + restricted (private) commit
+  // contributions across every year. Fanned out to one request per year (see
+  // fetchCommitYear) so no single query trips GitHub's resource-limit scorer.
+  const [commits, data] = await Promise.all([
+    Promise.all(years.map(fetchCommitYear)).then((counts) =>
+      counts.reduce((sum, n) => sum + n, 0)
+    ),
+    gql(
     `query ($login: String!) {
       user(login: $login) {
         name
@@ -79,7 +121,6 @@ async function fetchOverview() {
         followers { totalCount }
         pullRequests { totalCount }
         issues { totalCount }
-        ${commitAliases}
         repositories(
           first: 100
           ownerAffiliations: OWNER
@@ -99,19 +140,12 @@ async function fetchOverview() {
         }
       }
     }`,
-    { login: USERNAME }
-  );
+      { login: USERNAME }
+    ),
+  ]);
 
   const user = data.user;
   const repos = user.repositories.nodes;
-
-  const commits = years.reduce(
-    (sum, y) =>
-      sum +
-      user[`c${y}`].totalCommitContributions +
-      user[`c${y}`].restrictedContributionsCount,
-    0
-  );
 
   const totalStars = repos.reduce((sum, r) => sum + r.stargazerCount, 0);
 
@@ -149,32 +183,16 @@ async function fetchOverview() {
 // ---------------------------------------------------------------------------
 async function fetchStreak() {
   // GitHub caps a contributionsCollection window at one year, so we fetch the
-  // calendar year-by-year (aliased into a single request) from account
-  // creation to today and stitch the days together.
+  // calendar one request per year (see fetchCalendarYear) from account creation
+  // to today and stitch the days together. One query spanning every year trips
+  // GitHub's resource-limit scorer, so the years are fanned out and combined.
   const { years } = await getYears();
 
-  const aliases = years
-    .map(
-      (y) => `y${y}: contributionsCollection(
-        from: "${y}-01-01T00:00:00Z"
-        to: "${y}-12-31T23:59:59Z"
-      ) {
-        contributionCalendar {
-          weeks { contributionDays { date contributionCount } }
-        }
-      }`
-    )
-    .join("\n");
-
-  const data = await gql(
-    `query ($login: String!) { user(login: $login) { ${aliases} } }`,
-    { login: USERNAME }
-  );
+  const perYear = await Promise.all(years.map(fetchCalendarYear));
 
   // Flatten + dedupe days (year-boundary weeks can overlap) into a date->count map.
   const byDate = new Map();
-  for (const y of years) {
-    const weeks = data.user[`y${y}`].contributionCalendar.weeks;
+  for (const weeks of perYear) {
     for (const week of weeks) {
       for (const day of week.contributionDays) {
         byDate.set(day.date, day.contributionCount);
