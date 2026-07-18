@@ -24,6 +24,11 @@ function fmtRange(start, end, { openEnded = false } = {}) {
 const esc = (s) =>
   String(s).replace(/[<>&'"]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", "'": "&apos;", '"': "&quot;" }[c]));
 
+const truncate = (s, max) => {
+  const str = String(s);
+  return str.length > max ? `${str.slice(0, max - 1)}…` : str;
+};
+
 const label = (x, y, text, { size = 12, fill = palette.muted, anchor = "middle", weight = 400 } = {}) =>
   `<text x="${x}" y="${y}" text-anchor="${anchor}" font-size="${size}" font-weight="${weight}" fill="${fill}">${esc(text)}</text>`;
 
@@ -73,6 +78,19 @@ function sectionHeader(yTop, text) {
     `<line x1="0" y1="${yTop}" x2="${W}" y2="${yTop}" stroke="${palette.border}" />` +
     `<text x="26" y="${yTop + 24}" font-size="13" fill="${palette.comment}">${esc(text)}</text>`;
   return { content, nextTop: yTop + 38 };
+}
+
+// A placeholder for a section whose GitHub data failed to load. Keeps the card
+// intact (static chrome + hero still render) and shows the upstream error in
+// place of the missing data instead of returning a broken image. Sized to
+// roughly match a real data section so the layout stays balanced.
+function errorSection(yTop, message) {
+  const cx = W / 2;
+  const y = yTop + 44;
+  const content =
+    label(cx, y, "⚠  couldn't load from GitHub", { size: 14, fill: palette.invalid, weight: 700 }) +
+    label(cx, y + 26, `// ${truncate(message, 80)}`, { size: 11, fill: palette.comment });
+  return { content, bottom: y + 26 + 22 };
 }
 
 // ---------------------------------------------------------------------------
@@ -243,11 +261,11 @@ export function profileCard(o, s) {
   y = hero.bottom;
 
   const h1 = sectionHeader(y + 8, "// github stats");
-  const streak = streakSection(s, h1.nextTop);
+  const streak = s?.error ? errorSection(h1.nextTop, s.error) : streakSection(s, h1.nextTop);
   y = streak.bottom;
 
   const h2 = sectionHeader(y + 8, "// stats & languages");
-  const sl = statsLangSection(o, h2.nextTop);
+  const sl = o?.error ? errorSection(h2.nextTop, o.error) : statsLangSection(o, h2.nextTop);
   y = sl.bottom;
 
   const body = hero.content + h1.content + streak.content + h2.content + sl.content;

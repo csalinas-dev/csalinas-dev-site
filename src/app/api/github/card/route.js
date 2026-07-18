@@ -60,16 +60,36 @@ export async function GET(request) {
     });
   }
 
+  // Render each section independently: a failed GitHub call shows a small error
+  // in that section instead of breaking the whole image (the card is our API —
+  // it should always return a valid SVG; only the upstream data is at risk).
+  const [overviewRes, streakRes] = await Promise.allSettled([
+    getOverview(),
+    getStreak(),
+  ]);
+  const overview = settle(overviewRes);
+  const streak = settle(streakRes);
+  const failed = overview.error || streak.error;
+
   try {
-    const [overview, streak] = await Promise.all([getOverview(), getStreak()]);
     return new Response(profileCard(overview, streak), {
       headers: {
         "Content-Type": "image/svg+xml; charset=utf-8",
-        "Cache-Control":
-          "public, max-age=1800, s-maxage=21600, stale-while-revalidate=86400",
+        // On failure, cache only briefly so the card recovers as soon as GitHub
+        // does; on success, cache long (data is already memoized 6h upstream).
+        "Cache-Control": failed
+          ? "public, max-age=120, s-maxage=120"
+          : "public, max-age=1800, s-maxage=21600, stale-while-revalidate=86400",
       },
     });
   } catch (err) {
     return new Response(`error: ${err.message}`, { status: 500 });
   }
+}
+
+// Unwrap an allSettled result into the section's data, or an { error } marker
+// that the SVG renderer turns into an inline message.
+function settle(result) {
+  if (result.status === "fulfilled") return result.value;
+  return { error: result.reason?.message || "unknown error" };
 }
