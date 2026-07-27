@@ -76,13 +76,13 @@ export async function GET(request) {
       headers: {
         "Content-Type": "image/svg+xml; charset=utf-8",
         // On failure, cache only briefly so the card recovers as soon as GitHub
-        // does; on success, cache ~1h. GitHub's Camo proxy honors these headers,
-        // so keeping s-maxage + stale-while-revalidate to an hour bounds how far
-        // behind the streak/stats can drift (the data is memoized ~1h upstream,
-        // so this is the second and last cache in series — total staleness ~1-2h).
+        // does; on success, cache 60s. GitHub's Camo proxy honors these headers
+        // (subject to its own internal minimum), so a 60s window keeps the
+        // streak/stats near-live. The data is memoized 60s upstream, so this is
+        // the second and last cache in series.
         "Cache-Control": failed
-          ? "public, max-age=120, s-maxage=120"
-          : "public, max-age=3600, s-maxage=3600, stale-while-revalidate=3600",
+          ? "public, max-age=60, s-maxage=60"
+          : "public, max-age=60, s-maxage=60",
       },
     });
   } catch (err) {
