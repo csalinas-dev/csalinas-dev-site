@@ -11,9 +11,11 @@ import { unstable_cache } from "next/cache";
 const GRAPHQL = "https://api.github.com/graphql";
 const USERNAME = process.env.GITHUB_STATS_USERNAME || "csalinas-dev";
 
-// Cache upstream GitHub responses for 6h at the data-fetch layer so we don't
-// burn the token's rate limit on every card request.
-const REVALIDATE_SECONDS = 60 * 60 * 6;
+// Cache upstream GitHub responses for 1h at the data-fetch layer so we don't
+// burn the token's rate limit on every card request, while keeping the streak
+// and stats no more than ~an hour behind reality. One request/hour is far under
+// the PAT's ~5000/hr GraphQL budget even with the per-year fan-out.
+const REVALIDATE_SECONDS = 60 * 60;
 
 async function gql(query, variables = {}) {
   const token = process.env.GITHUB_STATS_TOKEN;
@@ -251,7 +253,7 @@ function computeStreakStats(days) {
 // The card route reads request headers (for Camo/key gating), which makes the
 // route dynamic — Next can no longer full-route-cache it, so the handler runs
 // on every request. These wrappers keep the PAT safe by memoizing the upstream
-// GitHub GraphQL results in the Data Cache for 6h, independent of how often the
+// GitHub GraphQL results in the Data Cache for 1h, independent of how often the
 // route is hit. This is the primary defense against burning the token's rate
 // limit; the gate + rate limiter in the route are defense-in-depth on top.
 // ---------------------------------------------------------------------------
