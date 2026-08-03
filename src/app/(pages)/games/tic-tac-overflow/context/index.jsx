@@ -1,32 +1,38 @@
 "use client";
 
 import { createContext, useEffect, useMemo, useReducer } from "react";
-import { cloneDeep, range } from "lodash";
+import { cloneDeep } from "lodash";
 
-import Mark from "../Mark";
 import reducer from "./reducer";
 import { setExpiryPreview } from "./actions";
+import { createBoard } from "./reducer/helpers";
 
 // Where the expiry-preview preference is remembered between visits.
 export const EXPIRY_PREVIEW_KEY = "TICTACOVERFLOW-PREVIEW";
 
 export const defaultState = {
-  // Nine cells, each holding a Mark or null.
-  board: range(9).map(() => null),
-  // The cells each player owns, oldest first. This queue drives the expiry.
-  history: { [Mark.X]: [], [Mark.O]: [] },
-  moves: 0,
-  turn: Mark.X,
-  winner: null,
-  winningLine: null,
+  ...createBoard(),
   // Fade the mark that the next move clears. On by default — it teaches the
   // rule. Turning it off is the harder, more strategic game.
   showExpiring: true,
 };
 
+// The board's components read the game through this context and never care how
+// it is being played. Hotseat fills it from a `useReducer`; online mode fills
+// the same shape from the realtime room, which is why Cell, Status, Toolbar and
+// Play Again are shared between the two verbatim.
+//
+//   state    the board, plus this player's `showExpiring` preference
+//   dispatch the same actions in both modes; online turns them into requests
+//   canPlay  may this player tap an empty cell right now?
+//   canReset may they start the next board?
+//   online   null when there is no room — the per-player view lives here
 export const Context = createContext({
   state: defaultState,
   dispatch: () => {},
+  canPlay: true,
+  canReset: false,
+  online: null,
 });
 
 export const ContextProvider = ({ children }) => {
@@ -42,7 +48,18 @@ export const ContextProvider = ({ children }) => {
     }
   }, []);
 
-  const store = useMemo(() => ({ state, dispatch }), [state, dispatch]);
+  const store = useMemo(
+    () => ({
+      state,
+      dispatch,
+      // Both players share the keyboard, so nothing but a finished game closes
+      // the board — and Cell already checks `winner` for that.
+      canPlay: true,
+      canReset: state.moves > 0,
+      online: null,
+    }),
+    [state, dispatch],
+  );
   return <Context.Provider value={store}>{children}</Context.Provider>;
 };
 

@@ -1,43 +1,20 @@
 import { useContext } from "react";
-import styled from "@emotion/styled";
 
 import { Context, playAgain } from "../context";
-
-const Button = styled.button`
-  background-color: var(--selectionBackground);
-  border: 1px solid var(--selectionBackground);
-  border-radius: 0.5rem;
-  color: var(--foreground);
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 1rem;
-  padding: 0.5rem 1.25rem;
-  transition: background-color ease-in-out 150ms;
-
-  &:hover {
-    background-color: var(--absentBackground);
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--var);
-    outline-offset: 2px;
-  }
-
-  &:disabled {
-    color: var(--absentForeground);
-    cursor: default;
-  }
-`;
+import { Button } from "./Button";
 
 export const PlayAgain = () => {
   const {
-    state: { moves, winner },
+    state: { winner },
     dispatch,
+    canReset,
   } = useContext(Context);
 
+  // Hotseat this is "anything has happened yet"; online it is "somebody has
+  // won", because a shared board is not one player's to wipe mid-game.
   return (
     <Button
-      disabled={moves === 0}
+      disabled={!canReset}
       onClick={() => dispatch(playAgain())}
       type="button"
     >

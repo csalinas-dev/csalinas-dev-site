@@ -207,20 +207,25 @@ export function useRoom({ code, game, name, color, spectate = false } = {}) {
     const openStream = () => {
       if (cancelled) return;
       const query = token ? `?token=${encodeURIComponent(token)}` : "";
-      source = new EventSource(
+      // Held in a local as well as in `source`: closing a stream sets `source`
+      // to null, and EventSource still fires one last `error` at the object
+      // afterwards. Every handler below therefore checks that it is still the
+      // live stream before touching anything.
+      const es = new EventSource(
         `/api/rooms/${encodeURIComponent(code)}/stream${query}`,
       );
+      source = es;
 
-      source.addEventListener("open", () => {
-        if (cancelled) return;
+      es.addEventListener("open", () => {
+        if (cancelled || source !== es) return;
         failures = 0;
         setConnected(true);
         setTransport("sse");
         setError(null);
       });
 
-      source.addEventListener("sync", (event) => {
-        if (cancelled) return;
+      es.addEventListener("sync", (event) => {
+        if (cancelled || source !== es) return;
         try {
           applyRoom(JSON.parse(event.data));
         } catch {
@@ -230,14 +235,18 @@ export function useRoom({ code, game, name, color, spectate = false } = {}) {
         setConnected(true);
       });
 
-      source.addEventListener("gone", roomIsGone);
+      es.addEventListener("gone", roomIsGone);
 
-      source.onerror = () => {
-        if (cancelled) return;
+      es.onerror = () => {
+        // `gone` and unmount both close this stream first. Without the identity
+        // check the close below would run against a null `source` and throw
+        // inside an event handler, right when the UI is trying to explain that
+        // the room has expired.
+        if (cancelled || source !== es) return;
         setConnected(false);
         // EventSource reconnects on its own, but with no backoff and no way to
         // give up — so we own the retry schedule instead.
-        source.close();
+        es.close();
         source = null;
         failures += 1;
 
@@ -291,9 +300,18 @@ export function useRoom({ code, game, name, color, spectate = false } = {}) {
           code: res.body?.error || "connect-failed",
           message: res.body?.message || "Could not reach the game.",
         });
-        // Transient (offline, restarting container). Try the whole handshake
-        // again rather than opening a stream onto a room we never got.
-        retryTimer = setTimeout(bootstrap, SSE_RETRY_BASE_MS * 2);
+        // Retry only what a retry can fix: a dead network (status 0), a server
+        // that fell over, or a rate limit that will lift. A 400 or a 403 is a
+        // verdict — `wrong-game` and `bad-token` will say exactly the same
+        // thing in two seconds, and asking again forever is a hot loop against
+        // our own API with a permanent error already on screen.
+        const worthRetrying =
+          res.status === 0 || res.status === 429 || res.status >= 500;
+        if (worthRetrying) {
+          // Transient (offline, restarting container). Try the whole handshake
+          // again rather than opening a stream onto a room we never got.
+          retryTimer = setTimeout(bootstrap, SSE_RETRY_BASE_MS * 2);
+        }
         return;
       }
 
