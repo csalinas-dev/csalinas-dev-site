@@ -15,28 +15,74 @@ import { lookupGame } from "./registry";
 // (SSE, falling back to polling) and hands back the latest authoritative
 // snapshot plus a `send` that speaks the revision protocol.
 
-// Used only when localStorage is unavailable (private browsing, storage
-// disabled). The game still works; it just cannot survive a refresh.
+// Last resort, when neither localStorage nor cookies will take a write. Scoped
+// to the module, so it does not survive a navigation — see the note below.
 let ephemeralToken = null;
+
+// A year. The identity is worth keeping precisely as long as somebody might
+// come back to a game, and re-minting it costs them their seat.
+const TOKEN_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
+
+function readCookieToken() {
+  if (typeof document === "undefined") return null;
+  const match = document.cookie.match(
+    new RegExp(`(?:^|;\\s*)${PLAYER_TOKEN_KEY}=([^;]+)`)
+  );
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
+function writeCookieToken(token) {
+  if (typeof document === "undefined") return;
+  try {
+    document.cookie = `${PLAYER_TOKEN_KEY}=${encodeURIComponent(token)}; path=/; max-age=${TOKEN_COOKIE_MAX_AGE}; SameSite=Lax`;
+  } catch {
+    // Nothing else to try; the caller still has a usable token for this page.
+  }
+}
 
 /**
  * The browser's player identity: one UUID, minted once, shared by every game on
  * the site. It is the authorization for moves, so it is never rendered and
  * never sent anywhere but this site's own API.
+ *
+ * Written to BOTH localStorage and a cookie, and read from either. That
+ * redundancy is the whole point: when localStorage is unavailable — private
+ * browsing, storage blocked, some embedded webviews — the old fallback minted a
+ * fresh UUID per page load, because it lived in a module that reloads on
+ * navigation. Refreshing or re-opening an invite link therefore made you a
+ * *different* player and left your old seat stranded in the room, which is
+ * exactly the duplicate-player bug in #105. A cookie survives navigation in all
+ * those cases, so identity now does too.
+ *
+ * Not HttpOnly: the client has to read it. That is no weaker than the
+ * localStorage it replaces, and the token only ever authorizes moves in a room
+ * that deletes itself within the hour.
  */
 export function getPlayerToken() {
   if (typeof window === "undefined") return null;
+
+  let stored = null;
   try {
-    let token = window.localStorage.getItem(PLAYER_TOKEN_KEY);
-    if (!token) {
-      token = crypto.randomUUID();
-      window.localStorage.setItem(PLAYER_TOKEN_KEY, token);
-    }
-    return token;
+    stored = window.localStorage.getItem(PLAYER_TOKEN_KEY);
   } catch {
-    ephemeralToken ??= crypto.randomUUID();
-    return ephemeralToken;
+    // Storage is blocked. The cookie below is the fallback.
   }
+
+  const token = stored || readCookieToken() || ephemeralToken || crypto.randomUUID();
+
+  // Re-assert on every read so a half-available browser heals itself: if only
+  // one of the two stores works, the next load still finds the same identity.
+  try {
+    window.localStorage.setItem(PLAYER_TOKEN_KEY, token);
+  } catch {
+    // Expected when storage is blocked.
+  }
+  writeCookieToken(token);
+
+  // Only meaningful if both writes failed; harmless otherwise.
+  ephemeralToken = token;
+
+  return token;
 }
 
 /** fetch that never throws — a dead network is `{ ok: false, status: 0 }`. */
@@ -466,6 +512,57 @@ export function useRoom({ code, game, name, color, spectate = false } = {}) {
     if (res.ok) applyRoom(res.body?.room);
   }, [code, readRoom, applyRoom]);
 
+  /**
+   * Give up this browser's seat, or — as host, in the lobby — remove another
+   * player by slot. Bumping the revision is what tells everyone else.
+   */
+  const leave = useCallback(
+    async (slot) => {
+      if (!code) return { ok: false };
+      const token = tokenRef.current;
+      if (!token) return { ok: false };
+
+      const res = await api(`/api/rooms/${encodeURIComponent(code)}/leave`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(slot === undefined ? { token } : { token, slot }),
+      });
+
+      if (res.ok) applyRoom(res.body?.room);
+      return {
+        ok: res.ok,
+        error: res.body?.error,
+        message: res.body?.message,
+      };
+    },
+    [code, applyRoom],
+  );
+
+  // Best effort when the tab goes away: `sendBeacon` survives unload where
+  // fetch does not. If it fails, presence expiry covers it a little later —
+  // this only makes the news arrive sooner.
+  useEffect(() => {
+    if (!code || spectate) return undefined;
+
+    const announce = () => {
+      const token = tokenRef.current;
+      if (!token || typeof navigator?.sendBeacon !== "function") return;
+      try {
+        navigator.sendBeacon(
+          `/api/rooms/${encodeURIComponent(code)}/leave`,
+          new Blob([JSON.stringify({ token })], { type: "application/json" }),
+        );
+      } catch {
+        // Unload is not the place to care.
+      }
+    };
+
+    // `pagehide` rather than `unload`: it fires on mobile Safari and survives
+    // the back/forward cache, where `unload` is simply never called.
+    window.addEventListener("pagehide", announce);
+    return () => window.removeEventListener("pagehide", announce);
+  }, [code, spectate]);
+
   return {
     room,
     state: room?.state ?? null,
@@ -479,6 +576,7 @@ export function useRoom({ code, game, name, color, spectate = false } = {}) {
     transport,
     send,
     refresh,
+    leave,
   };
 }
 

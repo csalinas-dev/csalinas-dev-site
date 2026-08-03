@@ -35,7 +35,18 @@ export const SSE_RETRY_BASE_MS = 1000;
 export const SSE_RETRY_MAX_MS = 15_000;
 export const POLL_FALLBACK_MS = 2000;
 
-// One token per browser, shared by every game on the site.
+// One token per browser, shared by every game on the site. Also the cookie
+// name — the token is written to both, so a browser that refuses one still
+// keeps its identity across a refresh (see `getPlayerToken`).
 export const PLAYER_TOKEN_KEY = "CSALINAS-PLAYER-TOKEN";
+
+// Whoever created the room. The only seat allowed to start the game or remove
+// somebody else.
+export const HOST_SLOT = 0;
+
+// A player whose last sign of life is older than this reads as disconnected to
+// everybody else. Comfortably longer than the SSE heartbeat, so an idle player
+// on a healthy connection is never mistaken for one who walked away.
+export const PRESENCE_STALE_MS = 45_000;
 
 export const ROOM_STATUSES = ["lobby", "playing", "over"];

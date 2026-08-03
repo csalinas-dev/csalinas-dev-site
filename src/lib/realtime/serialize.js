@@ -1,5 +1,6 @@
 import { ROOM_TTL_MS } from "./constants";
 import { findPlayer, publicPlayer, publicPlayers } from "./players";
+import { presentTokens } from "./presence";
 
 /**
  * The only shape that ever leaves the server. Rows go in, tokens do not come
@@ -16,13 +17,22 @@ import { findPlayer, publicPlayer, publicPlayers } from "./players";
 export function roomPayload(row, token) {
   const updatedAt = row.updatedAt ? new Date(row.updatedAt) : new Date();
 
+  // Presence is live connection state, held in memory rather than on the row —
+  // see presence.js for why it cannot be a database heartbeat. Stamped here so
+  // every payload carries it and no caller has to remember to ask.
+  const present = presentTokens(row.code);
+  const players = publicPlayers(row.players).map((player, index) => ({
+    ...player,
+    connected: present.has(row.players?.[index]?.token),
+  }));
+
   return {
     code: row.code,
     game: row.game,
     status: row.status,
     revision: row.revision,
     state: row.state,
-    players: publicPlayers(row.players),
+    players,
     me: publicPlayer(findPlayer(row.players, token)),
     updatedAt: updatedAt.toISOString(),
     // Lets a UI warn before the room evaporates instead of discovering it on

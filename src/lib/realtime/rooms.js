@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { generateCode, isValidCode, normalizeCode } from "./codes";
 import {
   CODE_ATTEMPTS,
+  HOST_SLOT,
   ROOM_TTL_MS,
   SWEEP_INTERVAL_MS,
 } from "./constants";
@@ -27,6 +28,7 @@ import {
   toArray,
   touchPlayer,
 } from "./players";
+import { forgetRoom, markAbsent, markPresent } from "./presence";
 import { getGame } from "./registry";
 import { roomPayload } from "./serialize";
 import { createRoomWatcher } from "./watch";
@@ -107,7 +109,11 @@ async function loadLive(code) {
 /** Snapshot for `GET /api/rooms/[code]` and the polling fallback. */
 export async function getRoom(rawCode, token) {
   const code = assertCode(rawCode);
-  return roomPayload(await loadLive(code), token);
+  const row = await loadLive(code);
+  // A snapshot read counts as a sign of life, so a client that has fallen back
+  // to polling is not mistaken for one that walked away.
+  if (token) markPresent(code, token);
+  return roomPayload(row, token);
 }
 
 // ---------------------------------------------------------------------------
@@ -191,6 +197,10 @@ export async function joinRoom(rawCode, { token, game, name, color } = {}) {
   const code = assertCode(rawCode);
   const playerToken = assertToken(token);
 
+  // Sitting down is a sign of life, so the lobby does not show a player as
+  // disconnected for the second or two before their stream opens.
+  markPresent(code, playerToken);
+
   // Retry the read-modify-write: unlike an action, a join carries no revision
   // from the client, so a race with another player sitting down at the same
   // instant is ordinary rather than an error to report.
@@ -271,6 +281,89 @@ export async function joinRoom(rawCode, { token, game, name, color } = {}) {
 }
 
 /**
+ * Give up a seat, or take somebody else's away.
+ *
+ * `token` is who is asking. `slot` is optional and names somebody else — only
+ * the host (slot 0) may pass it, and only while the room is still in the lobby.
+ * That is the "kick" half: a player who joined from a second device, or whose
+ * identity was lost before the cookie fallback existed, leaves a seat nobody
+ * can reclaim, and somebody has to be able to clear it.
+ *
+ * Removing a player is deliberately a lobby-and-leave operation rather than a
+ * general one: pulling a seat out from under a game in progress would renumber
+ * turn order mid-play. Once the game starts, leaving marks you gone (the seat
+ * stays, so the board still makes sense) instead of deleting you.
+ */
+export async function leaveRoom(rawCode, { token, slot } = {}) {
+  const code = assertCode(rawCode);
+  const playerToken = assertToken(token);
+
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const row = await loadLive(code);
+    const asking = findPlayer(row.players, playerToken);
+    if (!asking) throw notAPlayer();
+
+    const targetSlot = slot === undefined ? asking.slot : slot;
+
+    if (targetSlot !== asking.slot) {
+      if (asking.slot !== HOST_SLOT) {
+        throw badRequest("Only the host can remove another player.", "not-host");
+      }
+      if (row.status !== "lobby") {
+        throw badRequest(
+          "Players can only be removed before the game starts.",
+          "in-progress",
+        );
+      }
+    }
+
+    const target = toArray(row.players).find((p) => p.slot === targetSlot);
+    if (!target) throw notAPlayer();
+
+    const def = getGame(row.game);
+    let players;
+    let state = row.state;
+
+    if (row.status === "lobby") {
+      // Nothing has been played, so the seat can simply go.
+      players = toArray(row.players).filter((p) => p.slot !== targetSlot);
+      if (typeof def.onPlayersChanged === "function") {
+        state = def.onPlayersChanged(
+          structuredClone(row.state),
+          publicPlayers(players),
+        );
+      }
+    } else {
+      // Mid-game: keep the seat so the board and turn order still make sense,
+      // and mark it gone so everyone else can be told.
+      players = toArray(row.players).map((p) =>
+        p.slot === targetSlot
+          ? { ...p, left: true, lastSeenAt: new Date().toISOString() }
+          : p,
+      );
+    }
+
+    const status = resolveStatus(def, state, publicPlayers(players));
+    const ok = await commit(code, row.revision, { state, players, status });
+    if (ok) {
+      return roomPayload(
+        {
+          ...row,
+          state,
+          players,
+          status,
+          revision: row.revision + 1,
+          updatedAt: new Date(),
+        },
+        playerToken,
+      );
+    }
+  }
+
+  throw staleRevision(await getRoom(code, playerToken));
+}
+
+/**
  * Apply a game action. This is the only path that can change `state`.
  *
  * Authorization is the token and nothing else: we look up which seat presented
@@ -296,6 +389,9 @@ export async function applyAction(rawCode, { token, revision, action, game } = {
 
   const player = findPlayer(row.players, playerToken);
   if (!player) throw notAPlayer();
+
+  // Making a move is the strongest sign of life there is.
+  markPresent(code, playerToken);
 
   if (row.revision !== revision) {
     throw staleRevision(roomPayload(row, playerToken));
@@ -366,14 +462,31 @@ const watcher = createRoomWatcher({
 export function subscribeRoom(code, token, listener, since = null) {
   // Normalize defensively: the watcher keys its poll loops by code, and an
   // un-normalized one would both miss the row and split the loop in two.
-  return watcher.subscribe(
-    normalizeCode(code),
-    (msg) =>
-      msg.type === "gone"
-        ? listener({ type: "gone" })
-        : listener({ type: "sync", room: roomPayload(msg.row, token) }),
+  const key = normalizeCode(code);
+
+  // An open stream is the strongest evidence a player is still there.
+  markPresent(key, token);
+
+  const unsubscribe = watcher.subscribe(
+    key,
+    (msg) => {
+      if (msg.type === "gone") {
+        forgetRoom(key);
+        listener({ type: "gone" });
+        return;
+      }
+      // Re-assert on every tick: presence entries expire on their own, so a
+      // long-lived stream has to keep saying so.
+      markPresent(key, token);
+      listener({ type: "sync", room: roomPayload(msg.row, token) });
+    },
     since,
   );
+
+  return () => {
+    markAbsent(key, token);
+    unsubscribe();
+  };
 }
 
 /** Exposed for the tests; counts rooms with a live poll interval. */
