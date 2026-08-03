@@ -3,7 +3,7 @@ import styled from "@emotion/styled";
 
 import { Comment } from "@/components";
 
-import { Context, getExpiringCell } from "../context";
+import { Context, getPreviewedCell } from "../context";
 import { Glyph } from "./Glyph";
 
 const Container = styled.div`
@@ -47,7 +47,7 @@ const Hint = styled(Comment)`
 export const Status = () => {
   const { state } = useContext(Context);
   const { turn, winner } = state;
-  const expiring = getExpiringCell(state);
+  const expiring = getPreviewedCell(state);
 
   return (
     <Container aria-live="polite" role="status">

@@ -1,7 +1,7 @@
 import { useCallback, useContext, useMemo } from "react";
 import styled from "@emotion/styled";
 
-import { Context, getExpiringCell, placeMark } from "./context";
+import { Context, getPreviewedCell, placeMark } from "./context";
 import { Glyph } from "./components";
 
 const ROWS = ["top", "middle", "bottom"];
@@ -55,7 +55,7 @@ export const Cell = ({ index, onKeyDown, register }) => {
   const { board, turn, winner, winningLine } = state;
 
   const mark = board[index];
-  const expiring = getExpiringCell(state) === index;
+  const expiring = getPreviewedCell(state) === index;
   const winning = winningLine !== null && winningLine.includes(index);
   const open = mark === null && winner === null;
 
