@@ -48,6 +48,10 @@ If a date exists in both places (the player played it on another device while si
 
 `getRandomWord(date)` in `_lib/random.js` uses a deterministic seed derived from the date. Same word for all users on the same date. No state or network call needed.
 
+The word list is `src/data/words.json` — it is **both** the answer pool and the accepted-guess dictionary (`submitGuess` checks `words.includes(guess)`).
+
+**Adding words is not a plain append.** The answer is `words[floor(random(seed) * poolSize)]`, so changing the pool size remaps every date, and past dates are replayable via `?date=`. `random.js` therefore pins dates before `EXPANSION_SEED` to the first `ORIGINAL_POOL_SIZE` entries. To add words: append to the **end** of `words.json` (never insert or reorder), bump `ORIGINAL_POOL_SIZE` to the pre-append length, and set `EXPANSION_SEED` to a date safely after the deploy. New words are accepted as guesses immediately either way.
+
 ## Game State Flow
 
 1. `ContextProvider` mounts → `useMigrateLocalStorage` runs (awaited before game load)
