@@ -45,9 +45,20 @@ const Hint = styled(Comment)`
 `;
 
 export const Status = () => {
-  const { state } = useContext(Context);
+  const { state, online } = useContext(Context);
   const { turn, winner } = state;
   const expiring = getPreviewedCell(state);
+
+  // Hotseat has no "you", so the mark on the clock says everything. Online it
+  // says almost nothing on its own — the useful sentence is whether the board
+  // is waiting on you or on the other person. A spectator (`mark` null) is back
+  // to the hotseat wording, which is correct: neither side is theirs.
+  const seated = online !== null && online.mark !== null;
+  let turnLabel = "to move";
+  if (seated) {
+    turnLabel =
+      turn === online.mark ? "your move" : `waiting for ${online.opponent}`;
+  }
 
   return (
     <Container aria-live="polite" role="status">
@@ -57,7 +68,7 @@ export const Status = () => {
             <Chip>
               <Glyph mark={turn} />
             </Chip>
-            to move
+            {turnLabel}
           </Headline>
           {expiring !== null && (
             <Hint as="small">
@@ -76,7 +87,7 @@ export const Status = () => {
           <Chip>
             <Glyph mark={winner} />
           </Chip>
-          wins!
+          {seated && winner === online.mark ? "you win!" : "wins!"}
         </Headline>
       )}
     </Container>
