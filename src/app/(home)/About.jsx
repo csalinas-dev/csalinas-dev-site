@@ -13,6 +13,8 @@ import {
   Var,
 } from "@/components";
 
+import { Personality } from "./Personality";
+
 const AboutSection = styled(Stack)`
   padding: 8rem 0;
 
@@ -122,6 +124,8 @@ export const About = () => {
           innovative solutions.
         </Typography>
       </Box>
+
+      <Personality />
 
       <Box>
         <Title>Join My Journey</Title>
