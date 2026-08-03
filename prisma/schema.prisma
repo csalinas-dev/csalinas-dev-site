@@ -68,6 +68,27 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
+// Realtime Multiplayer Models
+//
+// One row per live game room, shared by every realtime game on the site. The
+// row is the single source of truth: `state` and `players` are opaque JSON that
+// only the per-game reducer understands, and `revision` is the optimistic
+// concurrency token every mutation must present. Rooms are disposable — they
+// are swept an hour after their last accepted action (see ROOM_TTL_MS).
+model GameRoom {
+  code      String   @id @db.VarChar(4) // "K7F2" — unambiguous alphabet, see src/lib/realtime/codes.js
+  game      String // registry key: "tto" | "edge-case" | ...
+  state     Json // game-specific, opaque to src/lib/realtime
+  players   Json // Player[] — { token, slot, name, color, connectedAt, lastSeenAt }
+  revision  Int      @default(0) // bumped on every accepted mutation
+  status    String   @default("lobby") // lobby | playing | over
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Expiry sweeps and the SSE watcher both order by last activity.
+  @@index([updatedAt])
+}
+
 // Wordleverse Models
 model WordleGame {
   id        String   @id @default(cuid())

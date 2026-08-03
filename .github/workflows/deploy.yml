@@ -20,8 +20,19 @@ jobs:
           git checkout main
           git reset --hard ${{ github.sha }}
 
-      - name: Build and (re)start containers
-        run: docker compose up -d --build app
+      - name: Build the app image
+        run: docker compose build app
+
+      # Must run against the *new* image (it carries the new schema) and before
+      # the new code serves traffic. No --accept-data-loss: a change that would
+      # drop a column has to fail this step loudly rather than take the table
+      # with it. `run` starts the db dependency and removes the throwaway
+      # container afterwards; the running app is untouched.
+      - name: Apply Prisma schema
+        run: docker compose run --rm app npx prisma db push --skip-generate
+
+      - name: (Re)start containers
+        run: docker compose up -d app
 
       - name: Prune dangling images
         run: docker image prune -f
