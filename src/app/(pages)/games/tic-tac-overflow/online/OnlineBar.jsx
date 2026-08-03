@@ -1,7 +1,9 @@
 import { useContext } from "react";
 import styled from "@emotion/styled";
 
-import { Glyph } from "../components";
+import { AWAY, LEFT, absenceSentence } from "@/lib/realtime/absence";
+
+import { Button, Glyph } from "../components";
 import { Context } from "../context";
 
 // The per-player strip above the board: which room this is, which mark is
@@ -69,9 +71,34 @@ const Warning = styled.div`
   color: var(--invalid);
 `;
 
+// The opponent, not the connection — so deliberately not a Warning. Nothing is
+// broken here; somebody is either briefly away or has gone home, and the two
+// are told apart by tone as much as by wording.
+const Absence = styled.div`
+  align-items: center;
+  display: flex;
+  flex-flow: column nowrap;
+  gap: 0.5rem;
+
+  /* A blink. Said once, quietly, in the same voice as the rest of the strip. */
+  &.away {
+    color: var(--absentForeground);
+  }
+
+  /* Final. Worth a colour, because the board below it will never move again. */
+  &.left {
+    color: var(--string);
+  }
+`;
+
+const Ending = styled(Button)`
+  font-size: 0.9rem;
+  padding: 0.35rem 0.9rem;
+`;
+
 export const OnlineBar = ({ onLeave }) => {
   const { online } = useContext(Context);
-  const { code, connected, mark, notice, opponent, spectating } = online;
+  const { absence, code, connected, mark, notice, opponent, spectating } = online;
 
   return (
     <Container>
@@ -98,6 +125,20 @@ export const OnlineBar = ({ onLeave }) => {
           </Leave>
         </Item>
       </Row>
+      {absence !== null && (
+        // `role="status"` for both: neither is an emergency, and an assertive
+        // alert would cut across whatever a screen reader was in the middle of
+        // saying about the board.
+        <Absence className={absence} role="status">
+          <span>{absenceSentence(opponent, absence)}</span>
+          {absence === AWAY && <span>The board picks up where it left off.</span>}
+          {absence === LEFT && (
+            <Ending onClick={onLeave} type="button">
+              Back to the menu
+            </Ending>
+          )}
+        </Absence>
+      )}
       {!connected && <Warning role="status">Reconnecting…</Warning>}
       {notice !== null && <Warning role="alert">{notice}</Warning>}
     </Container>

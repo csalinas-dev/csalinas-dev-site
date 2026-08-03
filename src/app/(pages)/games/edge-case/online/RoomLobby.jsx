@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import styled from "@emotion/styled";
 
+import { absenceOf, absenceTag } from "@/lib/realtime/absence";
+
 import { GRID_SIZES, MAX_PLAYERS, MIN_PLAYERS } from "../_lib";
 import {
   Button,
@@ -164,6 +166,66 @@ const Seat = styled.li`
     flex: 0 0 auto;
     font-size: 0.8rem;
   }
+
+  /* Somebody whose phone locked itself. Dimmed, never struck through or
+     reddened: they are almost always back before anybody has finished reading
+     this, and a lobby is where people are *expected* to be doing something
+     else. */
+  &.away .name {
+    opacity: 0.55;
+  }
+`;
+
+// The host's only lever, and it is deliberately small and grey until it is
+// needed. Removing somebody is rare — it exists for a seat stranded by a second
+// device, not as a way to run the room.
+const SeatAction = styled.button`
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 0.4rem;
+  color: var(--absentForeground);
+  cursor: pointer;
+  flex: 0 0 auto;
+  font-family: inherit;
+  font-size: 0.8rem;
+  min-height: 1.9rem;
+  padding: 0.2rem 0.5rem;
+
+  &:hover {
+    border-color: var(--absentForeground);
+    color: var(--foreground);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--var);
+    outline-offset: 2px;
+  }
+
+  /* The one that actually does it, once it has been asked for. */
+  &.confirm {
+    border-color: var(--invalid);
+    color: var(--invalid);
+  }
+`;
+
+const Confirm = styled.div`
+  align-items: center;
+  display: flex;
+  flex: 1 1 auto;
+  flex-flow: row wrap;
+  gap: 0.4rem;
+  justify-content: flex-end;
+  min-width: 0;
+
+  .question {
+    color: var(--foreground);
+    flex: 1 1 auto;
+    font-size: 0.85rem;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 `;
 
 const Sizes = styled.div`
@@ -188,6 +250,76 @@ const Waiting = styled(PanelText)`
 `;
 
 /**
+ * One seat in the roster: who they are, whether they are still there, and — for
+ * the host, and never for anybody else — a way to clear the seat.
+ *
+ * The confirm is inline rather than a `window.confirm`, and it is two taps in
+ * two places rather than one: removing a player is destructive, this list is
+ * thumb-sized on a phone, and "Remove" sits a few millimetres from the name of
+ * the person whose game is about to end. The server checks host-ness and lobby-
+ * ness again regardless — this control is a convenience, not the rule.
+ */
+const RosterSeat = ({ canRemove, host, me, onRemove, player }) => {
+  const [confirming, setConfirming] = useState(false);
+  const confirmRef = useRef(null);
+  const palette = paletteFor(player.color);
+  const absence = absenceOf(player);
+  const tag = absenceTag(absence);
+
+  // Move the keyboard to the button that does the thing being asked about;
+  // otherwise the question appears somewhere a screen reader is not looking.
+  useEffect(() => {
+    if (confirming) confirmRef.current?.focus();
+  }, [confirming]);
+
+  return (
+    <Seat
+      className={absence ?? undefined}
+      style={{ "--slot": palette?.color ?? "var(--foreground)" }}
+    >
+      <span aria-hidden="true" className="chip">
+        {player.name.trim().charAt(0).toUpperCase() || "?"}
+      </span>
+
+      {confirming ? (
+        <Confirm>
+          <span className="question">Remove {player.name}?</span>
+          <SeatAction
+            className="confirm"
+            onClick={() => {
+              setConfirming(false);
+              onRemove(player);
+            }}
+            ref={confirmRef}
+            type="button"
+          >
+            Remove
+          </SeatAction>
+          <SeatAction onClick={() => setConfirming(false)} type="button">
+            Keep
+          </SeatAction>
+        </Confirm>
+      ) : (
+        <>
+          <span className="name">{player.name}</span>
+          {host && <span className="tag">host</span>}
+          {me && <span className="tag">you</span>}
+          {/* Said in words, not only by the dimmed name — a colour and an
+              opacity are nothing to a screen reader. */}
+          {tag && <span className="tag">{tag}</span>}
+          {canRemove && (
+            <SeatAction onClick={() => setConfirming(true)} type="button">
+              Remove
+              <VisuallyHidden> {player.name} from this game</VisuallyHidden>
+            </SeatAction>
+          )}
+        </>
+      )}
+    </Seat>
+  );
+};
+
+/**
  * The room before the game: who is here, what they are called, what colour they
  * took, and — for the host alone — how big the board is and when to begin.
  *
@@ -201,6 +333,7 @@ export const RoomLobby = ({
   connected,
   me,
   onLeave,
+  onRemove,
   players,
   refresh,
   send,
@@ -259,6 +392,20 @@ export const RoomLobby = ({
       setNotice(result.ok ? null : result.message ?? null);
     },
     [send]
+  );
+
+  // The seat goes, the revision bumps, and everybody else's stream carries the
+  // shortened roster within the second — including the removed player's, which
+  // is how they get told.
+  const remove = useCallback(
+    async (player) => {
+      const result = await onRemove(player.slot);
+      setNotice(
+        result.ok ? null : (result.message ?? `Could not remove ${player.name}.`)
+      );
+      if (result.ok) refresh();
+    },
+    [onRemove, refresh]
   );
 
   const begin = useCallback(async () => {
@@ -337,23 +484,19 @@ export const RoomLobby = ({
           In this game ({players.length}/{MAX_PLAYERS})
         </Label>
         <Roster>
-          {players.map((player) => {
-            const palette = paletteFor(player.color);
-
-            return (
-              <Seat
-                key={player.slot}
-                style={{ "--slot": palette?.color ?? "var(--foreground)" }}
-              >
-                <span aria-hidden="true" className="chip">
-                  {player.name.trim().charAt(0).toUpperCase() || "?"}
-                </span>
-                <span className="name">{player.name}</span>
-                {player.slot === HOST_SLOT && <span className="tag">host</span>}
-                {player.slot === me.slot && <span className="tag">you</span>}
-              </Seat>
-            );
-          })}
+          {players.map((player) => (
+            <RosterSeat
+              /* The host's own seat is not removable here — standing up is what
+                 the Leave button is for, and it would read as a way to hand the
+                 room over, which it is not. */
+              canRemove={host && player.slot !== me.slot}
+              host={player.slot === HOST_SLOT}
+              key={player.slot}
+              me={player.slot === me.slot}
+              onRemove={remove}
+              player={player}
+            />
+          ))}
         </Roster>
       </Card>
 

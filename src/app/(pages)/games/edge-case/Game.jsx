@@ -3,6 +3,8 @@
 import { useCallback, useContext, useMemo } from "react";
 import styled from "@emotion/styled";
 
+import { absenceSentence } from "@/lib/realtime/absence";
+
 import { getResult } from "./_lib";
 import { Board } from "./board";
 import { Announcer, Endgame, Scoreboard, Setup, TurnBanner } from "./components";
@@ -74,10 +76,13 @@ export default function Game({ banner }) {
     game.lastMove.slot === game.turn;
 
   // Online, "whose turn is it" and "can I do anything about it" are separate
-  // facts and the banner is where a player looks for both.
+  // facts and the banner is where a player looks for both — and when the answer
+  // is "nothing, because the person on the clock is not there", this is the
+  // first place anybody looks for that too. `absence` is only ever set on an
+  // online cast; a hotseat player is sitting right there.
   const hint =
     online && !game.finished && !interactive
-      ? `Waiting for ${mover.name}…`
+      ? (absenceSentence(mover.name, mover.absence) ?? `Waiting for ${mover.name}…`)
       : undefined;
 
   const onDraw = useCallback(

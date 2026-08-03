@@ -19,6 +19,10 @@ export function publicPlayer(player) {
     color: player.color ?? null,
     connectedAt: player.connectedAt ?? null,
     lastSeenAt: player.lastSeenAt ?? null,
+    // Set when somebody leaves a game already in progress. The seat stays so
+    // the board and turn order still make sense; this is what lets everyone
+    // else be told they have gone.
+    left: player.left === true,
   };
 }
 
