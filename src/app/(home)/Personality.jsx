@@ -4,12 +4,16 @@ import { useEffect, useId, useState } from "react";
 import styled from "@emotion/styled";
 import { Box, Typography } from "@mui/material";
 
-import { Comment, Const, Link, Numeric, String, Type } from "@/components";
+import { Comment, Link, Numeric } from "@/components";
 
 // Results pulled from my 16Personalities profile (Turbulent Advocate, INFJ-T).
 // `pct` is the dominant pole's share; the opposing pole gets the remainder.
 // Aspect names follow 16Personalities' current wording (Energy is the
 // Introverted/Extraverted axis, Mind is the Intuitive/Observant one).
+//
+// `detail` describes what the characteristic means in general, not what it
+// says about me — the numbers are the personal part, and they speak for
+// themselves.
 const TRAITS = [
   {
     aspect: "Energy",
@@ -18,7 +22,7 @@ const TRAITS = [
     pct: 81,
     color: "var(--var)",
     detail:
-      "Recharges in the quiet. Prefers a handful of deep, meaningful conversations over a room full of small talk.",
+      "Introverted people recharge in the quiet and tend to prefer a handful of deep conversations to a room full of small talk.",
   },
   {
     aspect: "Mind",
@@ -27,7 +31,7 @@ const TRAITS = [
     pct: 51,
     color: "var(--function)",
     detail:
-      "Imaginative and open-minded, chasing hidden meanings and distant possibilities — though only just, this one is close to a coin flip.",
+      "Intuitive people are imaginative and open-minded, drawn to hidden meanings and distant possibilities over what is immediately in front of them.",
   },
   {
     aspect: "Nature",
@@ -36,7 +40,7 @@ const TRAITS = [
     pct: 53,
     color: "var(--type)",
     detail:
-      "Weighs empathy, harmony, and how a decision lands on people right alongside the cold logic of it.",
+      "Feeling people weigh empathy, harmony, and how a decision lands on people right alongside the cold logic of it.",
   },
   {
     aspect: "Tactics",
@@ -45,7 +49,7 @@ const TRAITS = [
     pct: 75,
     color: "var(--module)",
     detail:
-      "Decisive, thorough, and organized. Plans the work, works the plan, and likes closure a great deal more than open loops.",
+      "Judging people are decisive, thorough, and organized — they plan the work, work the plan, and prefer closure to open loops.",
   },
   {
     aspect: "Identity",
@@ -54,7 +58,7 @@ const TRAITS = [
     pct: 60,
     color: "var(--regex)",
     detail:
-      "Success-driven perfectionist. Sensitive to stress and quietly certain the last version could have been a little better.",
+      "Turbulent people are success-driven perfectionists, more self-conscious and more sensitive to stress than their Assertive counterparts.",
   },
 ];
 
@@ -235,29 +239,19 @@ export const Personality = () => {
 
   return (
     <Box>
-      <Title>Five Bars That Explain a Lot</Title>
-      <Typography variant="body1">
-        Every few years I retake the <Type>16Personalities</Type> assessment and
-        land in the same place: <Const>Advocate</Const> (
-        <String>INFJ-T</String>) — a <Type>Diplomat</Type> running the{" "}
-        <Const>Constant Improvement</Const> strategy. It shows up in how I write
-        software: quietly, deliberately, and never quite convinced the last pass
-        was good enough.
-      </Typography>
+      <Title>Advocate (INFJ-T)</Title>
       <Traits>
         {TRAITS.map((trait) => (
           <TraitBar key={trait.aspect} grown={grown} {...trait} />
         ))}
       </Traits>
       <Typography variant="body1">
-        <Comment>Hover, tap or tab a trait for the details.</Comment>
+        <Comment>Hover, tap or tab a trait for what it means.</Comment>
       </Typography>
       <Typography variant="body1">
-        Curious what the other <Numeric>1%</Numeric> of us are like?{" "}
         <Link href={ADVOCATE_URL} target="_blank" rel="noopener noreferrer">
           Read more about Advocates
         </Link>
-        .
       </Typography>
     </Box>
   );
