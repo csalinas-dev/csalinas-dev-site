@@ -15,7 +15,7 @@ const Container = styled.div`
   gap: 1rem;
   grid-template-areas:
     "wordle hashtag"
-    "tictactoe tictactoe"
+    "tictacoverflow tictacoverflow"
     "motorways motorways";
   grid-template-columns: 1fr 1fr;
   grid-template-rows: auto;
@@ -30,9 +30,9 @@ const Container = styled.div`
     grid-area: hashtag;
   }
 
-  .tictactoe {
+  .tictacoverflow {
     aspect-ratio: 2 / 1;
-    grid-area: tictactoe;
+    grid-area: tictacoverflow;
   }
 
   .motorways {
@@ -45,10 +45,10 @@ const Container = styled.div`
   }
 
   @media (min-width: 1296px) {
-    grid-template-areas: "wordle hashtag tictactoe motorways";
+    grid-template-areas: "wordle hashtag tictacoverflow motorways";
     grid-template-columns: 1fr 1fr 1fr 2fr;
 
-    .tictactoe {
+    .tictacoverflow {
       aspect-ratio: 1 / 2;
     }
   }
@@ -147,7 +147,7 @@ const cell = (index) => ({
   y: OFFSETS[Math.floor(index / 3)],
 });
 
-const TicTacToeArtwork = () => (
+const TicTacOverflowArtwork = () => (
   <svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
     {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((index) => {
       const { x, y } = cell(index);
@@ -230,15 +230,15 @@ export default function Page() {
             </div>
           </CardTitle>
         </Card>
-        <Card className="tictactoe" href="/games/infinite-tic-tac-toe">
+        <Card className="tictacoverflow" href="/games/tic-tac-overflow">
           <CardArtwork aria-hidden="true" className="artwork">
-            <TicTacToeArtwork />
+            <TicTacOverflowArtwork />
           </CardArtwork>
           <CardTitle>
             <div>
               <Module>Play</Module>
               <br />
-              Infinite Tic-Tac-Toe
+              Tic-Tac-Overflow
             </div>
           </CardTitle>
         </Card>
