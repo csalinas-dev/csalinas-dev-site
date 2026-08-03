@@ -133,8 +133,9 @@ export const Nav = () => {
           <NavLink href="/games/wordleverse">Wordleverse</NavLink>
           <NavLink href="/games/hashtag">Hashtag</NavLink>
           <NavLink href="/games/tic-tac-overflow">Tic-Tac-Overflow</NavLink>
-          <SubTitle>Compare</SubTitle>
-          <NavLink href="/games/mini-motorways">Mini Motorways</NavLink>
+          <NavLink href="/games/edge-case">Edge Case</NavLink>
+          {/* Mini Motorways is unlinked for now. The page is still served at
+              /games/mini-motorways — this only hides the way in. */}
         </Menu>
       </Dropdown>
       <div style={{ flexGrow: 1 }} />
