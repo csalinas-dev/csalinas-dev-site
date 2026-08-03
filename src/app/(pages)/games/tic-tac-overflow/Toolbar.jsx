@@ -5,6 +5,7 @@ import styled from "@emotion/styled";
 
 import { Link } from "@/components";
 
+import { ExpiryToggle } from "./components";
 import { Context } from "./context";
 
 const Container = styled.div`
@@ -60,6 +61,9 @@ export const Toolbar = () => {
       <div>Tic-Tac-Overflow</div>
       <div>
         {moves} {moves === 1 ? "move" : "moves"}
+      </div>
+      <div>
+        <ExpiryToggle />
       </div>
       <div>
         <Link href="/games/tic-tac-overflow/instructions">

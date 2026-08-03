@@ -129,7 +129,9 @@ export const TicTacOverflowInstructions = () => (
       </li>
       <li>
         The mark that is about to expire is faded and outlined, so you always
-        know what your next move costs you.
+        know what your next move costs you. Once you have the hang of it, turn{" "}
+        <strong>Hint</strong> off in the toolbar — tracking your own oldest
+        mark from memory is the real game.
       </li>
       <li>
         Win by lining up your three surviving marks in a row, column or
