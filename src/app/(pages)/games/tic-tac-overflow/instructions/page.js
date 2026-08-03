@@ -102,16 +102,21 @@ const ExampleBoard = ({ cells }) => (
   </Board>
 );
 
-export const InfiniteTicTacToeInstructions = () => (
+export const TicTacOverflowInstructions = () => (
   <Container>
-    <Link href="/games/infinite-tic-tac-toe">
-      <i className="fas fa-chevron-left" /> Back to Infinite Tic-Tac-Toe
+    <Link href="/games/tic-tac-overflow">
+      <i className="fas fa-chevron-left" /> Back to Tic-Tac-Overflow
     </Link>
-    <Title>Infinite Tic-Tac-Toe</Title>
+    <Title>Tic-Tac-Overflow</Title>
     <Comment as="h2">How To Play</Comment>
     <String as="h3">
       Tic-tac-toe that never ends in a draw — you only ever own three marks.
     </String>
+    {/* The generic names for this variant, kept as visible copy so searches
+        for them land here. */}
+    <Comment as="p">
+      Also known as infinite tic-tac-toe or continuous tic-tac-toe.
+    </Comment>
     <ul>
       <li>
         Two players share one device. <strong>X</strong> always moves first,
@@ -156,4 +161,4 @@ export const InfiniteTicTacToeInstructions = () => (
   </Container>
 );
 
-export default InfiniteTicTacToeInstructions;
+export default TicTacOverflowInstructions;

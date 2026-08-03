@@ -57,12 +57,12 @@ export const Toolbar = () => {
 
   return (
     <Container>
-      <div>Infinite Tic-Tac-Toe</div>
+      <div>Tic-Tac-Overflow</div>
       <div>
         {moves} {moves === 1 ? "move" : "moves"}
       </div>
       <div>
-        <Link href="/games/infinite-tic-tac-toe/instructions">
+        <Link href="/games/tic-tac-overflow/instructions">
           <i className="fa-regular fa-circle-question" /> How to Play
         </Link>
       </div>

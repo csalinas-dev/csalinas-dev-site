@@ -18,7 +18,7 @@ export const Gameboard = () => {
   const { onKeyDown, register } = useBoardNavigation();
 
   return (
-    <Board aria-label="Infinite tic-tac-toe board" role="group">
+    <Board aria-label="Tic-Tac-Overflow board" role="group">
       {range(9).map((index) => (
         <Cell
           index={index}
