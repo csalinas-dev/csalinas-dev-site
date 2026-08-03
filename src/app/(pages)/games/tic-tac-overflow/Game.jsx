@@ -18,10 +18,17 @@ const Container = styled.div`
   width: 100%;
 `;
 
-export default function Game() {
+/**
+ * The board, identical in both modes. `banner` is the one seam: hotseat renders
+ * nothing there, online slots in who you are and which room you are in. It is
+ * rendered here rather than wrapped around <Game/> because the toolbar is
+ * absolutely positioned against this container.
+ */
+export default function Game({ banner = null }) {
   return (
     <Container>
       <Toolbar />
+      {banner}
       <Gameboard />
       <Status />
       <PlayAgain />

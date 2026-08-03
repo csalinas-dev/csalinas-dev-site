@@ -1,5 +1,4 @@
-import { ContextProvider } from "./context";
-import Game from "./Game";
+import { TicTacOverflow } from "./TicTacOverflow";
 
 // The game is called Tic-Tac-Overflow here, but people looking for it search
 // for the generic names — "infinite tic-tac-toe" and "continuous tic-tac-toe".
@@ -24,10 +23,6 @@ export const metadata = {
   },
 };
 
-export const TicTacOverflow = () => (
-  <ContextProvider>
-    <Game />
-  </ContextProvider>
-);
-
-export default TicTacOverflow;
+export default function Page() {
+  return <TicTacOverflow />;
+}

@@ -1,3 +1,5 @@
+import { ticTacOverflow } from "@/app/(pages)/games/tic-tac-overflow/multiplayer";
+
 import { lookupGame, registerGame } from "./games";
 import { unknownGame } from "./errors";
 
@@ -13,7 +15,7 @@ import { unknownGame } from "./errors";
 // See games.js for the shape, and README.md for the contract.
 
 const GAMES = [
-  // registerGame(ticTacOverflow)  -> #88
+  ticTacOverflow, // "tto"       -> #88
   // registerGame(edgeCase)        -> #89
 ];
 
