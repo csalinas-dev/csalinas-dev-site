@@ -10,10 +10,15 @@ export const dynamic = "force-dynamic";
 const RATE_LIMIT = 240;
 
 /**
- * GET /api/rooms/[code]?token=... — the authoritative snapshot.
+ * GET /api/rooms/[code] — the authoritative snapshot.
  *
  * The token is optional and only decides who `me` is; anyone with the code can
  * read the board, which is exactly what spectating (#89) needs.
+ *
+ * It travels in an `X-Player-Token` header, not the query string: this is also
+ * the polling fallback, so it would otherwise write a credential into the proxy
+ * access log every two seconds. `fetch` can set headers — only the SSE stream,
+ * which cannot, needs the ticket dance in `tickets.js`.
  */
 export async function GET(request, { params }) {
   try {
@@ -22,7 +27,7 @@ export async function GET(request, { params }) {
     const limited = limitOr429(`rooms-read:${clientIp(request)}`, RATE_LIMIT);
     if (limited) return limited;
 
-    const token = new URL(request.url).searchParams.get("token") || undefined;
+    const token = request.headers.get("x-player-token") || undefined;
     const room = await getRoom(code, token);
 
     return Response.json(

@@ -85,8 +85,17 @@ Every response body is `{ room }` on success and
 | `POST` | `/api/rooms` | `{ game, token?, name?, color?, options? }` | -> `201 { code, slot, token, room }` |
 | `POST` | `/api/rooms/[code]/join` | `{ token, game?, name?, color? }` | join **and** rejoin |
 | `POST` | `/api/rooms/[code]/action` | `{ token, revision, action }` | the only way `state` changes |
-| `GET` | `/api/rooms/[code]?token=` | — | snapshot; also the polling fallback |
-| `GET` | `/api/rooms/[code]/stream?token=` | — | SSE: `sync`, `gone`, `:` heartbeats |
+| `GET` | `/api/rooms/[code]` | — | snapshot; also the polling fallback. Token in an `X-Player-Token` header |
+| `POST` | `/api/rooms/[code]/ticket` | `{ token }` | -> `{ ticket }`, single use, ~30s |
+| `GET` | `/api/rooms/[code]/stream?ticket=` | — | SSE: `sync`, `gone`, `:` heartbeats |
+
+**The player token never travels in a URL.** It authorizes moves, and URLs end up
+in reverse-proxy access logs, browser history and error reports. Everywhere that
+can set a header does (`X-Player-Token`); the SSE stream cannot, because
+`EventSource` has no header API — so it takes a single-use ticket instead,
+minted by a POST and dead on first use or within 30 seconds. A ticket recovered
+from a log is worthless. Spectators have no token, so they need no ticket and
+open the stream bare.
 
 ### Status codes
 
