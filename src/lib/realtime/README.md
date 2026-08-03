@@ -6,13 +6,34 @@ SSE with a polling fallback, and an hour of idle before a room evaporates.
 **No game rules live in this directory.** The core knows a room has `state`; it
 has no idea whether that state is a tic-tac-toe board or a dots-and-boxes grid.
 
+## The one thing that will bite you
+
+`state` and `players` are **MySQL JSON columns, and MySQL does not preserve
+object key order.** Verified against a real database: `{board, history, turn,
+slots, nested, edges}` comes back as `{turn, board, edges, slots, nested,
+history}`. Array order is preserved perfectly — it is only the key order of
+plain objects that changes.
+
+So: **never derive ordering from `Object.keys` / `Object.entries` /
+`Object.values` / `for…in` over anything stored in a room.** Turn order, seat
+order, scoreboard order — every ordered collection must be a real array.
+Edge Case carries `state.slots` for exactly this reason.
+
+This is a nasty bug class because it needs a database round-trip to appear: it
+passes every local hotseat test and only scrambles ordering in online games.
+
 ## Adding a game
 
 1. Write a definition in a **pure** module next to the game — no JSX imports, it
    runs on the server and in the browser:
 
    ```js
-   // src/app/(pages)/games/edge-case/game.js
+   // src/app/(pages)/games/edge-case/multiplayer.js
+   //
+   // Name this file `multiplayer.js`, not `game.js`. Games in this repo already
+   // have a `Game.jsx`, and on case-insensitive filesystems (Windows, default
+   // macOS) `./Game` and `./game` resolve to the same module — webpack flags it
+   // as a real casing collision.
    export const edgeCase = {
      id: "edge-case",                  // matches GameRoom.game
      maxPlayers: 4,
