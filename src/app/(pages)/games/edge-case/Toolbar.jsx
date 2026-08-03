@@ -62,31 +62,43 @@ const Action = styled.button`
   }
 `;
 
+/**
+ * The strip across the top of the board.
+ *
+ * Both actions are optional, and a null handler means the button is not there
+ * at all rather than there and inert. Online, Setup never applies — the board
+ * size is the host's, decided in the lobby — and Restart only appears once the
+ * game is over, because a shared board is not one player's to wipe.
+ */
 export const Toolbar = ({ claimed, boxes, onRestart, onToggleSetup, setupOpen }) => (
   <Container>
     <Name>Edge Case</Name>
     <Progress>
       {claimed} / {boxes} boxes
     </Progress>
-    <Action
-      aria-expanded={setupOpen}
-      aria-pressed={setupOpen}
-      onClick={onToggleSetup}
-      type="button"
-    >
-      {/* The Font Awesome kit replaces these <i>s with <svg>s after mount, so
-          each one lives in a wrapper React owns — otherwise unmounting the
-          button React no longer recognises throws. */}
-      <span>
-        <i className="fa-solid fa-sliders" />
-      </span>{" "}
-      Setup
-    </Action>
-    <Action onClick={onRestart} type="button">
-      <span>
-        <i className="fa-solid fa-rotate-left" />
-      </span>{" "}
-      Restart
-    </Action>
+    {onToggleSetup && (
+      <Action
+        aria-expanded={setupOpen}
+        aria-pressed={setupOpen}
+        onClick={onToggleSetup}
+        type="button"
+      >
+        {/* The Font Awesome kit replaces these <i>s with <svg>s after mount, so
+            each one lives in a wrapper React owns — otherwise unmounting the
+            button React no longer recognises throws. */}
+        <span>
+          <i className="fa-solid fa-sliders" />
+        </span>{" "}
+        Setup
+      </Action>
+    )}
+    {onRestart && (
+      <Action onClick={onRestart} type="button">
+        <span>
+          <i className="fa-solid fa-rotate-left" />
+        </span>{" "}
+        {onToggleSetup ? "Restart" : "Play again"}
+      </Action>
+    )}
   </Container>
 );

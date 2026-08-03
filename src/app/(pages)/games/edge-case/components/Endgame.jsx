@@ -98,7 +98,9 @@ const Again = styled.button`
  *   players     player descriptors in join order — { slot, name, initial, color }
  *   result      `getResult(game)`: { standings, leaders, winner, tie, boxes,
  *               claimed, finished }. `standings` is already sorted and ranked.
- *   onPlayAgain () => void — dispatches a fresh game with the same settings
+ *   onPlayAgain () => void — dispatches a fresh game with the same settings.
+ *               Optional: the spectator view (#94) is a screen with nobody in
+ *               front of it, so it renders the result and no button at all.
  *
  * `Game` renders this inside the board frame, absolutely positioned over the
  * board, and only when `result.finished` is true. What is below is a plain
@@ -150,9 +152,11 @@ export const Endgame = ({ game, onPlayAgain, players, result }) => {
         })}
       </Standings>
 
-      <Again autoFocus onClick={onPlayAgain} type="button">
-        Play again
-      </Again>
+      {onPlayAgain && (
+        <Again autoFocus onClick={onPlayAgain} type="button">
+          Play again
+        </Again>
+      )}
     </Overlay>
   );
 };

@@ -94,12 +94,16 @@ const Stage = styled.div`
  * @param {Object[]} props.players - Player descriptors in join order
  * @param {String|Number} [props.youSlot] - The slot this device plays, if any
  * @param {Boolean} props.interactive - Whether this device may move right now
+ * @param {Boolean} [props.controls] - Show the zoom buttons. The spectator view
+ *   turns them off: a board cast to a television has nobody in front of it, and
+ *   a control nobody can reach is just something else on screen.
  * @param {Function} props.onDraw - `({ orientation, index }) => void`
  * @param {React.ReactNode} [props.overlay] - Rendered over the board, sized to
  *   it. The endgame animation (#95) mounts here; a "waiting for the host"
  *   curtain (#94) would too.
  */
 export const Board = ({
+  controls = true,
   game,
   interactive,
   onDraw,
@@ -251,14 +255,16 @@ export const Board = ({
         {overlay}
       </Surface>
 
-      <ZoomControls
-        canZoomIn={canZoomIn}
-        canZoomOut={canZoomOut}
-        onReset={reset}
-        onZoomIn={zoomIn}
-        onZoomOut={zoomOut}
-        scale={transform.scale}
-      />
+      {controls && (
+        <ZoomControls
+          canZoomIn={canZoomIn}
+          canZoomOut={canZoomOut}
+          onReset={reset}
+          onZoomIn={zoomIn}
+          onZoomOut={zoomOut}
+          scale={transform.scale}
+        />
+      )}
     </Frame>
   );
 };
