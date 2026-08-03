@@ -132,6 +132,7 @@ export const Nav = () => {
           <SubTitle>Play</SubTitle>
           <NavLink href="/games/wordleverse">Wordleverse</NavLink>
           <NavLink href="/games/hashtag">Hashtag</NavLink>
+          <NavLink href="/games/tic-tac-overflow">Tic-Tac-Overflow</NavLink>
           <SubTitle>Compare</SubTitle>
           <NavLink href="/games/mini-motorways">Mini Motorways</NavLink>
         </Menu>
