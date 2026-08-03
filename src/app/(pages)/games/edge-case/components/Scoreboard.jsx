@@ -72,6 +72,11 @@ const Score = styled.span`
   font-size: 1.15rem;
   font-variant-numeric: tabular-nums;
   font-weight: 700;
+
+  /* Withheld during the endgame reveal — see below. */
+  &.withheld {
+    color: var(--absentForeground);
+  }
 `;
 
 /**
@@ -80,12 +85,33 @@ const Score = styled.span`
  * Join order rather than rank: the running order is information too — it is how
  * a player works out who moves after them — and a list that reshuffles itself
  * mid-game is a list nobody can read.
+ *
+ * Once the board is full this stops printing numbers. The endgame overlay
+ * counts every player up from zero at the same rate so the longest-running
+ * counter is visibly the winner — and that reveal is worth nothing if the final
+ * scores are already sitting above the board. The overlay owns the numbers from
+ * the moment the last edge is drawn until the next game starts.
  */
 export const Scoreboard = ({ game, players }) => (
   <List aria-label="Scores" className={players.length === 3 ? "three" : undefined}>
     {players.map((player) => {
       const active = game.turn === player.slot;
       const score = game.scores[player.slot] ?? 0;
+
+      if (game.finished) {
+        return (
+          <Player key={player.slot} style={{ "--slot": player.color }}>
+            <Chip aria-hidden="true">{player.initial}</Chip>
+            <Name>{player.name}</Name>
+            {/* Aria-hidden, not just visually muted: the overlay announces the
+                full standings once the count lands, and a screen reader should
+                not hear a placeholder dash in the meantime. */}
+            <Score aria-hidden="true" className="withheld">
+              —
+            </Score>
+          </Player>
+        );
+      }
 
       return (
         <Player

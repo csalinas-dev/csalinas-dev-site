@@ -44,11 +44,24 @@ export const Announcer = ({ game, players, result }) => {
     }
 
     if (result.finished) {
-      sentence += result.tie
-        ? ` Game over. Tied at ${result.standings[0].score}.`
-        : ` Game over. ${playerFor(players, result.winner).name} wins ${
-            result.standings[0].score
-          } to ${result.standings[1].score}.`;
+      // Every player, not just the top two. "wins 9 to 4" silently dropped
+      // players three and four from a four-player game — the scores it named
+      // weren't even the runner-up's in a tie for second.
+      const scores = result.standings.map(
+        ({ score, slot }) => `${playerFor(players, slot).name} ${score}`
+      );
+
+      if (result.tie) {
+        const tied = result.leaders.map((slot) => playerFor(players, slot).name);
+        sentence += ` Game over. Tied at ${
+          result.standings[0].score
+        } between ${list(tied)}. Final scores: ${list(scores)}.`;
+      } else {
+        sentence += ` Game over. ${
+          playerFor(players, result.winner).name
+        } wins. Final scores: ${list(scores)}.`;
+      }
+
       return sentence;
     }
 
