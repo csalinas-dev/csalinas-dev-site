@@ -57,10 +57,6 @@ function windowFrame({ width, height, filename, body }) {
      xmlns="http://www.w3.org/2000/svg" role="img" font-family="${fontFamily}">
   <style>
     ${sonoFontFace()}
-    /* Base state is visible; the animation only fades in. Renderers that
-       don't run CSS animations still show the content at full opacity. */
-    .fade { animation: fadeIn 0.8s ease-in-out; }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     text { font-family: ${fontFamily}; }
   </style>
   <rect x="0.5" y="0.5" width="${width - 1}" height="${height - 1}" rx="10"
@@ -68,7 +64,12 @@ function windowFrame({ width, height, filename, body }) {
   <text x="16" y="${BAR / 2 + 4}" font-size="12" fill="${palette.muted}">${esc(filename)}</text>
   ${windowControls(width)}
   <line x1="0" y1="${BAR}" x2="${width}" y2="${BAR}" stroke="${palette.border}" />
-  <g class="fade">${body}</g>
+  <!-- No entrance animation: this SVG is displayed via <img> (both here and on
+       the GitHub profile README), and Chrome rasterizes an SVG image at
+       animation time 0 without advancing it. A fade-in starting at opacity 0
+       therefore froze the entire card body invisible — only the window chrome
+       outside this group showed up. -->
+  <g>${body}</g>
 </svg>`;
 }
 

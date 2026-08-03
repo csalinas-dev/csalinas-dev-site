@@ -23,6 +23,25 @@ function clientIp(request) {
   return request.headers.get("x-real-ip") || "unknown";
 }
 
+// The /github page on this site embeds the same card, so requests coming from
+// our own pages are allowed without the key. Sec-Fetch-Site is the reliable
+// signal here: browsers send it on image requests and scripts can't set it,
+// while Referer depends on the visitor's referrer policy — so Referer is only a
+// fallback for browsers that don't send Sec-Fetch-*.
+function isSameOrigin(request) {
+  const site = request.headers.get("sec-fetch-site");
+  if (site) return site === "same-origin";
+
+  const host = request.headers.get("host");
+  const referer = request.headers.get("referer");
+  if (!host || !referer) return false;
+  try {
+    return new URL(referer).host === host;
+  } catch {
+    return false;
+  }
+}
+
 // GitHub renders README images through its Camo proxy, never the viewer's
 // browser — so there is no github.com Referer to match on, and Camo identifies
 // itself with a "github-camo" User-Agent. Requiring the Camo UA *and* the
@@ -30,6 +49,9 @@ function clientIp(request) {
 // equivalent of "only serve this to my GitHub profile". A github.com Referer is
 // also accepted for the rare direct-browser case.
 function authorize(request) {
+  // Our own site renders the card on /github — no key required there.
+  if (isSameOrigin(request)) return null;
+
   if (REQUIRED_KEY) {
     const key = new URL(request.url).searchParams.get("key");
     if (key !== REQUIRED_KEY) return "bad or missing key";
