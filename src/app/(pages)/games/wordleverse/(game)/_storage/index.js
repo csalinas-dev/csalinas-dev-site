@@ -44,7 +44,14 @@ export const saveGame = async (gameState, date, session) => {
 };
 
 /**
- * Migrates games from localStorage to database when a user logs in
+ * Migrates games from localStorage to database when a user logs in.
+ *
+ * A date can already exist in the database if the player played it on another
+ * device while signed in. Those conflicts are resolved server-side by
+ * `mergeGame`, which keeps the better-performing game (see _lib/compare.js) —
+ * the local copy only overwrites the stored one when it beats it. Either way
+ * the database is authoritative afterwards, so the local copy is removed.
+ *
  * @param {Object} session - The user's session
  * @returns {Promise<void>}
  */
@@ -52,19 +59,26 @@ export const migrateGames = async (session) => {
   if (!session?.user) {
     return;
   }
-  
+
   const games = localStorageStorage.getAllGames();
   if (games.length === 0) {
     return;
   }
-  
+
   console.log(`Found ${games.length} games to migrate from localStorage to database`);
-  
+
   for (const game of games) {
     try {
-      await databaseStorage.saveGame(game.gameState, game.date, session);
+      const result = await databaseStorage.mergeGame(game.gameState, game.date);
+      if (result?.error) {
+        throw new Error(result.error);
+      }
       localStorageStorage.removeGame(game.date);
-      console.log(`Successfully migrated game from ${game.date} to database`);
+      console.log(
+        result.replaced
+          ? `Migrated game from ${game.date} to database`
+          : `Kept the database game for ${game.date} — it beat the local one`
+      );
     } catch (error) {
       console.error(`Failed to migrate game from ${game.date} to database:`, error);
     }

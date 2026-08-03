@@ -42,6 +42,8 @@ Anonymous users → **localStorage** (`WORDLEVERSE-{YYYY-MM-DD}` keys)
 
 On login, `useMigrateLocalStorage` (in `_hooks/`) migrates all localStorage games to the database before the game loads. This ordering is critical — see `ContextProvider` and `useLoadGame`.
 
+If a date exists in both places (the player played it on another device while signed in), the `mergeGame` server action keeps the **better-performing** game: a win beats an unfinished game, which beats a loss; wins tie-break on fewer guesses, unfinished games on more progress, and exact ties keep the database copy. The ranking lives in `_lib/compare.js` (`isBetterGame`).
+
 ## Word Selection
 
 `getRandomWord(date)` in `_lib/random.js` uses a deterministic seed derived from the date. Same word for all users on the same date. No state or network call needed.
