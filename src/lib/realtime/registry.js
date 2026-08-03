@@ -1,3 +1,4 @@
+import { edgeCase } from "@/app/(pages)/games/edge-case/multiplayer";
 import { ticTacOverflow } from "@/app/(pages)/games/tic-tac-overflow/multiplayer";
 
 import { lookupGame, registerGame } from "./games";
@@ -9,14 +10,14 @@ import { unknownGame } from "./errors";
 //
 // To add a game:
 //   1. Put its definition in a pure module next to the game (no JSX imports).
-//   2. `import { edgeCase } from "@/app/(pages)/games/edge-case/game";`
-//   3. `registerGame(edgeCase);`
+//   2. `import { edgeCase } from "@/app/(pages)/games/edge-case/multiplayer";`
+//   3. Add it to the list below.
 //
 // See games.js for the shape, and README.md for the contract.
 
 const GAMES = [
   ticTacOverflow, // "tto"       -> #88
-  // registerGame(edgeCase)        -> #89
+  edgeCase, //       "edge-case" -> #89
 ];
 
 for (const def of GAMES) registerGame(def);

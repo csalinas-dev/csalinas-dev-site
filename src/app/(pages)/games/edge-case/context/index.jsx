@@ -17,23 +17,31 @@ export const createDefaultState = () =>
 export const Context = createContext({
   state: createDefaultState(),
   dispatch: () => {},
+  // Null means "this device is the whole game". `OnlineGame` fills it with the
+  // per-player view of a room — which seat is yours, the code, the connection —
+  // and that is the only thing below this provider that knows the difference.
+  online: null,
 });
 
 /**
  * The local hotseat game — two to four players passing one device.
  *
- * This is the seam for #94: online play swaps this provider for one backed by a
- * room, and everything below it keeps working, because nothing below it knows
- * where the state came from. The contract is the value shape — `{ state:
- * { game, players, ... }, dispatch }` — plus the two facts `Game` reads off it
- * to drive the board: which slot this device plays, and whether it may move.
+ * Online play (`online/OnlineGame.jsx`) swaps this provider for one backed by a
+ * room and fills the identical value shape — `{ state: { game, players, ... },
+ * dispatch, online }` — so everything below keeps working, because nothing
+ * below knows where the state came from. `online` is the only difference, and
+ * `Game` reads exactly two facts off it: which slot this device plays, and
+ * whether it may move.
  */
 export const ContextProvider = ({ children }) => {
   // Lazily built, but from constants only — the page is prerendered, so the
   // first client render has to produce exactly the markup the server did.
   const [state, dispatch] = useReducer(reducer, undefined, createDefaultState);
 
-  const store = useMemo(() => ({ state, dispatch }), [state, dispatch]);
+  const store = useMemo(
+    () => ({ state, dispatch, online: null }),
+    [state, dispatch]
+  );
 
   return <Context.Provider value={store}>{children}</Context.Provider>;
 };
