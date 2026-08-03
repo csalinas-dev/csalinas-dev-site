@@ -49,4 +49,10 @@ export const HOST_SLOT = 0;
 // on a healthy connection is never mistaken for one who walked away.
 export const PRESENCE_STALE_MS = 45_000;
 
+// How often an open stream re-asserts that its player is there, and checks
+// whether anybody else's presence has changed. Both jobs, one timer — see
+// `subscribeRoom`. Well under PRESENCE_STALE_MS, so a healthy connection has
+// several chances to say so before it would be counted out.
+export const PRESENCE_POLL_MS = 5000;
+
 export const ROOM_STATUSES = ["lobby", "playing", "over"];

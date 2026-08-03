@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { absenceOf } from "@/lib/realtime/absence";
 import { useRoom } from "@/lib/realtime/useRoom";
 
 import Game from "../Game";
@@ -42,6 +43,7 @@ export const OnlineGame = ({ code, name, onLeave, spectate = false }) => {
   const {
     connected,
     error,
+    leave,
     me,
     players,
     refresh,
@@ -54,11 +56,41 @@ export const OnlineGame = ({ code, name, onLeave, spectate = false }) => {
 
   const [notice, setNotice] = useState(null);
 
+  // The seat this browser last held, remembered so that losing it can be
+  // recognised: a seat that disappears out from under somebody is the host
+  // removing them, and they are owed that sentence rather than a silent
+  // demotion to the television view.
+  const heldSlot = useRef(null);
+  useEffect(() => {
+    if (me) heldSlot.current = me.slot;
+  }, [me]);
+
+  // Standing up looks identical to being removed — the seat vanishes either
+  // way — and this is the only thing that can tell them apart, because it is
+  // the only thing that knows whose idea it was.
+  const leaving = useRef(false);
+
+  // `me` alone is not enough to conclude it. `me` is resolved per payload from
+  // whatever token that payload was fetched with, so a snapshot that arrives
+  // without one — a stream whose ticket did not redeem, for instance — reports
+  // `me: null` for a player who is still very much sitting in the room. The
+  // roster cannot lie in the same way: if the seat is really gone, it is gone
+  // from `players` too, and that is what this asks.
+  const removed =
+    !me &&
+    !leaving.current &&
+    heldSlot.current !== null &&
+    !players.some((player) => player.slot === heldSlot.current);
+
   const game = state?.game ?? null;
 
   // The room's seats become the board's cast: join order, real names, chosen
   // colours. Join order is `room.players` — an array, so the database preserves
   // it — and it is the same order the engine's `state.slots` was built from.
+  //
+  // Absence rides along on the cast rather than being threaded through `Game`
+  // as a second prop: every component that draws a player already holds one of
+  // these, and a hotseat cast simply has no such field.
   const cast = useMemo(
     () =>
       createPlayers(
@@ -67,9 +99,18 @@ export const OnlineGame = ({ code, name, onLeave, spectate = false }) => {
           names: players.map((player) => player.name),
           colors: players.map((player) => player.color),
         }
-      ),
+      ).map((player, index) => ({ ...player, absence: absenceOf(players[index]) })),
     [players]
   );
+
+  // Walking away is not the same as navigating away. Giving the seat up first
+  // is what turns "the board just stopped" into a sentence on everybody else's
+  // screen, instead of a stall they wait out for the presence timeout.
+  const quit = useCallback(async () => {
+    leaving.current = true;
+    await leave();
+    onLeave();
+  }, [leave, onLeave]);
 
   const draw = useCallback(
     async (edge) => {
@@ -175,6 +216,26 @@ export const OnlineGame = ({ code, name, onLeave, spectate = false }) => {
     );
   }
 
+  // The seat we had is gone, and we did not stand up. Only the host can do
+  // that, and only in the lobby — so say so, rather than quietly demoting
+  // somebody to the television view and letting them work it out.
+  if (removed && !spectate && !spectating) {
+    return (
+      <Panel>
+        <PanelHeading>You’re out of this game</PanelHeading>
+        <PanelText>
+          The host removed you from room {code}. If that was not meant to
+          happen, ask them for the code again — nothing stops you rejoining.
+        </PanelText>
+        <PanelActions>
+          <Button onClick={onLeave} type="button">
+            Back to the menu
+          </Button>
+        </PanelActions>
+      </Panel>
+    );
+  }
+
   // Watching, either on purpose or because the room was full when we knocked.
   if (spectating || !me) {
     return <Spectator code={code} players={players} state={state} />;
@@ -186,7 +247,8 @@ export const OnlineGame = ({ code, name, onLeave, spectate = false }) => {
         code={code}
         connected={connected}
         me={me}
-        onLeave={onLeave}
+        onLeave={quit}
+        onRemove={leave}
         players={players}
         refresh={refresh}
         send={send}
@@ -197,7 +259,7 @@ export const OnlineGame = ({ code, name, onLeave, spectate = false }) => {
 
   return (
     <Context.Provider value={store}>
-      <Game banner={<OnlineBar onLeave={onLeave} />} />
+      <Game banner={<OnlineBar onLeave={quit} />} />
     </Context.Provider>
   );
 };

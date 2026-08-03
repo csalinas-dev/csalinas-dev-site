@@ -1,6 +1,8 @@
 import { useContext } from "react";
 import styled from "@emotion/styled";
 
+import { LEFT, absenceSentence } from "@/lib/realtime/absence";
+
 import { Context } from "../context";
 
 // The per-player strip above the board: which room this is, which colour is
@@ -78,9 +80,28 @@ const Warning = styled.div`
   color: var(--invalid);
 `;
 
+// Somebody else, not the connection — so deliberately not a Warning. Nothing is
+// broken; one of the players is briefly away, or has gone home, and the two are
+// told apart by tone as much as by wording.
+const Absence = styled.div`
+  color: var(--absentForeground);
+
+  /* Final, and the board will not move again on its own. */
+  &.left {
+    color: var(--string);
+  }
+`;
+
 export const OnlineBar = ({ onLeave }) => {
-  const { online } = useContext(Context);
-  const { code, connected, notice, you } = online;
+  const { online, state } = useContext(Context);
+  const { code, connected, notice, you, youSlot } = online;
+
+  // Everybody but you who is not here. The turn banner says why the board has
+  // stopped when it is the mover; this is for the rest — the third player who
+  // dropped two turns ago and will not be answering when their turn comes.
+  const absent = (state?.players ?? []).filter(
+    (player) => player.slot !== youSlot && player.absence
+  );
 
   return (
     <Container>
@@ -101,6 +122,18 @@ export const OnlineBar = ({ onLeave }) => {
           </Leave>
         </Item>
       </Row>
+      {absent.map((player) => (
+        // `role="status"` rather than an alert: neither piece of news is an
+        // emergency, and an assertive announcement would cut across whatever a
+        // screen reader was in the middle of saying about the board.
+        <Absence
+          className={player.absence === LEFT ? "left" : undefined}
+          key={player.slot}
+          role="status"
+        >
+          {absenceSentence(player.name, player.absence)}
+        </Absence>
+      ))}
       {!connected && <Warning role="status">Reconnecting…</Warning>}
       {notice !== null && <Warning role="alert">{notice}</Warning>}
     </Container>

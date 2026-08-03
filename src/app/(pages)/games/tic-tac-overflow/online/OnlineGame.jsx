@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { absenceOf } from "@/lib/realtime/absence";
 import { useRoom } from "@/lib/realtime/useRoom";
 
 import Game from "../Game";
@@ -29,6 +30,7 @@ export const OnlineGame = ({ code, onLeave }) => {
   const {
     connected,
     error,
+    leave,
     me,
     players,
     room,
@@ -54,6 +56,15 @@ export const OnlineGame = ({ code, onLeave }) => {
 
   const mark = me ? markForSlot(me.slot) : null;
   const opponent = players.find((player) => player.slot !== me?.slot) ?? null;
+
+  // Walking away is not the same as navigating away. Giving the seat up first
+  // is what turns "the board just stopped" into a sentence on the other
+  // player's screen; without it they wait out the presence timeout for news
+  // that was available the instant this button was pressed.
+  const quit = useCallback(async () => {
+    await leave();
+    onLeave();
+  }, [leave, onLeave]);
 
   const place = useCallback(
     async (cell) => {
@@ -113,6 +124,11 @@ export const OnlineGame = ({ code, onLeave }) => {
       // wipe. There is only a rematch, and only once somebody has won.
       canReset: mark !== null && Boolean(state) && state.winner !== null,
       online: {
+        // Left or dropped, so the bar can explain a board that has stopped
+        // moving. Mid-game the seat is never deleted — it has to stay for the
+        // turn order to make sense — so this is the only way the other player
+        // finds out.
+        absence: absenceOf(opponent),
         code,
         connected,
         mark,
@@ -179,7 +195,7 @@ export const OnlineGame = ({ code, onLeave }) => {
         </PanelText>
         <RoomCode code={code} />
         <PanelActions>
-          <Button onClick={onLeave} type="button">
+          <Button onClick={quit} type="button">
             Cancel
           </Button>
         </PanelActions>
@@ -189,7 +205,7 @@ export const OnlineGame = ({ code, onLeave }) => {
 
   return (
     <Context.Provider value={store}>
-      <Game banner={<OnlineBar onLeave={onLeave} />} />
+      <Game banner={<OnlineBar onLeave={quit} />} />
     </Context.Provider>
   );
 };
