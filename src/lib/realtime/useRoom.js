@@ -55,6 +55,10 @@ async function api(path, init) {
   }
 }
 
+/** Exponential backoff, capped. Shared by the two paths that retry a stream. */
+const retryDelay = (failures) =>
+  Math.min(SSE_RETRY_BASE_MS * 2 ** (failures - 1), SSE_RETRY_MAX_MS);
+
 /**
  * Create a room. Not a hook — a "create game" button calls this, then routes to
  * a screen that runs `useRoom` with the code it got back.
@@ -127,10 +131,14 @@ export function useRoom({ code, game, name, color, spectate = false } = {}) {
     setRoom(next);
   }, []);
 
-  const snapshotUrl = useCallback(() => {
+  // The token rides in a header, never the query string — this is also the
+  // polling fallback, so a query parameter would write a credential into the
+  // proxy access log every couple of seconds.
+  const readRoom = useCallback(() => {
     const token = tokenRef.current;
-    const query = token ? `?token=${encodeURIComponent(token)}` : "";
-    return `/api/rooms/${encodeURIComponent(code)}${query}`;
+    return api(`/api/rooms/${encodeURIComponent(code)}`, {
+      headers: token ? { "X-Player-Token": token } : undefined,
+    });
   }, [code]);
 
   useEffect(() => {
@@ -175,7 +183,7 @@ export function useRoom({ code, game, name, color, spectate = false } = {}) {
     };
 
     const readSnapshot = async () => {
-      const res = await api(snapshotUrl());
+      const res = await readRoom();
       if (cancelled) return null;
       if (res.status === 410) {
         roomIsGone();
@@ -204,9 +212,47 @@ export function useRoom({ code, game, name, color, spectate = false } = {}) {
       pollTimer = setInterval(tick, POLL_FALLBACK_MS);
     };
 
-    const openStream = () => {
+    const openStream = async () => {
       if (cancelled) return;
-      const query = token ? `?token=${encodeURIComponent(token)}` : "";
+
+      // EventSource cannot set headers, so whatever identifies this stream ends
+      // up in the URL and therefore in access logs. Swap the long-lived token
+      // for a single-use ticket that expires in seconds; the token itself stays
+      // in this POST body. Spectators have no token and open the stream bare.
+      let query = "";
+      if (token) {
+        const res = await api(
+          `/api/rooms/${encodeURIComponent(code)}/ticket`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ token }),
+          },
+        );
+        if (cancelled) return;
+
+        if (res.status === 410) {
+          roomIsGone();
+          return;
+        }
+
+        if (res.ok && res.body?.ticket) {
+          query = `?ticket=${encodeURIComponent(res.body.ticket)}`;
+        } else {
+          // No ticket, no identity — the stream would open as a spectator and
+          // the player would silently lose their seat in the UI. Treat it as a
+          // connection failure so the existing retry/backoff owns it.
+          failures += 1;
+          setConnected(false);
+          if (failures >= SSE_FAILURES_BEFORE_POLLING) {
+            startPolling();
+          } else {
+            retryTimer = setTimeout(openStream, retryDelay(failures));
+          }
+          return;
+        }
+      }
+
       // Held in a local as well as in `source`: closing a stream sets `source`
       // to null, and EventSource still fires one last `error` at the object
       // afterwards. Every handler below therefore checks that it is still the
@@ -257,11 +303,7 @@ export function useRoom({ code, game, name, color, spectate = false } = {}) {
           return;
         }
 
-        const delay = Math.min(
-          SSE_RETRY_BASE_MS * 2 ** (failures - 1),
-          SSE_RETRY_MAX_MS,
-        );
-        retryTimer = setTimeout(openStream, delay);
+        retryTimer = setTimeout(openStream, retryDelay(failures));
       };
     };
 
@@ -328,7 +370,7 @@ export function useRoom({ code, game, name, color, spectate = false } = {}) {
     };
     // `name`/`color` are deliberately absent — they are read through a ref so
     // that editing your name in the lobby does not tear down the connection.
-  }, [code, game, spectate, applyRoom, snapshotUrl]);
+  }, [code, game, spectate, applyRoom, readRoom]);
 
   /**
    * Send an action. Resolves to `{ ok }` plus, on failure, the server's error
@@ -413,7 +455,7 @@ export function useRoom({ code, game, name, color, spectate = false } = {}) {
   /** Pull a fresh snapshot on demand (tab regained focus, user hit retry). */
   const refresh = useCallback(async () => {
     if (!code) return;
-    const res = await api(snapshotUrl());
+    const res = await readRoom();
     if (res.status === 410) {
       setError({
         code: "gone",
@@ -422,7 +464,7 @@ export function useRoom({ code, game, name, color, spectate = false } = {}) {
       return;
     }
     if (res.ok) applyRoom(res.body?.room);
-  }, [code, snapshotUrl, applyRoom]);
+  }, [code, readRoom, applyRoom]);
 
   return {
     room,

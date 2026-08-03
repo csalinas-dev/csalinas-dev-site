@@ -2,6 +2,7 @@ import { STREAM_HEARTBEAT_MS } from "@/lib/realtime/constants";
 import { toResponse } from "@/lib/realtime/errors";
 import { clientIp, limitOr429 } from "@/lib/realtime/http";
 import { getRoom, subscribeRoom } from "@/lib/realtime/rooms";
+import { redeemTicket } from "@/lib/realtime/tickets";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -13,17 +14,21 @@ const RATE_LIMIT = 60;
 const encoder = new TextEncoder();
 
 /**
- * GET /api/rooms/[code]/stream?token=... — server-sent events.
+ * GET /api/rooms/[code]/stream?ticket=... — server-sent events.
  *
  * Events:
  *   sync  — a full room payload (also sent immediately on connect)
  *   gone  — the room expired or was deleted; the stream closes after this
  *   `:` comment lines are heartbeats, invisible to EventSource
  *
- * The token is optional (spectators have none) and only decides who `me` is in
- * each payload. It rides in the query string because EventSource cannot set
- * headers — worth knowing, since that means room tokens can appear in proxy
- * access logs.
+ * The ticket is optional — spectators have no token and so need no ticket, and
+ * open the stream bare. When present it is redeemed for the player token, which
+ * only decides who `me` is in each payload.
+ *
+ * It is a ticket rather than the token itself because EventSource cannot set
+ * headers, so whatever identifies the stream ends up in the URL — and therefore
+ * in proxy access logs. A ticket is single-use and expires in seconds, so one
+ * recovered from a log is worthless. The player token never appears in a URL.
  */
 export async function GET(request, { params }) {
   const { code } = await params;
@@ -31,7 +36,8 @@ export async function GET(request, { params }) {
   const limited = limitOr429(`rooms-stream:${clientIp(request)}`, RATE_LIMIT);
   if (limited) return limited;
 
-  const token = new URL(request.url).searchParams.get("token") || undefined;
+  const ticket = new URL(request.url).searchParams.get("ticket");
+  const token = redeemTicket(ticket, code) || undefined;
 
   // Resolve the first snapshot before opening the stream: a dead room should be
   // an honest 410 the client can act on, not a stream that opens and hangs up.
