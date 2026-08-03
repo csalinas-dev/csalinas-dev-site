@@ -1,7 +1,7 @@
 import Link from "next/link";
 import GitHubCalendar from "react-github-calendar";
 import { Comment, Function, Section } from "@/components";
-import { Button, Typography } from "@mui/material";
+import { Box, Button, Typography } from "@mui/material";
 
 const theme = {
   dark: ["#383838", "#C586C0", "#4EC9B0", "#DCDCAA", "#4FC1FF"],
@@ -15,6 +15,22 @@ export default function Page() {
         <Function>commit</Function>
         <Comment>ment issues</Comment>
       </Typography>
+      {/* The same SVG card served to the csalinas-dev profile README, rendered
+          straight from /api/github/card. Loading it as an image (rather than
+          inlining the markup) keeps the card's embedded font and styles inside
+          the image sandbox, and lets the browser cache it independently. */}
+      <Box
+        component="img"
+        src="/api/github/card"
+        alt="GitHub profile card for Christopher Salinas Jr. — contribution streak, totals, and most-used languages"
+        sx={{
+          alignSelf: "flex-start",
+          height: "auto",
+          marginBottom: "2rem",
+          maxWidth: "100%",
+          width: 760,
+        }}
+      />
       <GitHubCalendar
         username="csalinas-dev"
         colorScheme="dark"
