@@ -51,19 +51,25 @@ const Container = styled.button`
 `;
 
 export const Cell = ({ index, onKeyDown, register }) => {
-  const { state, dispatch } = useContext(Context);
+  const { state, dispatch, canPlay } = useContext(Context);
   const { board, turn, winner, winningLine } = state;
 
   const mark = board[index];
   const expiring = getPreviewedCell(state) === index;
   const winning = winningLine !== null && winningLine.includes(index);
-  const open = mark === null && winner === null;
+  // `canPlay` is always true hotseat. Online it is false on the opponent's
+  // turn, so the board stops offering a move the server would only refuse —
+  // the refusal is still the server's, this just tells the truth about it.
+  const open = mark === null && winner === null && canPlay;
 
   const ref = useMemo(() => register(index), [register, index]);
-  const onClick = useCallback(
-    () => dispatch(placeMark(index)),
-    [dispatch, index]
-  );
+  // A closed cell has always been a no-op — the reducer ignored it. Online it
+  // would also be a round trip and a rejection, so stop it at the tap instead.
+  const onClick = useCallback(() => {
+    if (open) {
+      dispatch(placeMark(index));
+    }
+  }, [dispatch, index, open]);
 
   const position = `${ROWS[Math.floor(index / 3)]} ${COLUMNS[index % 3]}`;
 
