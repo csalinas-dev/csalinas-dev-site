@@ -1,5 +1,7 @@
 import styled from "@emotion/styled";
 
+import { absenceTag } from "@/lib/realtime/absence";
+
 import { VisuallyHidden } from "./VisuallyHidden";
 
 const List = styled.ul`
@@ -66,6 +68,17 @@ const Name = styled.span`
   white-space: nowrap;
 `;
 
+// "away" or "left", beside the name of a player the rest of the table is
+// waiting on. Small and grey in both cases — the scoreboard's job is to answer
+// "why has nothing happened?" at a glance, not to make an announcement of it.
+// Online only: a hotseat player is by definition sitting right there, and their
+// descriptors carry no `absence` at all.
+const Absence = styled.span`
+  color: var(--absentForeground);
+  flex: 0 0 auto;
+  font-size: 0.75rem;
+`;
+
 const Score = styled.span`
   color: var(--foreground);
   flex: 0 0 auto;
@@ -97,12 +110,14 @@ export const Scoreboard = ({ game, players }) => (
     {players.map((player) => {
       const active = game.turn === player.slot;
       const score = game.scores[player.slot] ?? 0;
+      const absence = absenceTag(player.absence);
 
       if (game.finished) {
         return (
           <Player key={player.slot} style={{ "--slot": player.color }}>
             <Chip aria-hidden="true">{player.initial}</Chip>
             <Name>{player.name}</Name>
+            {absence && <Absence>{absence}</Absence>}
             {/* Aria-hidden, not just visually muted: the overlay announces the
                 full standings once the count lands, and a screen reader should
                 not hear a placeholder dash in the meantime. */}
@@ -124,6 +139,7 @@ export const Scoreboard = ({ game, players }) => (
             {player.name}
             {active && <VisuallyHidden>, to move</VisuallyHidden>}
           </Name>
+          {absence && <Absence>{absence}</Absence>}
           <Score>
             {score}
             <VisuallyHidden> {score === 1 ? "box" : "boxes"}</VisuallyHidden>

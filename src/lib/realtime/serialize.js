@@ -26,6 +26,11 @@ export function roomPayload(row, token) {
     connected: present.has(row.players?.[index]?.token),
   }));
 
+  // Stamped here too, so `me` is the same shape as the seat with the same slot
+  // in `players` — a UI that reads `connected` off one and not the other is a
+  // bug waiting for whoever writes the next screen.
+  const mine = findPlayer(row.players, token);
+
   return {
     code: row.code,
     game: row.game,
@@ -33,7 +38,9 @@ export function roomPayload(row, token) {
     revision: row.revision,
     state: row.state,
     players,
-    me: publicPlayer(findPlayer(row.players, token)),
+    me: mine
+      ? { ...publicPlayer(mine), connected: present.has(mine.token) }
+      : null,
     updatedAt: updatedAt.toISOString(),
     // Lets a UI warn before the room evaporates instead of discovering it on
     // the next move. Recomputed from `updatedAt` on every read, so it always

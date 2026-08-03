@@ -4,6 +4,7 @@ import { generateCode, isValidCode, normalizeCode } from "./codes";
 import {
   CODE_ATTEMPTS,
   HOST_SLOT,
+  PRESENCE_POLL_MS,
   ROOM_TTL_MS,
   SWEEP_INTERVAL_MS,
 } from "./constants";
@@ -28,7 +29,7 @@ import {
   toArray,
   touchPlayer,
 } from "./players";
-import { forgetRoom, markAbsent, markPresent } from "./presence";
+import { forgetRoom, markAbsent, markPresent, presentTokens } from "./presence";
 import { getGame } from "./registry";
 import { roomPayload } from "./serialize";
 import { createRoomWatcher } from "./watch";
@@ -235,6 +236,12 @@ export async function joinRoom(rawCode, { token, game, name, color } = {}) {
                 color === undefined || !editable
                   ? p.color
                   : assignColor(others, def.colors, color),
+              // Sitting back down un-leaves you. `pagehide` fires on a reload as
+              // well as on a closed tab, so the unload beacon flags anybody who
+              // merely refreshes mid-game — and without this the flag would
+              // stick, telling the rest of the room somebody had walked out
+              // while they were sitting there playing.
+              left: false,
               lastSeenAt: new Date().toISOString(),
             },
       );
@@ -453,6 +460,15 @@ const watcher = createRoomWatcher({
 });
 
 /**
+ * A room's live roster, as one comparable string. Sorted, because a Set's
+ * iteration order follows insertion and two identical rosters must compare
+ * equal however they were assembled.
+ */
+function signPresence(code) {
+  return [...presentTokens(code)].sort().join("|");
+}
+
+/**
  * Watch a room for the SSE route. Listeners receive payloads, never rows, so
  * the stream handler has no opportunity to leak a token.
  *
@@ -467,6 +483,43 @@ export function subscribeRoom(code, token, listener, since = null) {
   // An open stream is the strongest evidence a player is still there.
   markPresent(key, token);
 
+  // The last row the watcher handed over, kept so a presence change can be
+  // published without going back to the database for a row that has not moved.
+  let lastRow = null;
+  let seen = signPresence(key);
+
+  // Presence needs its own timer, and for two reasons that both come down to
+  // the same thing: it does not live on the row.
+  //
+  // Re-asserting cannot ride on the watcher's listener, because the watcher
+  // calls it only when the *revision* changes — and a lobby, where presence
+  // matters most, is by definition a room where nothing is happening. Everybody
+  // in one would read as disconnected after PRESENCE_STALE_MS while sitting
+  // there watching it.
+  //
+  // Nor can a *change* in somebody else's presence reach anybody, for exactly
+  // the same reason: dropping off does not bump a revision, so the watcher has
+  // nothing to notice and the news would die on the server that knew it.
+  const presence = setInterval(() => {
+    markPresent(key, token);
+
+    const now = signPresence(key);
+    if (now === seen) return;
+    seen = now;
+
+    // Only on an actual change, so the one path that may need a row read is
+    // also the rare one: somebody arriving or dropping, not every few seconds.
+    Promise.resolve(lastRow ?? loadLive(key))
+      .then((row) => {
+        lastRow = row;
+        listener({ type: "sync", room: roomPayload(row, token) });
+      })
+      .catch(() => {
+        // Expired, or the database blinked. The watcher's own poll owns both.
+      });
+  }, PRESENCE_POLL_MS);
+  presence.unref?.();
+
   const unsubscribe = watcher.subscribe(
     key,
     (msg) => {
@@ -475,15 +528,15 @@ export function subscribeRoom(code, token, listener, since = null) {
         listener({ type: "gone" });
         return;
       }
-      // Re-assert on every tick: presence entries expire on their own, so a
-      // long-lived stream has to keep saying so.
       markPresent(key, token);
+      lastRow = msg.row;
       listener({ type: "sync", room: roomPayload(msg.row, token) });
     },
     since,
   );
 
   return () => {
+    clearInterval(presence);
     markAbsent(key, token);
     unsubscribe();
   };

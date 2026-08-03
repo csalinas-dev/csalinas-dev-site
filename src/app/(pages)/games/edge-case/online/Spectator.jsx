@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import styled from "@emotion/styled";
 
+import { absenceOf, absenceSentence, absenceTag } from "@/lib/realtime/absence";
+
 import { getResult, MAX_PLAYERS } from "../_lib";
 import { Board } from "../board";
 import { Announcer, Endgame, QrCode } from "../components";
@@ -95,6 +97,12 @@ const Caption = styled.p`
   margin: 0;
 `;
 
+// Sits directly under the headline, so it is centred with it rather than with
+// the left-aligned captions in the side panel.
+const Stalled = styled(Caption)`
+  text-align: center;
+`;
+
 const Headline = styled.h1`
   font-size: clamp(1.5rem, 4vw, 2.5rem);
   font-weight: 400;
@@ -163,6 +171,15 @@ const Standing = styled.li`
     font-variant-numeric: tabular-nums;
     font-weight: 700;
   }
+
+  /* This screen is across a room and usually the only thing anybody is looking
+     at, so "why has nothing happened for a minute?" gets answered here before
+     it gets asked. Sized to read from a sofa, like everything else on it. */
+  .absence {
+    color: var(--absentForeground);
+    flex: 0 0 auto;
+    font-size: clamp(0.85rem, 1.6vw, 1.1rem);
+  }
 `;
 
 const Waiting = styled.div`
@@ -208,7 +225,7 @@ export const Spectator = ({ code, players, state }) => {
           names: players.map((player) => player.name),
           colors: players.map((player) => player.color),
         }
-      ),
+      ).map((player, index) => ({ ...player, absence: absenceOf(players[index]) })),
     [players]
   );
 
@@ -224,6 +241,7 @@ export const Spectator = ({ code, players, state }) => {
           <Standings aria-label="Players">
             {players.map((player) => {
               const palette = paletteFor(player.color);
+              const absence = absenceTag(absenceOf(player));
 
               return (
                 <Standing
@@ -234,6 +252,7 @@ export const Spectator = ({ code, players, state }) => {
                     {player.name.trim().charAt(0).toUpperCase() || "?"}
                   </span>
                   <span className="name">{player.name}</span>
+                  {absence && <span className="absence">{absence}</span>}
                 </Standing>
               );
             })}
@@ -249,6 +268,10 @@ export const Spectator = ({ code, players, state }) => {
   }
 
   const mover = playerFor(cast, game.turn);
+  // The board has stopped and the person on the clock is not there. On a
+  // television this is the whole reason anybody is squinting at the screen, so
+  // it goes in the largest text on it rather than in a corner.
+  const stalled = game.finished ? null : absenceSentence(mover.name, mover.absence);
 
   return (
     <Screen>
@@ -261,6 +284,7 @@ export const Spectator = ({ code, players, state }) => {
           </>
         )}
       </Headline>
+      {stalled && <Stalled role="status">{stalled}</Stalled>}
 
       <Layout>
         <Stage>
@@ -290,6 +314,9 @@ export const Spectator = ({ code, players, state }) => {
                   {player.initial}
                 </span>
                 <span className="name">{player.name}</span>
+                {absenceTag(player.absence) && (
+                  <span className="absence">{absenceTag(player.absence)}</span>
+                )}
                 <span className="score">{game.scores[player.slot] ?? 0}</span>
               </Standing>
             ))}
