@@ -1,3 +1,4 @@
+import { connect404 } from "@/app/(pages)/games/connect-404/multiplayer";
 import { edgeCase } from "@/app/(pages)/games/edge-case/multiplayer";
 import { ticTacOverflow } from "@/app/(pages)/games/tic-tac-overflow/multiplayer";
 
@@ -18,6 +19,7 @@ import { unknownGame } from "./errors";
 const GAMES = [
   ticTacOverflow, // "tto"       -> #88
   edgeCase, //       "edge-case" -> #89
+  connect404, //     "connect-404" -> #111
 ];
 
 for (const def of GAMES) registerGame(def);

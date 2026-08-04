@@ -5,7 +5,7 @@ import { Connect404 } from "./Connect404";
 export const metadata = {
   title: "Connect 404 — Connect Four | Christopher Salinas Jr.",
   description:
-    "Four in a row. Nothing found. Play Connect Four in your browser — two players on one device, seven columns, six rows, and a piece that falls where gravity puts it.",
+    "Four in a row. Nothing found. Play Connect Four in your browser — two players on one device or online with a code, seven columns, six rows, and a piece that falls where gravity puts it.",
   keywords: [
     "connect four",
     "connect 4",
@@ -17,7 +17,7 @@ export const metadata = {
   openGraph: {
     title: "Connect 404 — Connect Four",
     description:
-      "Four in a row. Nothing found. Two players, one device, seven columns and gravity.",
+      "Four in a row. Nothing found. Two players, one device or two, seven columns and gravity.",
     type: "website",
   },
 };
