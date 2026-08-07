@@ -115,7 +115,11 @@ Prisma read, with no client fetch.
   on a returned error and in a `catch`. Only a boolean the server confirmed
   survives. For the same reason `getLeaderboard()`'s catch reports `optedIn:
   null`, not `false`: the setting was never read, and "you are not listed" would
-  be a guess. `null` disables the switch and suppresses the notice.
+  be a guess. `null` disables the switch and suppresses the notice. The failure
+  message is direction-aware for the same reason — the revert leaves the user in
+  the state the click tried to leave, so "you are still listed" belongs only to a
+  failed opt-*out*, and both failure paths append the clause, not just the
+  `catch`.
 
 ## Key Invariants
 
