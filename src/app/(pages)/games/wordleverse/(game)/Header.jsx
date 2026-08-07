@@ -85,6 +85,15 @@ const NavLinks = styled.div`
     gap: 0.5rem;
     font-size: 0.8rem;
   }
+
+  /* Three labelled links overflow the toolbar on a phone, so drop to icons
+     only. Hidden with CSS, never by conditionally rendering: the Font Awesome
+     kit swaps the <i> for an <svg> in the DOM and unmounting one throws. */
+  @media (max-width: 600px) {
+    .label {
+      display: none;
+    }
+  }
 `;
 
 const Toggle = styled.span`
@@ -130,11 +139,17 @@ const Header = ({ date }) => {
         </Box>
         <div>
           <NavLinks>
+            <Link href="/games/wordleverse/leaderboard">
+              <i className="fa-solid fa-ranking-star" />{" "}
+              <span className="label">Leaderboard</span>
+            </Link>
             <Link href="/games/wordleverse/history">
-              <i className="fa-solid fa-clock-rotate-left" /> History
+              <i className="fa-solid fa-clock-rotate-left" />{" "}
+              <span className="label">History</span>
             </Link>
             <Link href="/games/wordleverse/instructions">
-              <i className="fa-regular fa-circle-question" /> How to Play
+              <i className="fa-regular fa-circle-question" />{" "}
+              <span className="label">How to Play</span>
             </Link>
           </NavLinks>
         </div>

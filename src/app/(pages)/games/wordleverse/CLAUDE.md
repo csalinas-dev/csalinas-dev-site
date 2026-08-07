@@ -6,6 +6,7 @@ A daily Wordle clone. Each day has a single deterministic word (seed-based from 
 
 - Game URL: `/games/wordleverse` (today) or `/games/wordleverse?date=YYYY-MM-DD` (past)
 - History URL: `/games/wordleverse/history`
+- Leaderboard URL: `/games/wordleverse/leaderboard`
 - Valid date range: 2024-01-01 through today
 
 ## Directory Structure
@@ -26,13 +27,20 @@ wordleverse/
 │   │   └── localStorage/# Browser storage fallback
 │   ├── Game.jsx         # Root client component (no SSR — uses dynamic import)
 │   └── page.js          # Server component with date validation
-└── history/             # History + stats feature
-    ├── _actions/        # getHistory server action
-    ├── _components/     # Calendar, Stats, SignInPrompt
-    └── _lib/storage/
-        ├── index.js     # useHistory hook (picks DB or localStorage)
-        ├── database.js  # getHistoryFromDB server action
-        └── localStorage.js # getHistoryFromLocalStorage
+├── history/             # History + stats feature
+│   ├── _actions/        # getHistory server action
+│   ├── _components/     # Calendar, Stats, SignInPrompt
+│   └── _lib/storage/
+│       ├── index.js     # useHistory hook (picks DB or localStorage)
+│       ├── database.js  # getHistoryFromDB server action
+│       └── localStorage.js # getHistoryFromLocalStorage
+└── leaderboard/         # Public leaderboard (opt-in)
+    ├── _actions/        # setLeaderboardOptIn
+    ├── _components/     # Layout, LeaderboardTabs, TodayBoard, AllTimeBoard, Board, OptInToggle
+    ├── _lib/
+    │   ├── rank.js      # Pure ranking rules — every leaderboard rule lives here
+    │   └── leaderboard.js # getLeaderboard() — the Prisma reads
+    └── page.js          # Server component, force-dynamic
 ```
 
 ## Dual Storage Architecture
@@ -66,6 +74,37 @@ The word list is `src/data/words.json` — it is **both** the answer pool and th
 - `saveGame(data)` — **upsert** (handles both in-flight saves and migration)
 - `updateStreak(userId, isWin)` — called after a game completes on today's date; streak counts consecutive days *played* (not just wins)
 - All actions call `getCurrentUser()` to get the authenticated user by email
+
+## Leaderboard
+
+`/games/wordleverse/leaderboard` is a server component with two boards — **Today**
+(everyone who finished today's puzzle) and **All Time** — rendered from one
+Prisma read, with no client fetch.
+
+- **Appearance is opt-in and off by default**: `User.showOnLeaderboard Boolean
+  @default(false)`. OAuth hands us real names the player never meant to publish,
+  so nobody is listed until they flip the switch. Both queries filter on the
+  flag, so an un-opted-in user cannot leak in through either board. The only way
+  to change it is `_actions/setLeaderboardOptIn.js`, which always writes the
+  *caller's own* row (`getCurrentUser()`), never an id from the argument.
+- **Every ranking rule lives in `_lib/rank.js`** and nothing may re-derive one in
+  a component. That includes the guess count (`guesses` is null on legacy rows,
+  so it falls back to `row + 1` and clamps to 1..6 — the `IQUIT` concede path
+  sets `row: 6`), the sort order, and competition ranks (equal keys share a rank,
+  the next rank skips). The module is pure — no Prisma, no `next/*`, no React.
+- `rank.js` is also the privacy boundary: it resolves `isYou` against the
+  viewer's id and then drops the identifiers, so **no row that reaches a
+  component carries a user id or an email**, and nothing rendered contains the
+  day's word or any guess string.
+- "Today" is `dateFormat(new Date(), "yyyy-mm-dd")`, server-local — identical to
+  how `(game)/_actions/saveGame.js` writes `WordleGame.date`. Any other
+  definition silently empties the board around midnight.
+- `page.js` **must** keep `export const dynamic = "force-dynamic"`. The Docker
+  image runs `next build` before the deploy runs `prisma db push`, so a
+  statically prerendered page would query `showOnLeaderboard` before the column
+  exists and fail the build.
+- Narrow screens hide columns with a CSS media query (`.hide-narrow`), never by
+  dropping them from the data — the payload must not depend on the viewport.
 
 ## Key Invariants
 
