@@ -1,6 +1,8 @@
 import createMDX from "@next/mdx";
 import remarkGfm from "remark-gfm";
 
+import { remarkCodeMeta, remarkReadingTime } from "./src/lib/mdx/remark.mjs";
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // "mdx" is here for the *aliasing*, not for routing. Next builds
@@ -50,7 +52,11 @@ const nextConfig = {
 
 // If --turbopack is ever added to the dev/build scripts, remarkPlugins must
 // become the string form (["remark-gfm"]) — Turbopack cannot serialize a JS
-// function across its config boundary.
-const withMDX = createMDX({ options: { remarkPlugins: [remarkGfm] } });
+// function across its config boundary. remarkReadingTime and remarkCodeMeta are
+// local functions and have the same problem: they would have to be published as
+// resolvable module specifiers before Turbopack could load them.
+const withMDX = createMDX({
+  options: { remarkPlugins: [remarkGfm, remarkReadingTime, remarkCodeMeta] },
+});
 
 export default withMDX(nextConfig);

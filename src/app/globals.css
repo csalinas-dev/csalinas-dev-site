@@ -7,6 +7,10 @@
   --selectionBackground: #add6ff26;
   --absentBackground: #28405826;
   --absentForeground: rgba(204, 204, 204, 0.54);
+  /* Flat near-black behind fenced code. --absentBackground is a translucent
+     blue tint and reads visibly differently, so the blog's code blocks need
+     their own token rather than a raw hex in the prose theme. */
+  --codeBackground: #1a1a1a;
 
   --vscode: #0078d4;
   --comment: #6a9955;

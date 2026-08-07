@@ -49,10 +49,23 @@ const validate = (slug, meta) => {
   return meta;
 };
 
+// Injected into every compiled post by remarkReadingTime (src/lib/mdx/remark.mjs).
+// A missing value means the plugin fell out of next.config.mjs, which must fail
+// the build rather than ship a post with a blank metadata rail.
+const validateReadingTime = (slug, readingTime) => {
+  if (typeof readingTime !== "number" || !(readingTime > 0)) {
+    throw new Error(
+      `Post "${slug}" has no \`readingTime\`; is remarkReadingTime wired in next.config.mjs?`
+    );
+  }
+  return readingTime;
+};
+
 export const posts = Object.entries(modules)
   .map(([slug, mod]) => ({
     slug,
     ...validate(slug, mod.meta),
+    readingTime: validateReadingTime(slug, mod.readingTime),
     Content: mod.default,
   }))
   .sort((a, b) => b.date.localeCompare(a.date));
@@ -60,3 +73,13 @@ export const posts = Object.entries(modules)
 export const getPost = (slug) => posts.find((post) => post.slug === slug);
 
 export const getPostSlugs = () => posts.map(({ slug }) => slug);
+
+/**
+ * `posts` is sorted newest first, so the *older* neighbour is the next entry
+ * in the array. "Previous" in the post footer means the older post.
+ */
+export const getAdjacentPosts = (slug) => {
+  const i = posts.findIndex((post) => post.slug === slug);
+  if (i === -1) return { previous: null, next: null };
+  return { previous: posts[i + 1] ?? null, next: posts[i - 1] ?? null };
+};
