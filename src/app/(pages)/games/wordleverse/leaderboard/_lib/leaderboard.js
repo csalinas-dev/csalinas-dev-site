@@ -16,7 +16,8 @@ import { rankAllTime, rankToday } from "./rank";
  * "Today" is `dateFormat(new Date(), "yyyy-mm-dd")` — server-local, exactly how
  * `(game)/_actions/saveGame.js` writes `WordleGame.date`. Any other definition
  * silently empties the board around midnight.
- * @returns {Object} { date, signedIn, optedIn, today, allTime }
+ * @returns {Object} { date, signedIn, optedIn, today, allTime } — `optedIn` is
+ *                   true, false, or null when the setting could not be read
  */
 export const getLeaderboard = async () => {
   const date = dateFormat(new Date(), "yyyy-mm-dd");
@@ -73,12 +74,15 @@ export const getLeaderboard = async () => {
       allTime: rankAllTime(users, user?.id ?? null),
     };
   } catch (error) {
-    // A database hiccup should cost the boards, not the whole page.
+    // A database hiccup should cost the boards, not the whole page. `optedIn`
+    // is null rather than false because the setting was not read: reporting
+    // false would tell a listed player they are not on a board that is only
+    // empty because the query failed.
     console.error("Error getting leaderboard:", error);
     return {
       date,
       signedIn: Boolean(user),
-      optedIn: false,
+      optedIn: null,
       today: [],
       allTime: [],
     };

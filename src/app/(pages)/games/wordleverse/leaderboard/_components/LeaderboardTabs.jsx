@@ -37,7 +37,7 @@ const Notice = styled.p`
  * @param {Object} props - Component props
  * @param {String} props.date - Today's date, yyyy-mm-dd
  * @param {Boolean} props.signedIn - Whether anyone is signed in
- * @param {Boolean} props.optedIn - Whether the viewer is listed
+ * @param {Boolean} props.optedIn - Whether the viewer is listed, null if unknown
  * @param {Array} props.today - TodayRow[]
  * @param {Array} props.allTime - AllTimeRow[]
  * @returns {JSX.Element} LeaderboardTabs component
@@ -47,7 +47,9 @@ const LeaderboardTabs = ({ date, signedIn, optedIn, today, allTime }) => {
 
   return (
     <div>
-      {signedIn && !optedIn && (
+      {/* Only when the setting was actually read as false — `optedIn` is null
+          when the query failed, and "you are not listed" would be a guess. */}
+      {signedIn && optedIn === false && (
         <Notice>
           You are not listed. Turn on &ldquo;Show me on the leaderboard&rdquo; to
           appear here.

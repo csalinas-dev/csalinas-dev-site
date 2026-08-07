@@ -30,6 +30,15 @@ export const guessCountOf = (game) => {
 };
 
 /**
+ * The first *code point* of a word. Indexing with [0] would take a UTF-16 code
+ * unit, which halves a surrogate pair — an emoji or astral-plane name would
+ * render as tofu in the avatar.
+ * @param {String} word - A whitespace-free word
+ * @returns {String} Its first character, whole
+ */
+const firstCharOf = (word) => Array.from(word)[0] ?? "";
+
+/**
  * Up to two initials, from the first and last words of a name.
  * @param {String} name - The player's name, possibly null
  * @returns {String} Initials, or "?" when there is no name
@@ -38,8 +47,8 @@ export const initialsOf = (name) => {
   const words = (name ?? "").trim().split(/\s+/).filter(Boolean);
   if (words.length === 0) return "?";
 
-  const first = words[0][0];
-  const last = words.length > 1 ? words[words.length - 1][0] : "";
+  const first = firstCharOf(words[0]);
+  const last = words.length > 1 ? firstCharOf(words[words.length - 1]) : "";
   return `${first}${last}`.toUpperCase();
 };
 

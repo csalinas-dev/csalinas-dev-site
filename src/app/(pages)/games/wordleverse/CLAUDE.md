@@ -105,6 +105,17 @@ Prisma read, with no client fetch.
   exists and fail the build.
 - Narrow screens hide columns with a CSS media query (`.hide-narrow`), never by
   dropping them from the data — the payload must not depend on the viewport.
+- **The opt-in switch is optimistic, so every failure path is a privacy
+  question.** A position that sticks without being saved tells a listed player
+  they have been removed while their name is still on both boards. So
+  `setLeaderboardOptIn` keeps `getCurrentUser()` *inside* its `try` — it does a
+  Prisma read and must come back as a returned `{ error }` rather than a
+  rejected promise, because React silently swallows the rejection of an `async`
+  event handler — and `OptInToggle` reverts the switch and shows a message both
+  on a returned error and in a `catch`. Only a boolean the server confirmed
+  survives. For the same reason `getLeaderboard()`'s catch reports `optedIn:
+  null`, not `false`: the setting was never read, and "you are not listed" would
+  be a guess. `null` disables the switch and suppresses the notice.
 
 ## Key Invariants
 
