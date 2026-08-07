@@ -9,6 +9,23 @@ import { Link, Section } from "@/components";
 // `font-size: 1.5rem !important` on itself (src/components/Section.jsx) and
 // descendants inherit it, so any text element that stays quiet renders at 24px.
 
+// The two values #132 exists to tune. Deliberately constants: Christopher is
+// reacting to rendered pixels, so "more" or "less" should be a one-line edit.
+
+// The Grid below already uses 48px as its gutter. Reusing it makes the space
+// under the header equal the gap between the metadata rail and the title, so
+// the header joins the existing rhythm instead of introducing a new number.
+const HEADER_SPACE = "48px";
+
+// Sono's natural line box is 1.197em (measured at 66px/800: ascent 60 +
+// descent 19 = 79px), so the shipped 0.98 was 0.22em of *negative* leading —
+// consecutive lines overlapped their glyph boxes. Every post title wraps
+// (4/3/2 lines at 1440, up to 6 at 390), so this is the title block's main
+// visual, not an edge case. 1.1 about doubles the white between lines
+// (8.7px -> 16.6px at 66px) while staying under the font's natural leading,
+// which is too airy for a four-line display block.
+const TITLE_LINE_HEIGHT = 1.1;
+
 // The `&&` doubles the class in the selector (.css-x.css-x), which outranks
 // Section's own single-class `padding: 2rem`. Both are equal specificity
 // otherwise and would be decided by emotion's insertion order — and Section's
@@ -30,6 +47,7 @@ export const Header = styled(Box)`
   display: flex;
   font-size: 12.5px;
   justify-content: space-between;
+  margin-bottom: ${HEADER_SPACE};
 
   a {
     align-items: center;
@@ -94,7 +112,7 @@ export const PostTitle = styled("h1")`
   font-size: 40px;
   font-weight: 800;
   letter-spacing: -0.02em;
-  line-height: 0.98;
+  line-height: ${TITLE_LINE_HEIGHT};
   margin: 0;
 
   @media (min-width: 900px) {
@@ -120,16 +138,13 @@ export const Description = styled("p")`
 `;
 
 export const Hero = styled(NextImage)`
+  aspect-ratio: 3 / 1;
   border-radius: 12px;
-  height: 200px;
+  height: auto;
   margin: 52px 0 56px;
   object-fit: cover;
   user-select: none;
   width: 100%;
-
-  @media (min-width: 900px) {
-    height: 300px;
-  }
 `;
 
 // The nav is position: sticky; top: 0 (src/components/Nav.jsx), so the spec's
