@@ -20,8 +20,13 @@ const ErrorMessage = styled.span`
   font-size: 0.9rem;
 `;
 
-const FAILED =
-  "Failed to update leaderboard setting. You are still listed as before.";
+const FAILED = "Failed to update leaderboard setting";
+// Every failure path puts the switch back where it was, so what is true
+// afterwards is the state the click tried to leave. One shared sentence cannot
+// say that: telling somebody whose opt-in failed that they are "still listed"
+// asserts a publication that never happened.
+const STILL_LISTED = "You are still listed on the leaderboard.";
+const NOT_LISTED = "You have not been added to the leaderboard.";
 const UNKNOWN =
   "Could not read your leaderboard setting. Reload to try again.";
 
@@ -50,6 +55,8 @@ const OptInToggle = ({ optedIn }) => {
 
   const onChange = async (event) => {
     const next = event.target.checked;
+    // Both failure paths below revert to `!next`, so this is what is true then.
+    const unchanged = next ? NOT_LISTED : STILL_LISTED;
 
     // Move the switch immediately, put it back unless the server confirms it.
     setChecked(next);
@@ -63,7 +70,7 @@ const OptInToggle = ({ optedIn }) => {
       // returned { error }, or a shape this component does not recognise.
       if (typeof result?.optIn !== "boolean") {
         setChecked(!next);
-        setError(result?.error ?? FAILED);
+        setError(`${result?.error ?? FAILED}. ${unchanged}`);
         return;
       }
 
@@ -77,7 +84,7 @@ const OptInToggle = ({ optedIn }) => {
       // they opted out.
       console.error("Error setting leaderboard opt-in:", error);
       setChecked(!next);
-      setError(FAILED);
+      setError(`${FAILED}. ${unchanged}`);
     } finally {
       setSaving(false);
     }
