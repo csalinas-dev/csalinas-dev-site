@@ -15,20 +15,23 @@ datasource db {
 
 // NextAuth Models
 model User {
-  id             String          @id @default(cuid())
-  name           String?
-  email          String?         @unique
-  emailVerified  DateTime?
-  password       String? // Added for credentials authentication
-  image          String?
-  accounts       Account[]
-  sessions       Session[]
-  wordleGames    WordleGame[]
-  streak         Int             @default(0)
-  maxStreak      Int             @default(0)
-  lastPlayedDate String? // Format: yyyy-mm-dd
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  id                String       @id @default(cuid())
+  name              String?
+  email             String?      @unique
+  emailVerified     DateTime?
+  password          String? // Added for credentials authentication
+  image             String?
+  accounts          Account[]
+  sessions          Session[]
+  wordleGames       WordleGame[]
+  streak            Int          @default(0)
+  maxStreak         Int          @default(0)
+  lastPlayedDate    String? // Format: yyyy-mm-dd
+  // Wordleverse leaderboard is opt-in: OAuth hands us real names the user never
+  // meant to publish, so nobody is listed until they say so.
+  showOnLeaderboard Boolean      @default(false)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
 }
 
 model Account {
