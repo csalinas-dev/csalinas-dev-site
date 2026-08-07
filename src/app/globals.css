@@ -22,6 +22,20 @@
   --string: #ce9178;
   --type: #4ec9b0;
   --var: #9cdcfe;
+
+  /* Syntax highlighting (sugar-high) */
+  --sh-identifier: var(--var);
+  --sh-keyword: var(--const);
+  --sh-string: var(--string);
+  --sh-class: var(--type);
+  --sh-property: var(--function);
+  --sh-entity: var(--function);
+  --sh-jsxliterals: var(--component);
+  --sh-sign: var(--foreground);
+  --sh-comment: var(--comment);
+  /* sugar-high also emits a `space` token; without this the declaration is
+     invalid at computed-value time. It only ever wraps whitespace. */
+  --sh-space: var(--foreground);
 }
 
 /* CSS Resets */

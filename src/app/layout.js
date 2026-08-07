@@ -9,6 +9,8 @@ import "./globals.css";
 const sono = Sono({ subsets: ["latin"], fallback: ["monospace"] });
 
 export const metadata = {
+  // Lets Next resolve relative openGraph image URLs (the blog's covers).
+  metadataBase: new URL("https://csalinas.dev"),
   title: "Christopher Salinas Jr. | Software Engineer",
   description: "Portfolio for Christopher Salinas Jr. from Albuquerque, NM.",
 };

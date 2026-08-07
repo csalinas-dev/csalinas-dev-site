@@ -41,8 +41,8 @@ export const Splash = () => (
       <NavLink href="/github">
         <i className="fa-brands fa-fw fa-github" /> GitHub
       </NavLink>
-      <NavLink href="/projects">
-        <i className="fa-solid fa-fw fa-code" /> Projects
+      <NavLink href="/blog">
+        <i className="fa-solid fa-fw fa-newspaper" /> Blog
       </NavLink>
       <NavLink href="/games">
         <i className="fa-solid fa-fw fa-gamepad" /> Games
