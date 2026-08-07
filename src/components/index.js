@@ -1,3 +1,4 @@
+export * from "./CopyButton";
 export * from "./Footer";
 export * from "./FormattedDate";
 export * from "./Link";
