@@ -8,13 +8,18 @@ import { Module } from "@/components";
 // auto-fit collapses the repeated tracks nobody filled, so the row is as wide
 // as there are games: two on a phone, one row of five on a desktop. No game is
 // named anywhere in here, which is the point — a sixth tile needs no CSS.
+// The horizontal padding is the page's only gutter now that the grid is
+// full-bleed, and it is deliberately equal to the gap so the rhythm is uniform
+// edge to edge. Change one and change the other.
 export const GameGrid = styled.div`
   display: grid;
   gap: 1rem;
   grid-template-columns: repeat(auto-fit, minmax(min(9rem, 100%), 1fr));
+  padding: 0 1rem;
 
   @media (min-width: 896px) {
     gap: 2rem;
+    padding: 0 2rem;
   }
 `;
 
@@ -58,13 +63,6 @@ const Media = styled.div`
     aspect-ratio: 1 / 1;
     height: auto;
     width: 100%;
-  }
-
-  /* next/image with fill paints into the padding box, so the photo tiles fill
-     the frame rather than sitting inside that 8%. */
-  img {
-    object-fit: cover;
-    object-position: top;
   }
 `;
 
