@@ -1,11 +1,12 @@
-import { Section, Title } from "@/components";
+import { Title } from "@/components";
 
 import { GameCard, GameGrid } from "./_components/GameCard";
+import { GamesSection } from "./_components/GamesSection";
 import { GAMES } from "./games";
 
 export default function Page() {
   return (
-    <Section>
+    <GamesSection>
       <Title>Games</Title>
       <GameGrid>
         {GAMES.map(({ slug, title, href, Artwork }) => (
@@ -14,6 +15,6 @@ export default function Page() {
           </GameCard>
         ))}
       </GameGrid>
-    </Section>
+    </GamesSection>
   );
 }
