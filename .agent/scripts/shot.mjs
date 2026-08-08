@@ -1,16 +1,40 @@
 // Headless-Chrome screenshotter/measurer over raw CDP. No puppeteer, no deps.
 // Usage: node .agent/scripts/shot.mjs <url> <width> <out.png|-> [evalFile.js]
+// Prints {"viewport":{w,h,requested},"result":<evalFile value>} on stdout — the viewport is
+// read back from the page, not assumed from argv.
+// Exit 0 ok, 2 bad usage, 1 runtime/CDP failure.
 import { spawn } from "node:child_process";
-import { mkdtempSync, writeFileSync, readFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdtempSync,
+  writeFileSync,
+  readFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 const [, , url, widthArg, out, evalFile] = process.argv;
-const width = Number(widthArg || 1440);
+const width = Number(widthArg);
+const HEIGHT = 1000;
+
+const USAGE =
+  "usage: node .agent/scripts/shot.mjs <url> <width> <out.png|-> [evalFile.js]";
+const usageError = (msg) => {
+  console.error(`shot.mjs: ${msg}\n${USAGE}`);
+  process.exit(2);
+};
+if (!url) usageError("missing <url>");
+if (widthArg === undefined) usageError("missing <width>");
+if (!Number.isFinite(width) || width <= 0)
+  usageError(`<width> must be a positive number, got ${JSON.stringify(widthArg)}`);
+if (!out) usageError("missing <out.png|-> (use - to skip the screenshot)");
+if (evalFile && !existsSync(evalFile)) usageError(`evalFile not found: ${evalFile}`);
+
 const CHROME =
   process.env.CHROME_PATH ||
   "C:/Program Files/Google/Chrome/Application/chrome.exe";
 
+let ws;
 const profile = mkdtempSync(join(tmpdir(), "cdp-"));
 const chrome = spawn(CHROME, [
   "--headless=new",
@@ -20,9 +44,19 @@ const chrome = spawn(CHROME, [
   "--no-default-browser-check",
   "--hide-scrollbars",
   "--force-device-scale-factor=1",
-  `--window-size=${width},1000`,
+  `--window-size=${width},${HEIGHT}`,
   "about:blank",
 ]);
+// Runs on normal exit and on the fatal exit an unhandled rejection causes. Both
+// calls are synchronous — an exit handler cannot await, so nothing async here.
+process.on("exit", () => {
+  try {
+    ws?.close();
+  } catch {}
+  try {
+    chrome.kill();
+  } catch {}
+});
 
 // Chrome prints the ws:// endpoint on stderr when the port is 0.
 const wsUrl = await new Promise((resolve, reject) => {
@@ -38,7 +72,7 @@ const wsUrl = await new Promise((resolve, reject) => {
   });
 });
 
-const ws = new WebSocket(wsUrl); // global WebSocket, Node 22+
+ws = new WebSocket(wsUrl); // global WebSocket, Node 22+
 await new Promise((r) => (ws.onopen = r));
 let id = 0;
 const pending = new Map();
@@ -50,9 +84,19 @@ ws.onmessage = (e) => {
   }
 };
 const send = (method, params = {}, sessionId) =>
-  new Promise((resolve) => {
+  new Promise((resolve, reject) => {
     const n = ++id;
-    pending.set(n, resolve);
+    pending.set(n, (msg) =>
+      msg.error
+        ? reject(
+            new Error(
+              `CDP ${method} failed: ${msg.error.message}${
+                msg.error.data ? ` - ${msg.error.data}` : ""
+              }`
+            )
+          )
+        : resolve(msg)
+    );
     ws.send(JSON.stringify({ id: n, method, params, sessionId }));
   });
 
@@ -65,28 +109,48 @@ const { result: attached } = await send("Target.attachToTarget", {
 });
 const s = attached.sessionId;
 
+// A thrown expression comes back inside a *successful* CDP result, so send()
+// rejecting cannot cover it.
+const evaluate = async (expression) => {
+  const { result } = await send(
+    "Runtime.evaluate",
+    { expression, returnByValue: true, awaitPromise: true },
+    s
+  );
+  if (result.exceptionDetails)
+    throw new Error(
+      `evaluate threw: ${
+        result.exceptionDetails.exception?.description ??
+        result.exceptionDetails.text
+      }`
+    );
+  return result.result?.value;
+};
+
 await send("Page.enable", {}, s);
 await send("Runtime.enable", {}, s);
 await send(
   "Emulation.setDeviceMetricsOverride",
-  { width, height: 1000, deviceScaleFactor: 1, mobile: width < 900 },
+  { width, height: HEIGHT, deviceScaleFactor: 1, mobile: width < 900 },
   s
 );
-await send("Page.navigate", { url }, s);
+// A dead server is reported as errorText inside a successful result, not as a CDP error.
+const { result: nav } = await send("Page.navigate", { url }, s);
+if (nav.errorText) throw new Error(`navigation failed: ${nav.errorText} (${url})`);
 await new Promise((r) => setTimeout(r, 3500)); // fonts + next/image decode
 
-if (evalFile) {
-  const { result } = await send(
-    "Runtime.evaluate",
-    {
-      expression: readFileSync(evalFile, "utf8"),
-      returnByValue: true,
-      awaitPromise: true,
-    },
-    s
+// Ground truth, read back from the page rather than assumed from argv.
+const viewport = await evaluate("({w: innerWidth, h: innerHeight})");
+viewport.requested = width;
+if (viewport.w !== width)
+  console.error(
+    `shot.mjs: WARNING measured viewport ${viewport.w}x${viewport.h} but ${width} was requested. ` +
+      `A page with no <meta name="viewport"> lays out at 980px under mobile emulation (on below 900px).`
   );
-  console.log(JSON.stringify(result.result?.value ?? result, null, 2));
-}
+
+const payload = { viewport };
+if (evalFile) payload.result = await evaluate(readFileSync(evalFile, "utf8"));
+console.log(JSON.stringify(payload, null, 2));
 
 if (out && out !== "-") {
   const { result: metrics } = await send("Page.getLayoutMetrics", {}, s);
@@ -103,9 +167,9 @@ if (out && out !== "-") {
     s
   );
   writeFileSync(out, Buffer.from(shot.data, "base64"));
-  console.error(`wrote ${out} (${width}x${h})`);
+  console.error(
+    `wrote ${out} (${viewport.w}x${h} px; viewport ${viewport.w}x${viewport.h})`
+  );
 }
 
-ws.close();
-chrome.kill();
 process.exit(0);
