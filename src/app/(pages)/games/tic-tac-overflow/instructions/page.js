@@ -40,7 +40,8 @@ const Board = styled.div`
   display: grid;
   flex: 0 0 auto;
   gap: 0.25rem;
-  /* minmax(0, 1fr), not a bare 1fr — see Gameboard.jsx. */
+  /* minmax(0, 1fr), not a bare 1fr — see Gameboard.jsx. It bounds the tracks;
+     it does not keep this board square either. */
   grid-template-columns: repeat(3, minmax(0, 1fr));
   grid-template-rows: repeat(3, minmax(0, 1fr));
   width: 9rem;
