@@ -8,8 +8,12 @@ const Board = styled.div`
   aspect-ratio: 1 / 1;
   display: grid;
   gap: 0.5rem;
-  grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: repeat(3, 1fr);
+  /* minmax(0, 1fr), not a bare 1fr: 1fr means minmax(auto, 1fr), whose floor is
+     the items' min-content size, so a single cell that measures taller than its
+     share would silently un-square the whole board. The board's shape is the
+     board's business. */
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: repeat(3, minmax(0, 1fr));
   /* Square, but never tall enough to push the status line off a short screen. */
   width: min(100%, 26rem, calc(100svh - 19rem));
 `;

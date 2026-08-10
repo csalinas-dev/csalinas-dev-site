@@ -40,8 +40,9 @@ const Board = styled.div`
   display: grid;
   flex: 0 0 auto;
   gap: 0.25rem;
-  grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: repeat(3, 1fr);
+  /* minmax(0, 1fr), not a bare 1fr — see Gameboard.jsx. */
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: repeat(3, minmax(0, 1fr));
   width: 9rem;
 
   > div {
