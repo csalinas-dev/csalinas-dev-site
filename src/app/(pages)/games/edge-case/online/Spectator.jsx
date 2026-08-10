@@ -59,7 +59,7 @@ const Layout = styled.div`
 
 const Stage = styled.div`
   margin: 0 auto;
-  max-width: min(100%, 78vh);
+  max-width: min(100%, 78svh);
   width: 100%;
 `;
 

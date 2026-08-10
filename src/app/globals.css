@@ -66,7 +66,12 @@ body {
   align-items: stretch;
   display: flex;
   flex-flow: column nowrap;
-  height: 100vh;
+  /* svh, not vh: `vh` is the *large* viewport, so on iOS Safari 100vh is taller
+     than the visible area by the height of the retractable toolbars and every
+     page picks up a phantom scroll. `svh` is never taller than what the user
+     can see. Stays `height` and not `min-height` because body is this site's
+     scroll container — its height has to stay definite. */
+  height: 100svh;
   justify-content: flex-start;
   overflow-y: auto;
 }

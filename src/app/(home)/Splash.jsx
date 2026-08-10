@@ -17,7 +17,7 @@ export const Splash = () => (
     direction="column"
     alignItems={{ xs: "center", md: "flex-start" }}
     justifyContent="center"
-    sx={{ py: 4, minHeight: "100vh" }}
+    sx={{ py: 4, minHeight: "100svh" }}
     spacing={4}
   >
     <Typography

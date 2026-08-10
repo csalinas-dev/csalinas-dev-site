@@ -32,7 +32,7 @@ export default function SignOut() {
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        minHeight: "100vh",
+        minHeight: "100svh",
         padding: 2,
       }}
     >

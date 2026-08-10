@@ -11,7 +11,7 @@ const Board = styled.div`
   grid-template-columns: repeat(5, 1fr);
   grid-template-rows: repeat(5, 1fr);
   max-height: calc(100vw - 4rem);
-  max-width: calc(100vh - 6rem - 36px);
+  max-width: calc(100svh - 6rem - 36px);
   width: calc(100% - 2rem);
 `;
 
