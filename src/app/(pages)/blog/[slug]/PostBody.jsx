@@ -104,7 +104,7 @@ export const PostBody = ({ children }) => {
 
     update();
     // document.body is the scroll container (globals.css sets body { height:
-    // 100vh; overflow-y: auto }), so window never fires this event.
+    // 100svh; overflow-y: auto }), so window never fires this event.
     document.body.addEventListener("scroll", onScroll, { passive: true });
     return () => {
       document.body.removeEventListener("scroll", onScroll);
