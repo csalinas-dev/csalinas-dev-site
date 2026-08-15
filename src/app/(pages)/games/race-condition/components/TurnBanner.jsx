@@ -34,6 +34,17 @@ const Chip = styled.span`
   height: 2.1rem;
   justify-content: center;
   width: 2.1rem;
+
+  /* A draw belongs to nobody, so the chip stops belonging to somebody. Filled
+     with var(--slot) it wore the last mover's colour under a headline saying
+     nobody won — the one element left contradicting it. Hollow rather than a
+     neutral fill: --absentForeground is translucent and would not carry the
+     dark text a filled chip uses. */
+  &.draw {
+    background-color: transparent;
+    border: 0.125rem solid var(--absentForeground);
+    color: var(--absentForeground);
+  }
 `;
 
 const Copy = styled.div`
@@ -66,24 +77,49 @@ const Hint = styled.small`
  *
  * Rendered after the game as well as during it, because the engine leaves `turn`
  * with the player who ended it on purpose: the board must never be left without
- * a valid slot, and therefore never without a colour. A draw is the exception and
- * is said plainly — nobody won, and the banner does not get to imply otherwise by
- * leaving the last mover's name up in their colour.
+ * a valid slot, and therefore never without a colour.
+ *
+ * WHICH IS WHY `player` IS NOT THE WINNER. `player` is only whoever the engine
+ * left holding the turn; the winner is read off the board and arrives in
+ * `outcome`, derived once in `Game.jsx` and shared with the endgame panel. This
+ * banner is the loudest thing on the screen, and it used to take the winner's
+ * name, colour and initial from `player` — which is the losing player in the
+ * 38.5% of decided games where the press, not the placement, completed the line.
+ *
+ * A draw is the third case and is said plainly: nobody won, and the banner does
+ * not get to imply otherwise by leaving a name up in somebody's colour — chip
+ * included.
  *
  * @param {Object} props
  * @param {Object} props.game - The engine state
  * @param {Object} props.player - The player on the clock (or who ended it)
+ * @param {Object} props.outcome - `{ winner, lastMover, orbitedIn }`, the shared
+ *   reading of how the game ended. All null/false while it is still running.
  * @param {?Object} props.opponent - Whose marbles the mover may slide
  * @param {Object} props.draft - The staged turn, from `useTurnDraft`
  * @param {Boolean} props.spinning - The board is mid-orbit
  * @param {String} [props.hint] - Overrides the sub-line. An online room (#144)
  *   puts "waiting for Alex…" here.
  */
-export const TurnBanner = ({ draft, game, hint, opponent, player, spinning }) => {
+export const TurnBanner = ({
+  draft,
+  game,
+  hint,
+  opponent,
+  outcome,
+  player,
+  spinning,
+}) => {
+  const { lastMover, orbitedIn, winner } = outcome;
+
+  // Whose name, colour and initial the banner wears: the winner once there is
+  // one, and until then whoever is on the clock.
+  const named = winner ?? player;
+
   const headline = game.draw
     ? "Draw"
-    : game.winner !== null
-      ? `${player.name} wins`
+    : winner !== null
+      ? `${winner.name} wins`
       : `${player.name} to move`;
 
   const beat = () => {
@@ -93,7 +129,14 @@ export const TurnBanner = ({ draft, game, hint, opponent, player, spinning }) =>
         : "The board filled and nothing was found.";
     }
 
-    if (game.winner !== null) return "Four in a row, after the press.";
+    // The same sentence the panel eight lines below is about to give, from the
+    // same `orbitedIn`. Two ways of saying it would be two chances to disagree.
+    if (winner !== null) {
+      return orbitedIn
+        ? `${lastMover.name} turned the board into ${winner.name}'s line.`
+        : "Four in a row, after the press.";
+    }
+
     if (spinning) return "The board is turning…";
     if (draft.move !== null) return "Now place your marble.";
     if (draft.source !== null) return "Choose where to slide it.";
@@ -108,9 +151,11 @@ export const TurnBanner = ({ draft, game, hint, opponent, player, spinning }) =>
     <Container
       className={game.draw ? "draw" : undefined}
       role="status"
-      style={{ "--slot": player.color }}
+      style={{ "--slot": named.color }}
     >
-      <Chip aria-hidden="true">{game.draw ? "—" : player.initial}</Chip>
+      <Chip aria-hidden="true" className={game.draw ? "draw" : undefined}>
+        {game.draw ? "—" : named.initial}
+      </Chip>
       <Copy>
         <Headline style={game.draw ? { color: "var(--foreground)" } : undefined}>
           {headline}

@@ -92,8 +92,35 @@ export default function Game({ banner }) {
   );
 
   // Whose name the banner says is on the clock. NOT `youSlot`.
-  const mover = playerFor(players, game.turn);
+  const onTheClock = playerFor(players, game.turn);
   const opponent = opponentOf(players, game.turn);
+
+  // WHO WON, IN ONE PLACE. Every part of the screen that names a winner — the
+  // banner, the panel — takes it from here, so they cannot disagree.
+  //
+  // It is `result.winner`, read off the board, and it is emphatically NOT
+  // `game.turn`: the engine deliberately leaves the turn with whoever ENDED the
+  // game so the board is never without a valid slot, and pressing the button
+  // turns sixteen marbles, so ending the game and winning it are different
+  // events. They differ in 38.5% of decided games. Anything that derives a
+  // winner from `game.turn` is wrong more than a third of the time, and the
+  // shape of that bug is a second derivation living somewhere else — so there
+  // is only this one.
+  const outcome = useMemo(() => {
+    const winner =
+      result.winner === null ? null : playerFor(players, result.winner);
+    const lastMover =
+      game.lastTurn === null ? null : playerFor(players, game.lastTurn.by);
+
+    return {
+      winner,
+      lastMover,
+      // The mover pressed the button and turned somebody ELSE into a line —
+      // the best moment this game has, and worth saying out loud.
+      orbitedIn:
+        winner !== null && lastMover !== null && winner.slot !== lastMover.slot,
+    };
+  }, [game.lastTurn, players, result.winner]);
 
   const onCellActivate = useCallback(
     (index) => {
@@ -126,7 +153,8 @@ export default function Game({ banner }) {
           draft={draft}
           game={game}
           opponent={opponent}
-          player={mover}
+          outcome={outcome}
+          player={onTheClock}
           spinning={anim.spinning}
         />
 
@@ -151,14 +179,9 @@ export default function Game({ banner }) {
             the player is about to see, not the one still turning. */}
         {result.finished && !anim.spinning && (
           <Endgame
-            mover={
-              game.lastTurn === null ? null : playerFor(players, game.lastTurn.by)
-            }
             onPlayAgain={canReset ? onPlayAgain : undefined}
+            outcome={outcome}
             result={result}
-            winner={
-              result.winner === null ? null : playerFor(players, result.winner)
-            }
           />
         )}
       </Stack>

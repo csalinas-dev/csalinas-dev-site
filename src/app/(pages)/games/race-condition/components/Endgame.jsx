@@ -85,16 +85,19 @@ const Again = styled.button`
  * It is a delay on an entrance animation only — the result is in the DOM and in
  * the live region from the first frame, so nothing waits on it.
  *
+ * Which is why it does not work out who won: `Game.jsx` does that ONCE, off
+ * `result.winner`, and hands the same `outcome` to the banner. Two components
+ * deriving a winner is how they end up saying different names.
+ *
  * @param {Object} props
  * @param {Object} props.result - `getResult(game)`
- * @param {?Object} props.winner - The winning player descriptor, on a win
- * @param {?Object} props.mover - Whoever took the last turn
+ * @param {Object} props.outcome - `{ winner, lastMover, orbitedIn }`, the shared
+ *   reading of how the game ended
  * @param {Function} [props.onPlayAgain] - Omitted when this device may not start
  *   the next game — a spectator gets the result and no controls.
  */
-export const Endgame = ({ mover, onPlayAgain, result, winner }) => {
-  const orbitedIn =
-    winner !== null && mover !== null && winner.slot !== mover.slot;
+export const Endgame = ({ onPlayAgain, outcome, result }) => {
+  const { lastMover, orbitedIn, winner } = outcome;
 
   return (
     <Panel>
@@ -113,7 +116,7 @@ export const Endgame = ({ mover, onPlayAgain, result, winner }) => {
             <span className="slot">{winner.name}</span> wins
             <small>
               {orbitedIn
-                ? `${mover.name} turned the board into ${winner.name}'s line.`
+                ? `${lastMover.name} turned the board into ${winner.name}'s line.`
                 : "Four in a row after the orbit."}{" "}
               {winner.name} opens the next game.
             </small>

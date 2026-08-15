@@ -72,8 +72,12 @@ export const Announcer = ({ game, players }) => {
             `${playerFor(players, game.cells[cells[0]]).name} at ${list(cells.map(cellName))}`
         );
 
-        return `${sentence} Both players completed a line on the same press — ${list(
-          lines
+        // Joined with a semicolon, NOT `list`: each entry already ends in an
+        // "and" of its own, and nesting them gives "…row 1, column 3 and row 1,
+        // column 4 and Gold at…", where the last "and" sounds like a fifth
+        // square rather than the second player.
+        return `${sentence} Both players completed a line on the same press — ${lines.join(
+          "; "
         )}. The game is a draw.`;
       }
 

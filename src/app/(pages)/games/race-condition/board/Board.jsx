@@ -61,19 +61,42 @@ const Panel = styled.div`
 const labelFor = ({ col, destination, occupant, placeable, row, selected, source, you, vacated }) => {
   const where = `Row ${row + 1}, column ${col + 1}`;
   const what = occupant ? `${occupant.name}'s marble` : "empty";
+  // Possessive, not the bare name: on one device this is read aloud a dozen
+  // times a turn, once per placeable square, and "Place Cyan marble here" is
+  // not a sentence. `you` is null only for a spectator, who is told whose it
+  // would be by the banner rather than by every empty square.
+  const mine = you ? `${you.name}'s marble` : "your marble";
 
   if (selected) return `${where}, ${what}. Selected — choose where to slide it`;
   if (source) return `${where}, ${what}. Move this marble`;
   if (destination) return `${where}, ${what}. Slide the marble here`;
   if (vacated) {
-    return `${where}, ${what}. The square your slide emptied. Place ${
-      you?.name ?? "your"
-    } marble here`;
+    return `${where}, ${what}. The square your slide emptied. Place ${mine} here`;
   }
-  if (placeable) return `${where}, ${what}. Place ${you?.name ?? "your"} marble here`;
+  if (placeable) return `${where}, ${what}. Place ${mine} here`;
 
   return `${where}, ${what}`;
 };
+
+/**
+ * Why the square that was just tapped did nothing.
+ *
+ * TWO DIFFERENT RULES REFUSE A TAP AND THEY ARE NOT INTERCHANGEABLE. Before a
+ * slide is staged the answer is about ownership and adjacency; once one is
+ * staged every other marble goes inert for a quite different reason — the turn
+ * gets one slide and it has been used — and telling that player about
+ * adjacency sends them looking for a rule that is not the one stopping them.
+ * A wrong explanation is worse than none.
+ *
+ * @param {Object} draft - The staged turn, from `useTurnDraft`
+ * @param {?Object} opponent - Whose marbles this player may slide
+ */
+const refusalFor = ({ move }, opponent) =>
+  move === null
+    ? `That marble cannot be slid this turn. You may only slide ${
+        opponent?.name ?? "your opponent"
+      }'s marbles, and only onto an empty square beside one.`
+    : "You have already slid a marble this turn. Place one of your own to finish it, or tap the marble you slid to take the slide back.";
 
 /**
  * The Race Condition board.
@@ -160,7 +183,15 @@ export const Board = ({
 
       if (inert) {
         nonce.current += 1;
-        setRefused({ index, id: nonce.current });
+        // The reason is captured HERE, with the draft that refused the tap,
+        // rather than recomputed at render: take the slide back while the alert
+        // is still up and it would otherwise rewrite itself to explain a
+        // different rule than the one the player just ran into.
+        setRefused({
+          id: nonce.current,
+          index,
+          reason: refusalFor(draft, opponent),
+        });
 
         return;
       }
@@ -168,7 +199,7 @@ export const Board = ({
       setRefused(null);
       onCellActivate(index);
     },
-    [cells, draft, interactive, onCellActivate]
+    [cells, draft, interactive, onCellActivate, opponent]
   );
 
   useEffect(() => {
@@ -248,13 +279,7 @@ export const Board = ({
 
       {/* Assertive, and its own region: a refusal interrupts, which is the one
           thing the running commentary must never do. */}
-      <VisuallyHidden role="alert">
-        {refused
-          ? `That marble cannot be slid this turn. You may only slide ${
-              opponent?.name ?? "your opponent"
-            }'s marbles, and only onto an empty square beside one.`
-          : ""}
-      </VisuallyHidden>
+      <VisuallyHidden role="alert">{refused?.reason ?? ""}</VisuallyHidden>
     </Frame>
   );
 };
