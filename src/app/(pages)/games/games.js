@@ -1,6 +1,7 @@
 import Connect404Artwork from "./_artwork/Connect404";
 import EdgeCaseArtwork from "./_artwork/EdgeCase";
 import HashtagArtwork from "./_artwork/Hashtag";
+import RaceConditionArtwork from "./_artwork/RaceCondition";
 import TicTacOverflowArtwork from "./_artwork/TicTacOverflow";
 import WordleverseArtwork from "./_artwork/Wordleverse";
 
@@ -41,5 +42,11 @@ export const GAMES = [
     title: "Connect 404",
     href: "/games/connect-404",
     Artwork: Connect404Artwork,
+  },
+  {
+    slug: "race-condition",
+    title: "Race Condition",
+    href: "/games/race-condition",
+    Artwork: RaceConditionArtwork,
   },
 ];
