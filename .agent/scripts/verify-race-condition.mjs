@@ -14,20 +14,30 @@
 // answer. Without that, "the setup silently stopped being the setup" reads as a
 // pass, which is the one way a script like this can go quietly useless.
 import { register } from "node:module";
+import { spawnSync } from "node:child_process";
 import { readdirSync, readFileSync } from "node:fs";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { dirname, join } from "node:path";
 
-register("./lib/esm-resolver.mjs", import.meta.url);
-
 // The engine's files are `.js` under a package.json with no `"type"`, so Node
-// reparses each one as ESM and says so. That is expected here and would only be
-// silenced by declaring the whole Next.js app a module, so drop that one warning
-// and keep every other one.
-process.removeAllListeners("warning");
-process.on("warning", (warning) => {
-  if (warning.name !== "MODULE_TYPELESS_PACKAGE_JSON") console.warn(warning);
-});
+// reparses each one as ESM and warns about it sixteen times. That is expected
+// here and could only be "fixed" by declaring the whole Next.js app a module, so
+// re-exec once with that ONE warning code disabled — not `--no-warnings`, which
+// would hide the next real one too. The loader emits it off the main thread, so
+// a `process.on("warning")` filter does not catch it.
+const SILENCE = "--disable-warning=MODULE_TYPELESS_PACKAGE_JSON";
+
+if (!process.execArgv.includes(SILENCE)) {
+  const { status } = spawnSync(
+    process.execPath,
+    [SILENCE, fileURLToPath(import.meta.url), ...process.argv.slice(2)],
+    { stdio: "inherit" }
+  );
+
+  process.exit(status ?? 1);
+}
+
+register("./lib/esm-resolver.mjs", import.meta.url);
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ENGINE_DIR = join(HERE, "..", "..", "src/app/(pages)/games/race-condition/_lib");
@@ -37,6 +47,7 @@ const {
   DrawReason,
   INNER_TRACK,
   LINES,
+  LINE_LENGTH,
   MARBLES_PER_PLAYER,
   MoveError,
   OUTER_TRACK,
@@ -126,6 +137,35 @@ const spin = (cells, times) => {
 
   return board;
 };
+
+// ── 0. constants ───────────────────────────────────────────────────────────
+section("Constants — pinned to the rulebook, not to themselves");
+
+// Every other check below is free to say `OVERTIME_SPINS + 1` and read well.
+// This one may NOT: an assertion phrased in terms of the constant it is checking
+// moves when the constant moves and can never fail. The numbers here are the
+// game's, and they are written out.
+check("the board, the marbles and the overtime presses are the published ones", () => {
+  assert(SIZE === 4, `SIZE is ${SIZE}, the board is 4x4`);
+  assert(CELLS === 16, `CELLS is ${CELLS}, a 4x4 board has 16 squares`);
+  assert(LINE_LENGTH === 4, `LINE_LENGTH is ${LINE_LENGTH}, four in a row wins`);
+  assert(
+    MARBLES_PER_PLAYER === 8,
+    `MARBLES_PER_PLAYER is ${MARBLES_PER_PLAYER}, the box holds 8 of each colour`
+  );
+  assert(
+    OVERTIME_SPINS === 5,
+    `OVERTIME_SPINS is ${OVERTIME_SPINS} — the rulebook says the button "needs to be pressed 5 more times"`
+  );
+  // The identity the whole endgame rests on: the board fills EXACTLY as the
+  // last marble lands, so no player runs out early and no turn is ever skipped.
+  assert(
+    MARBLES_PER_PLAYER * 2 === CELLS,
+    `${MARBLES_PER_PLAYER} marbles each does not fill ${CELLS} squares`
+  );
+
+  return "4x4, 8 marbles each, 5 overtime presses";
+});
 
 // ── 1. orbit geometry ──────────────────────────────────────────────────────
 section("Orbit — tracks, direction and cycle");
@@ -406,6 +446,11 @@ check("you can hand the win to your opponent", () => {
     [[0, 1, 2, 3]],
     "the wrong line was reported"
   );
+  // A finished board names the player who ENDED it, not the winner and not the
+  // opponent who never got to reply — the same convention Connect 404 uses. Here
+  // those are different people, which is what makes this worth pinning.
+  assert(next.turn === A, `turn was ${next.turn}, expected the player who pressed (${A})`);
+  assert(getResult(next).turn === A, "getResult disagrees about who ended the game");
 
   return `${A} pressed the button, ${B} won`;
 });
@@ -518,13 +563,13 @@ check("a full board with nothing found runs all 6 presses and is a draw", () => 
     next.drawReason === DrawReason.Exhausted,
     `drawReason was ${next.drawReason}, expected "${DrawReason.Exhausted}"`
   );
-  assert(
-    next.lastTurn.spins === OVERTIME_SPINS + 1,
-    `spins was ${next.lastTurn.spins}, expected ${OVERTIME_SPINS + 1}`
-  );
+  // The literal 6, not `OVERTIME_SPINS + 1`: one press to finish the turn plus
+  // the five the rulebook names. Phrased in terms of the constant, this
+  // assertion would move with it and could never fail.
+  assert(next.lastTurn.spins === 6, `spins was ${next.lastTurn.spins}, expected 6`);
   assert(next.winningLines === null, "a draw reported winning lines");
 
-  return `${OVERTIME_SPINS + 1} presses, nothing found`;
+  return "6 presses, nothing found";
 });
 
 check("overtime stops at the first press that completes a line", () => {
@@ -569,7 +614,7 @@ check("overtime stops at the first press that completes a line", () => {
     "a line was found and nothing was decided"
   );
 
-  return `stopped on press 3 of ${OVERTIME_SPINS + 1}`;
+  return "stopped on press 3 of a possible 6";
 });
 
 check("spins is 1 on an ordinary turn", () => {
@@ -846,7 +891,7 @@ check("2000 random games hold every invariant", () => {
         `game ${game} put more than ${MARBLES_PER_PLAYER} marbles of a colour on the board`
       );
       assert(
-        state.lastTurn.spins >= 1 && state.lastTurn.spins <= OVERTIME_SPINS + 1,
+        state.lastTurn.spins >= 1 && state.lastTurn.spins <= 6,
         `game ${game} pressed the button ${state.lastTurn.spins} times`
       );
       assertEq(
@@ -855,8 +900,8 @@ check("2000 random games hold every invariant", () => {
         `game ${game}: the board is not \`spins\` presses on from cellsBeforeOrbit`
       );
       assert(
-        state.finished || state.turn !== slot,
-        `game ${game}: an unfinished turn did not pass`
+        state.finished ? state.turn === slot : state.turn !== slot,
+        `game ${game}: the turn went to the wrong player after ${slot} played`
       );
 
       mostSpins = Math.max(mostSpins, state.lastTurn.spins);
