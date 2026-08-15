@@ -124,10 +124,13 @@ export default function Game({ banner }) {
 
   const onCellActivate = useCallback(
     (index) => {
-      const outcome = draft.selectCell(index);
+      // Named `staged`, not `outcome`: the memo above is how the game ENDED and
+      // this is what the tap staged. They are different things and one of them
+      // was shadowing the other.
+      const staged = draft.selectCell(index);
 
-      if (outcome?.commit) {
-        dispatch(playTurn(outcome.commit.move, outcome.commit.place, youSlot));
+      if (staged?.commit) {
+        dispatch(playTurn(staged.commit.move, staged.commit.place, youSlot));
       }
     },
     [dispatch, draft, youSlot]
@@ -152,6 +155,10 @@ export default function Game({ banner }) {
         <TurnBanner
           draft={draft}
           game={game}
+          /* Online, the sub-line is the room's to write: "waiting for Gold…"
+             rather than coaching aimed at whoever is on the clock. Undefined
+             hotseat, which lets the banner's own `beat()` run. */
+          hint={online?.hint}
           opponent={opponent}
           outcome={outcome}
           player={onTheClock}
@@ -186,7 +193,7 @@ export default function Game({ banner }) {
         )}
       </Stack>
 
-      <Announcer game={game} players={players} />
+      <Announcer game={game} outcome={outcome} players={players} />
     </Container>
   );
 }

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { applyMove, emptyCells, legalMoves } from "../_lib";
+import { turnKey } from "./turnKey";
 
 /**
  * The turn being built, before any of it is a turn.
@@ -40,11 +41,17 @@ export const useTurnDraft = (game, youSlot, interactive) => {
     setMove(null);
   }, []);
 
-  // `game` is a new object on every accepted action, which covers a committed
-  // turn, a restart, and a restart that happens to leave `turn` and `lastTurn`
-  // looking the same. Anything half-decided belongs to the position it was
-  // decided on.
-  useEffect(() => clear(), [clear, game]);
+  // Anything half-decided belongs to the position it was decided on, so a
+  // committed turn or a restart clears it.
+  //
+  // Keyed on the turn's VALUE and emphatically not on the `game` object: online
+  // every resync is a fresh `JSON.parse` of a state that has not changed, and
+  // the same revision is re-delivered whenever presence blinks (plus every 2s on
+  // the polling fallback). Depending on `game` here would wipe a picked-up
+  // marble out from under the player's finger a few seconds after they picked it
+  // up, with nothing on screen to explain it. See `turnKey.js`.
+  const key = turnKey(game);
+  useEffect(() => clear(), [clear, key]);
 
   // And nothing may stay staged on a board this device has stopped being able to
   // act on — the opponent's turn, a finished game, an orbit in progress.

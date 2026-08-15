@@ -110,7 +110,9 @@ export const TurnBanner = ({
   player,
   spinning,
 }) => {
-  const { lastMover, orbitedIn, winner } = outcome;
+  // Defensively: this is the loudest thing on the screen and an `outcome` that
+  // failed to arrive should cost the sub-line, not the whole board.
+  const { lastMover = null, orbitedIn = false, winner = null } = outcome ?? {};
 
   // Whose name, colour and initial the banner wears: the winner once there is
   // one, and until then whoever is on the clock.
