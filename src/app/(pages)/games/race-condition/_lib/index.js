@@ -103,7 +103,7 @@ export {
 
 export { createState, resetState } from "./createState";
 export { getResult } from "./getResult";
-export { canMove, legalMoves } from "./moves";
+export { applyMove, canMove, legalMoves } from "./moves";
 export { playTurn, reject } from "./playTurn";
 export { reducer } from "./reducer";
 
