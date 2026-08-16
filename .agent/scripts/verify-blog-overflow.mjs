@@ -9,7 +9,7 @@
 // input to this script — and serve the result with `next start`, which is what
 // <baseUrl> has to point at:
 //
-//   DATABASE_URL="mysql://root:pw@127.0.0.1:<port>/csalinas" \
+//   DATABASE_URL="mysql://root:<pw>@127.0.0.1:<port>/csalinas" \
 //     node .agent/scripts/seed-substack-fixture.mjs .agent/fixtures/substack/feed-overflow.xml
 //
 // Full throwaway-database recipe — container, schema, teardown — is in that

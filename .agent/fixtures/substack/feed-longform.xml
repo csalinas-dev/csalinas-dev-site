@@ -12,7 +12,7 @@
   ran; the ids it emits are both the anchor and the React key.
 
   Seed it with:
-    DATABASE_URL="mysql://root:pw@127.0.0.1:<port>/csalinas" \
+    DATABASE_URL="mysql://root:<pw>@127.0.0.1:<port>/csalinas" \
       node .agent/scripts/seed-substack-fixture.mjs .agent/fixtures/substack/feed-longform.xml
 
   Full throwaway-database recipe is in that script's header.

@@ -29,7 +29,7 @@
   script asserts is still no wider than the viewport.
 
   Seed it with:
-    DATABASE_URL="mysql://root:pw@127.0.0.1:<port>/csalinas" \
+    DATABASE_URL="mysql://root:<pw>@127.0.0.1:<port>/csalinas" \
       node .agent/scripts/seed-substack-fixture.mjs .agent/fixtures/substack/feed-overflow.xml
 
   Full throwaway-database recipe is in that script's header.
