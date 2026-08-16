@@ -236,11 +236,27 @@ export const TocList = styled("div")`
   }
 `;
 
+// The label is a heading lifted out of the article by PostBody, so on a synced
+// post this is third-party text too — and it is the narrowest place any of it
+// lands: a 150px rail, of which the rule and the gap take 20px. `min-width: 0`
+// on the Grid child pins the *track*; it does nothing for the text, which is an
+// anonymous flex item here whose automatic minimum size is its own min-content
+// width. One unbreakable run therefore paints straight out of the rail, across
+// the article at 1200px and off the page at ~145 characters.
+//
+// `align-items: start` rather than `center`: once the label may wrap it usually
+// does — the entries are whole sentences in a 130px column — and a rule centred
+// against a four-line block reads as belonging to no line at all. The offset
+// puts it on the first line's optical centre; `1lh` is the entry's own line box,
+// so it tracks the font-size instead of being a number to re-tune.
 export const TocEntry = styled("a")`
-  align-items: center;
+  align-items: start;
   color: var(--muted);
   display: flex;
   gap: 8px;
+  line-height: 1.4;
+  min-width: 0;
+  overflow-wrap: anywhere;
   text-decoration: none;
 
   &:before {
@@ -248,6 +264,7 @@ export const TocEntry = styled("a")`
     content: "";
     flex: none;
     height: 1px;
+    margin-top: calc((1lh - 1px) / 2);
     width: 12px;
   }
 

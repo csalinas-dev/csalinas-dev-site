@@ -33,6 +33,15 @@
 // rendered DOM rather than trusted: a page that failed to seed has no long run,
 // no deep list and no wide table, and every geometry assertion below would pass
 // on it for the wrong reason.
+//
+// A payload is not the only thing a page can fail to carry. It can also fail to
+// be the right SHAPE: the heading TOC is built by an effect after mount and only
+// for an article two viewports tall, so for three verification passes every page
+// this script measured had an empty left rail and the 150px track that renders a
+// synced post's heading text was never laid out at all. Hence `toc-overflow`,
+// hence the `tocEntries` anchor, and hence the wait — a page script that
+// measures before the effect has run reports a TOC-less page as fine, which is
+// the same defect as measuring a 404.
 import { spawnSync } from "node:child_process";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -111,6 +120,17 @@ const DEFAULT_PAGES = [
     carries: "a 63-character run in its title",
   },
   {
+    // The only page here tall enough for PostBody to build a TOC, which is the
+    // whole point of it: the entries are the article's own h2 text re-rendered
+    // into a 150px rail, so on a synced post that rail is third-party text and
+    // nothing else. Anchored on the entries EXISTING, not on the run length —
+    // the run is in the article either way, and a rail that never rendered
+    // would otherwise measure clean.
+    path: "/blog/toc-overflow",
+    anchor: (a) => a.tocEntries >= 4 && a.longestRun >= 200,
+    carries: "a 4-entry TOC, one entry holding a 200-character run",
+  },
+  {
     path: "/blog/hashtag",
     anchor: (a) => a.longestRun > 0,
     carries: "the MDX control post",
@@ -125,9 +145,33 @@ const pages = flag("paths")
   : DEFAULT_PAGES;
 
 // ── the page script ────────────────────────────────────────────────────────
-// ONE EXPRESSION: shot.mjs hands the file straight to Runtime.evaluate.
-const PAGE_SCRIPT = `(() => {
+// ONE EXPRESSION: shot.mjs hands the file straight to Runtime.evaluate. It may
+// be an ASYNC one — shot.mjs evaluates with awaitPromise: true — which is what
+// lets the TOC wait below live in the page rather than as a longer sleep in
+// shot.mjs (that file is out of scope for #153 and shared with other gates).
+const PAGE_SCRIPT = `(async () => {
   const round = (n) => Math.round(n);
+
+  // PostBody's own rule, restated: it shows a TOC for an article at least
+  // LONG_POST_SCREENS (2) viewports tall that has an h2, and it decides in an
+  // effect after mount, then again on every ResizeObserver tick. So a page that
+  // should have one may not have one YET. Waiting only when it is expected
+  // costs nothing on the pages that never get one.
+  const wantsToc = () => {
+    const a = document.querySelector("article");
+
+    return Boolean(
+      a &&
+        a.getBoundingClientRect().height >= innerHeight * 2 &&
+        a.querySelector("h2")
+    );
+  };
+  const deadline = Date.now() + 5000;
+
+  while (wantsToc() && !document.querySelector("details a") && Date.now() < deadline) {
+    await new Promise((r) => setTimeout(r, 100));
+  }
+
   const article = document.querySelector("article");
   // Measured over the whole page, not just the article: the listing has no
   // <article> at all, and on a post page the title and the subtitle are
@@ -192,7 +236,25 @@ const PAGE_SCRIPT = `(() => {
     .split(/\\s+/)
     .reduce((longest, run) => Math.max(longest, run.length), 0);
 
+  // The rail, measured against ITSELF rather than against the viewport. A TOC
+  // entry that spills is broken long before it reaches the page edge: at 1200px
+  // the rail is 150px and the article starts at x=262, so a 589px entry is
+  // painted over the article's opening paragraphs while body.scrollWidth is
+  // still a contented 1200. Only past ~145 unbreakable characters does it also
+  // become a page-level overflow, so the page-level assertions cannot stand in
+  // for this one.
+  const tocBox = document.querySelector("details");
+  const tocLinks = [...document.querySelectorAll("details a")];
+  const toc = {
+    entries: tocLinks.length,
+    boxW: tocBox ? round(tocBox.getBoundingClientRect().width) : null,
+    maxEntryW: tocLinks.length
+      ? Math.max(...tocLinks.map((a) => round(a.getBoundingClientRect().width)))
+      : null,
+  };
+
   return {
+    toc,
     viewport: { w: innerWidth, h: innerHeight },
     body: { scrollWidth: body.scrollWidth, clientWidth: body.clientWidth },
     doc: {
@@ -207,7 +269,7 @@ const PAGE_SCRIPT = `(() => {
     },
     widest,
     paragraphMax: paragraphs.length ? Math.max(...paragraphs) : null,
-    anchors: { longestRun, listDepth, tableColumns },
+    anchors: { longestRun, listDepth, tableColumns, tocEntries: toc.entries },
   };
 })()`;
 
@@ -263,7 +325,8 @@ try {
       if (!anchor(m.anchors)) {
         fail(
           `does not carry ${carries} (longest run ${m.anchors.longestRun}, list depth ` +
-            `${m.anchors.listDepth}, widest row ${m.anchors.tableColumns} cells) — seed the fixture`
+            `${m.anchors.listDepth}, widest row ${m.anchors.tableColumns} cells, ` +
+            `${m.anchors.tocEntries} TOC entries) — seed the fixture`
         );
       }
 
@@ -291,10 +354,20 @@ try {
         fail(`a <${m.widest.tag}> escapes: laid out ${m.widest.w}px wide in a ${m.viewport.w}px viewport`);
       }
 
+      // The rail against itself. 1px of slack for subpixel rounding.
+      if (m.toc.maxEntryW != null && m.toc.maxEntryW > m.toc.boxW + 1) {
+        fail(
+          `a TOC entry is ${m.toc.maxEntryW}px wide in a ${m.toc.boxW}px rail — it is painted over the article`
+        );
+      }
+
       rows.push(
         `  ${path} @ ${width}px  ${m.hasArticle ? "article" : "main"} ${m.article.w}x${m.article.h}  ` +
           `text ${m.paragraphMax}  body.scrollWidth ${m.body.scrollWidth}/${m.body.clientWidth}  ` +
-          `widest ${m.widest?.tag} ${m.widest?.w}  overflow-wrap: ${m.article.overflowWrap}`
+          `widest ${m.widest?.tag} ${m.widest?.w}  overflow-wrap: ${m.article.overflowWrap}` +
+          (m.toc.entries
+            ? `  toc ${m.toc.entries} entries, widest ${m.toc.maxEntryW}/${m.toc.boxW}`
+            : "")
       );
     }
   }
