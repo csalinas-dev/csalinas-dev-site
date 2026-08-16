@@ -40,10 +40,31 @@ GAME_ROOM_RATE_LIMIT        # optional; room creations/minute/IP for POST /api/r
 ## Development
 
 ```bash
+npm ci           # install first -- a fresh checkout has no node_modules; see below
 npm run dev      # start dev server on localhost:3000
 npx prisma studio  # inspect DB
 npx prisma db push # apply schema changes
 ```
+
+`npx prisma` in a checkout with no `node_modules` fails with **`P1012`** underlining
+`url = env("DATABASE_URL")` at `prisma/schema.prisma:13`, which reads like "I can't reach
+the database". It isn't. With nothing installed locally, `npx` has no pinned CLI to
+resolve and downloads the latest Prisma (7.x) instead of the 6.19.3 in
+`package-lock.json`; 7.x no longer accepts `url` inside a `datasource` block. The schema
+is correct — the CLI is the wrong major. Run `npm ci`.
+
+Diagnose from the `error:` text and the `Prisma CLI Version :` line at the foot of the
+output, **not** from the code or the line number: `P1012` at `schema.prisma:13` has at
+least three unrelated causes, all of which this repo produces.
+
+| `error:` says | Cause | Fix |
+|---|---|---|
+| ``The datasource property `url` is no longer supported in schema files.`` | `npx` fetched Prisma 7.x — the `Prisma CLI Version` line will say `7.x`, not `6.x` | `npm ci` |
+| `Environment variable not found: DATABASE_URL.` | `DATABASE_URL` is unset | set it |
+| ``Error validating datasource `db`: the URL must start with the protocol `mysql://`.`` | `DATABASE_URL` is set to something that isn't a MySQL URL | fix the value |
+
+The last two are genuine environment problems and `npm ci` fixes neither, so read the
+message before reaching for a fix.
 
 ## Important Patterns
 
