@@ -260,14 +260,15 @@ export const TocList = styled("div")`
 // `align-items: start` rather than `center`: once the label may wrap it usually
 // does — the entries are whole sentences in a 130px column — and a rule centred
 // against a four-line block reads as belonging to no line at all. The offset
-// puts it on the first line's optical centre; `1lh` is the entry's own line box,
-// so it tracks the font-size instead of being a number to re-tune.
+// puts it on the first line's optical centre. `1lh` and not a number, and no
+// line-height of its own: it resolves against whatever line box this entry
+// inherits, which is what keeps the mobile TOC on an MDX post laid out to the
+// pixel as it was (an explicit line-height here moved every entry by 1px).
 export const TocEntry = styled("a")`
   align-items: start;
   color: var(--muted);
   display: flex;
   gap: 8px;
-  line-height: 1.4;
   min-width: 0;
   overflow-wrap: anywhere;
   text-decoration: none;
@@ -563,10 +564,12 @@ export const Footer = styled("div")`
 
 // margin-left: auto keeps a lone "next" on the right when there is no previous.
 //
-// The label is the NEIGHBOURING post's title, so prev/next is a third surface
+// The label is the NEIGHBOURING post's title, so prev/next is another surface
 // rendering third-party text — and a flex item's automatic minimum size is its
 // min-content width, so one unbreakable title here widens the footer, the page
-// and every post that happens to sit beside that post in the ordering.
+// and every post that happens to sit beside that post in the ordering. The full
+// list of those surfaces, and how to re-derive it rather than trust it, is in
+// src/lib/blog/README.md.
 export const FooterLink = styled(Link)`
   display: flex;
   flex-flow: column nowrap;

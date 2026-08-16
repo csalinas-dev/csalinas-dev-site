@@ -120,14 +120,72 @@ widest unbreakable thing (measured: 382px → 663px in a 430px viewport from one
 63-character token), so **every** paragraph in the post is laid out wider than
 the phone and `<body>` — this site's scroll container — scrolls sideways. So
 `[slug]/components.jsx` carries `overflow-wrap: anywhere` and `overflow-x: clip`
-on `Article`, `min-width: 0` plus `minmax(0, 1fr)` on the body grid, a scrollable
-`table` (with cells opting back out of `anywhere`, or the columns squeeze to
-32px instead of scrolling), and `overflow-wrap: anywhere` on the title, the
-subtitle, the prev/next links and the listing's cards — the three other places a
-synced post's own text is rendered.
+on `Article`, `min-width: 0` plus `minmax(0, 1fr)` on the body grid, and a
+scrollable `table` (with cells opting back out of `anywhere`, or the columns
+squeeze to 32px instead of scrolling).
+
+`overflow-x: clip` means exactly that: what does not fit is **gone**, not
+reachable by scrolling. The forty-deep list's innermost items are clipped and
+there is no way to pan to them. That is the right trade against a page-wide
+scrollbar — and it is the reason the rules above exist, because wrapping is what
+keeps ordinary content out of the clip in the first place.
+
+### Every surface a synced post's text reaches
+
+The article body is not the only one, and finding a fifth of them by accident is
+why this list is written as a derivation rather than as a list. Redo it, do not
+trust it:
+
+1. `fromSyncedRow` in `shape.js` is the **only** function that turns a
+   `SubstackPost` row into the shape. Its string-valued outputs are `slug`,
+   `title`, `description`, `date`, `cover`/`hero`, `link`, `linkLabel`,
+   `contentHtml`.
+2. `grep -rn "lib/blog" src` gives the only two modules that consume the shape:
+   `(pages)/blog/page.jsx` and `(pages)/blog/[slug]/page.jsx`.
+3. Walk every JSX expression in those two that renders one of those fields —
+   plus every component that re-renders a *fragment* of one, which is the step
+   that was missed: `PostBody.jsx` reads `h.textContent` out of the article and
+   renders it again in the rail.
+
+That gives six places third-party text is laid out, and each one carries
+`overflow-wrap: anywhere`:
+
+| Field | Where it is laid out | Component |
+|---|---|---|
+| `contentHtml` | the post body | `Article` |
+| `contentHtml`'s `<h2>`s | the 150px TOC rail | `TocEntry` |
+| `title` | the post's own headline | `PostTitle` (+ `TitleTail`) |
+| `title` | the *neighbouring* post's prev/next label | `FooterLink` / `FooterTitle` |
+| `title` | the listing card | `CardTitle` |
+| `description` | subtitle, and the card excerpt | `Description`, `Excerpt` |
+
+And the fields that never become laid-out text, so they need no rule:
+`slug`, `cover`/`hero` and `link` are only ever attribute values (`href`, `src`,
+`og:image`); `date` is reformatted by `FormattedDate`; `readingTime` is a number;
+`linkLabel` is ours; `category` and `tags` are always null/empty for a synced
+post and render as absent.
+
+One near-miss worth recording so it is not re-derived: the hero's `alt` **is**
+the third-party title, and a broken image does paint its alt text — but the box
+is fixed by `width: 100%` + `aspect-ratio`, and a replaced element clips its alt
+rather than growing. Measured with a 216-character alt on an unresolvable host:
+`img.scrollWidth` 430 in a 430px viewport, `body.scrollWidth` 430. No rule
+needed.
+
+`TocEntry` also has a second axis nothing else here has: the rail is
+`position: sticky`, and a pinned box taller than the viewport does not scroll
+with the page, so entries past the bottom edge are unreachable. How many
+sections a post has is the author's choice too — fourteen headings measured
+1041px of rail against 940px of room — so `Toc` clamps itself with `max-height`
+and scrolls internally above 900px.
 
 `.agent/scripts/verify-blog-overflow.mjs` is the gate, over
-`.agent/fixtures/substack/feed-overflow.xml`, at 1200px and 430px.
+`.agent/fixtures/substack/feed-overflow.xml`, at 1200px and 430px. It measures
+page shapes as well as payloads: the TOC is built by an effect and only for an
+article two viewports tall, so a fixture with no such post measures every page
+with an empty rail — which is precisely how `TocEntry` went unmeasured through
+three verification passes. `toc-overflow` and `toc-tall` are that shape, and the
+script waits for the rail before measuring rather than assuming it is there.
 
 ## Verifying
 
