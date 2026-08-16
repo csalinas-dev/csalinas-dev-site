@@ -6,10 +6,14 @@
 // the leading slash into a Windows path and the URL fails to navigate.
 //
 // Seed .agent/fixtures/substack/feed-overflow.xml first — that fixture IS the
-// input to this script:
+// input to this script — and serve the result with `next start`, which is what
+// <baseUrl> has to point at:
 //
-//   node --env-file=.env .agent/scripts/seed-substack-fixture.mjs \
-//     .agent/fixtures/substack/feed-overflow.xml
+//   DATABASE_URL="mysql://root:<pw>@127.0.0.1:<port>/csalinas" \
+//     node .agent/scripts/seed-substack-fixture.mjs .agent/fixtures/substack/feed-overflow.xml
+//
+// Full throwaway-database recipe — container, schema, teardown — is in that
+// script's header.
 //
 // Why this exists as a separate gate: verify-blog-dom.mjs proves the three MDX
 // posts did not move, and it can only ever prove that, because every input it
