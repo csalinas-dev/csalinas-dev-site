@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { readPieceInitials } from "@/lib/pieceInitials";
 import { absenceOf } from "@/lib/realtime/absence";
 import { useRoom } from "@/lib/realtime/useRoom";
 
@@ -44,6 +45,17 @@ export const OnlineGame = ({ code, onLeave }) => {
 
   const [notice, setNotice] = useState(null);
 
+  // Whether THIS browser stamps the initial on its marbles. Deliberately not in
+  // the room's state: both players set it independently, and pressing the toggle
+  // sends nothing and moves no revision. It is restored after mount for the same
+  // reason the hotseat provider does it — the page is prerendered.
+  const [showInitials, setShowInitials] = useState(false);
+
+  useEffect(() => {
+    const saved = readPieceInitials();
+    if (saved !== null) setShowInitials(saved);
+  }, []);
+
   // The seat this browser holds, resolved by the server from its token. Null for
   // a spectator, which is what closes the board to them.
   const youSlot = me?.slot ?? null;
@@ -60,11 +72,11 @@ export const OnlineGame = ({ code, onLeave }) => {
   //
   // WITH NO NAMES AT ALL, deliberately. This game has no name-entry UI, so every
   // seat would come back from the core as its placeholder — "Player 1" and
-  // "Player 2" — and both of those initial as "P". Every marble on this board is
-  // stamped with its player's initial precisely because sixteen of them touch on
-  // a 4x4 and the orbit rearranges all of them at once, so two identical
-  // initials is not a cosmetic problem. Nameless, `createPlayers` falls back to
-  // the colours, and both modes call the players Cyan and Gold.
+  // "Player 2" — and both of those initial as "P". That is the whole reason the
+  // initial is only ever the first letter of the colour here, and it still
+  // matters: a player who turns the initials preference on has to get a C and a
+  // G, not two Ps. Nameless, `createPlayers` falls back to the colours, and both
+  // modes call the players Cyan and Gold.
   const cast = useMemo(() => createPlayers([...SEATS]), []);
 
   // Which is also where the opponent's NAME comes from — "Gold", not the core's
@@ -164,6 +176,8 @@ export const OnlineGame = ({ code, onLeave }) => {
       // Online there is no mid-game restart — a shared board is not one player's
       // to wipe — so this is purely the rematch, and a spectator gets neither.
       canReset: youSlot !== null && Boolean(game?.finished),
+      showInitials,
+      setShowInitials,
       online: {
         // Left or dropped, so the bar can explain a board that has stopped
         // moving. Mid-game the seat is never deleted — it has to stay for the
@@ -191,6 +205,7 @@ export const OnlineGame = ({ code, onLeave }) => {
       notice,
       opponentName,
       opponentSeat,
+      showInitials,
       spectating,
       youSlot,
     ]

@@ -40,12 +40,15 @@ const Layer = styled.div`
  * @param {Number[]} [props.winningOrder] - Those squares in stagger order
  * @param {Boolean} [props.decided] - The game is over, so everything outside a
  *   winning line steps back
+ * @param {Boolean} [props.showInitials] - Stamp each marble with its player's
+ *   initial (a per-browser display preference; see `src/lib/pieceInitials.js`)
  */
 export const MarbleLayer = ({
   cells,
   decided,
   ids,
   players,
+  showInitials,
   winningCells,
   winningOrder = [],
 }) => {
@@ -67,6 +70,7 @@ export const MarbleLayer = ({
             key={id}
             player={playerFor(players, slot)}
             row={row}
+            showInitials={showInitials}
             winIndex={winning ? winningOrder.indexOf(index) : -1}
           />
         );

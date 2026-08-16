@@ -111,6 +111,8 @@ const describeContents = (game, players, col) => {
  * @param {Function} props.onKeyDown - `(event, col) => void`
  * @param {Function} props.register - Ref callback for the roving tab stop
  * @param {Number} props.tabIndex - 0 for the one column that owns the tab stop
+ * @param {Boolean} props.showInitials - Stamp each piece with its player's
+ *   initial (a per-browser display preference; see `src/lib/pieceInitials.js`)
  */
 export const Column = ({
   active,
@@ -126,6 +128,7 @@ export const Column = ({
   players,
   refusedNonce,
   register,
+  showInitials,
   tabIndex,
   you,
 }) => {
@@ -190,6 +193,7 @@ export const Column = ({
                 game.lastMove?.col === col && game.lastMove?.row === row
               }
               player={slot === null ? null : playerFor(players, slot)}
+              showInitials={showInitials}
               winIndex={winIndex}
             />
           );

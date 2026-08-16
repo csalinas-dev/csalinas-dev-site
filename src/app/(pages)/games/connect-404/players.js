@@ -10,10 +10,14 @@
  * `color` is a CSS custom property reference, so it resolves anywhere the theme
  * does and stays in step with it.
  *
- * Colour is never the only signal. Every piece is stamped with its player's
- * initial as well as filled with their colour — red and blue is a kinder pair
- * than most, but "the red one" is still not a description a monochrome screen
- * or a protanope can act on.
+ * `initial` stays on the descriptor and the turn banner and the endgame panel
+ * still print it. The BOARD draws it only when the player has asked for it
+ * (`src/lib/pieceInitials.js`, off by default): nobody types a name in this
+ * game, so an initial was always just the first letter of the colour, and red
+ * against blue is CIEDE2000 51+ under every common colour-vision deficiency
+ * with both discs clearing 3:1 against the board. The one vision colour alone
+ * does not serve is luminance-only — the two discs are 1.3-2.2:1 apart — and
+ * that is what the preference is for.
  */
 
 // Red first, blue second, straight out of the reference implementation
