@@ -137,7 +137,12 @@ export const Description = styled("p")`
   max-width: 52ch;
 `;
 
-export const Hero = styled(NextImage)`
+// One declaration block, two elements. An MDX post's cover is a StaticImageData
+// object and goes through next/image; a synced post's is a remote URL string and
+// renders as a plain <img> (no `remotePatterns` coupling to a third party's CDN
+// hostname — see src/lib/blog/README.md). Sharing the CSS is what stops the two
+// heroes drifting apart.
+const HERO_CSS = `
   aspect-ratio: 3 / 1;
   border-radius: 12px;
   height: auto;
@@ -145,6 +150,14 @@ export const Hero = styled(NextImage)`
   object-fit: cover;
   user-select: none;
   width: 100%;
+`;
+
+export const Hero = styled(NextImage)`
+  ${HERO_CSS}
+`;
+
+export const RemoteHero = styled("img")`
+  ${HERO_CSS}
 `;
 
 // The nav is position: sticky; top: 0 (src/components/Nav.jsx), so the spec's

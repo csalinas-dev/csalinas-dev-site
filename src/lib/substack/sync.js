@@ -15,6 +15,12 @@
 // rewrite the slug. Read the three columns needed for the diff in one query and
 // decide.
 
+// Relative, NOT `@/content/posts/slugs`: the alias is a bundler feature and
+// this file has to stay loadable by plain `node` for
+// .agent/scripts/verify-substack-sync.mjs. slugs.js has no imports of its own
+// precisely so it can be reached from here.
+import { MDX_SLUGS } from "../../content/posts/slugs";
+
 import { getFeedUrl } from "./config";
 import { fetchFeedXml, parseFeedXml } from "./feed";
 import { normalizeItem } from "./normalize";
@@ -75,11 +81,21 @@ const conflictField = (error) => {
 
 const candidateSlug = (base, attempt) => (attempt === 1 ? base : `${base}-${attempt}`);
 
+// AN MDX POST ALWAYS OWNS ITS SLUG (CLAUDE.md, src/lib/blog/README.md). A
+// reserved candidate is skipped exactly as a taken one is, so a Substack post
+// whose title reduces to an MDX slug is stored as `<slug>-2` and the MDX URL is
+// never shadowed at the source. The read layer enforces the same rule from the
+// other end, for rows that predate it.
+//
 // The pre-check is a race and the unique constraint is the truth, so this is
 // paired with a P2002 retry at the call site rather than trusted on its own.
-const freeSlug = async (store, base, sourceId, from = 1) => {
+// Reservation needs no such pairing: the list is static.
+const freeSlug = async (store, reserved, base, sourceId, from = 1) => {
   for (let attempt = from; attempt <= MAX_SLUG_ATTEMPTS; attempt += 1) {
     const candidate = candidateSlug(base, attempt);
+
+    if (reserved.has(candidate)) continue;
+
     const existing = await store.findBySlug(candidate);
 
     if (!existing || existing.sourceId === sourceId) return { slug: candidate, attempt };
@@ -96,6 +112,10 @@ export async function syncSubstackPosts({
   // import would also make the no-database verify script impossible: `@/lib/…`
   // is a bundler alias plain Node cannot resolve.
   store = null,
+  // The slugs a synced post may never be given. Defaults to the MDX registry's
+  // reserved list; an option only so the verify script can probe the rule with
+  // a name of its own choosing.
+  reservedSlugs = MDX_SLUGS,
   now = () => new Date(),
 } = {}) {
   const startedAt = now();
@@ -177,10 +197,11 @@ export async function syncSubstackPosts({
   }
 
   const bySourceId = new Map(existing.map((row) => [row.sourceId, row]));
+  const reserved = new Set(reservedSlugs);
 
   for (const { post, embedsRemoved, imagesDropped } of posts) {
     try {
-      const { action, slug } = await applyPost(activeStore, post, bySourceId.get(post.sourceId));
+      const { action, slug } = await applyPost(activeStore, reserved, post, bySourceId.get(post.sourceId));
 
       report[action] += 1;
       report.posts.push({ sourceId: post.sourceId, slug, action, embedsRemoved, imagesDropped });
@@ -194,14 +215,14 @@ export async function syncSubstackPosts({
 
 // The whole per-item decision, in one place: insert what is new, update what
 // changed, and touch nothing else.
-async function applyPost(store, post, row, mayRetry = true) {
+async function applyPost(store, reserved, post, row, mayRetry = true) {
   if (!row) {
     // Bounded on purpose: one re-read after losing the race. A second loss means
     // something stranger than concurrency is happening and it should surface as
     // a skipped item, not as a spin.
     if (!mayRetry) throw tagged("sourceId conflicted but the row could not be read back");
 
-    const inserted = await insert(store, post);
+    const inserted = await insert(store, reserved, post);
 
     // A concurrent sync claimed this sourceId between our read and our write.
     // Re-read and fall through to the "already present" logic rather than
@@ -210,7 +231,7 @@ async function applyPost(store, post, row, mayRetry = true) {
 
     const [fresh] = await store.findBySourceIds([post.sourceId]);
 
-    return applyPost(store, post, fresh ?? null, false);
+    return applyPost(store, reserved, post, fresh ?? null, false);
   }
 
   // Hash equal: do nothing at all, not even a syncedAt touch. That is the whole
@@ -227,8 +248,8 @@ async function applyPost(store, post, row, mayRetry = true) {
 
 // Assigns the slug — the one place in the codebase it is ever chosen — and
 // creates the row.
-async function insert(store, post) {
-  let free = await freeSlug(store, post.slug, post.sourceId);
+async function insert(store, reserved, post) {
+  let free = await freeSlug(store, reserved, post.slug, post.sourceId);
 
   while (free) {
     try {
@@ -245,7 +266,7 @@ async function insert(store, post) {
       // after the candidate that lost.
       if (field !== "slug") throw error;
 
-      free = await freeSlug(store, post.slug, post.sourceId, free.attempt + 1);
+      free = await freeSlug(store, reserved, post.slug, post.sourceId, free.attempt + 1);
     }
   }
 
