@@ -128,6 +128,8 @@ const refusalFor = ({ move }, opponent) =>
  * @param {Number} props.spins - How many presses this turn has
  * @param {Number} props.spinMs - How long the current move should take
  * @param {Function} props.onCellActivate - `(index) => void`
+ * @param {Boolean} [props.showInitials] - Stamp each marble with its player's
+ *   initial (a per-browser display preference; see `src/lib/pieceInitials.js`)
  * @param {?Set<Number>} [props.winningCells] - Squares in a completed line
  * @param {Number[]} [props.winningOrder] - Those squares, in stagger order
  * @param {Boolean} [props.decided] - The game is over
@@ -145,6 +147,7 @@ export const Board = ({
   onCellActivate,
   overlay,
   players,
+  showInitials,
   spin,
   spinMs,
   spinning,
@@ -264,6 +267,7 @@ export const Board = ({
           decided={decided}
           ids={ids}
           players={players}
+          showInitials={showInitials}
           winningCells={winningCells}
           winningOrder={winningOrder}
         />

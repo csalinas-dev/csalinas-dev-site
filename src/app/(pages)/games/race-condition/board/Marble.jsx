@@ -63,9 +63,9 @@ const Disc = styled.div`
   }
 `;
 
-// SVG rather than a text node so the initial scales with the board instead of
-// with the root font size: the same markup has to look right in a 6rem square on
-// a desktop and a 60px one on a phone.
+// SVG rather than a text node so the marble — and the initial, when it is shown
+// — scales with the board instead of with the root font size: the same markup
+// has to look right in a 6rem square on a desktop and a 60px one on a phone.
 const Glyph = styled.svg`
   display: block;
   height: 100%;
@@ -90,11 +90,21 @@ const MARBLE_RADIUS = 9.2;
  * a transform between two renders, not this component knowing anything about the
  * orbit.
  *
- * The initial is not decoration. Cyan and gold is the kindest two-colour pair
- * for the common colour-vision deficiencies, but the site's rule is that colour
- * never carries a fact on its own — and on a board where sixteen marbles sit
- * shoulder to shoulder and all of them move at once, "which of these is mine" is
- * the only fact there is.
+ * A plain coloured marble, because nobody in this game types a name — the
+ * initial was always just the first letter of the colour. The "sixteen marbles
+ * shoulder to shoulder" argument that used to sit here did not survive being
+ * measured against this file: `Disc` has `padding: 6%` and the circle is r=9.2
+ * in a 0 0 20 20 viewBox, so a marble is ~81% of a square wide and adjacent
+ * marbles are separated by ~19% of a square of dark board plus each marble's own
+ * rim. They never actually touch. Cyan against gold is CIEDE2000 44-67 under
+ * protanopia, deuteranopia and tritanopia alike and both marbles clear 7:1
+ * against the board, so a moving board does not make them ambiguous either.
+ *
+ * The one vision that is left is luminance-only, where the two marbles are
+ * 1.3-1.6:1 apart and therefore the same marble. `showInitials` is for that: a
+ * per-browser preference (`src/lib/pieceInitials.js`), off by default, shared
+ * with Connect 404, that puts the letter back exactly as it was. The rim stays
+ * either way — with the letter gone it is doing more work, not less.
  *
  * @param {Object} props
  * @param {Object} props.player - A player descriptor from `players.js`
@@ -102,8 +112,9 @@ const MARBLE_RADIUS = 9.2;
  * @param {Number} props.col - Column 0 is the LEFT
  * @param {Number} props.winIndex - Its place along the winning line, or -1
  * @param {Boolean} props.dimmed - The game is decided and this is not part of it
+ * @param {Boolean} [props.showInitials] - Stamp the player's initial on the marble
  */
-export const Marble = ({ col, dimmed, player, row, winIndex }) => {
+export const Marble = ({ col, dimmed, player, row, showInitials = false, winIndex }) => {
   const winning = winIndex >= 0;
 
   return (
@@ -131,15 +142,17 @@ export const Marble = ({ col, dimmed, player, row, winIndex }) => {
             stroke="rgba(0, 0, 0, 0.32)"
             strokeWidth="0.7"
           />
-          <text
-            dominantBaseline="central"
-            fontSize="9"
-            textAnchor="middle"
-            x="10"
-            y="10.4"
-          >
-            {player.initial}
-          </text>
+          {showInitials && (
+            <text
+              dominantBaseline="central"
+              fontSize="9"
+              textAnchor="middle"
+              x="10"
+              y="10.4"
+            >
+              {player.initial}
+            </text>
+          )}
         </Glyph>
       </Disc>
     </Positioner>

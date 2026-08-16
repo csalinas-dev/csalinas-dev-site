@@ -48,7 +48,7 @@ const Stack = styled.div`
  *   game puts its room strip here.
  */
 export default function Game({ banner }) {
-  const { state, dispatch, online } = useContext(Context);
+  const { state, dispatch, online, showInitials } = useContext(Context);
   const { game, players } = state;
 
   const result = useMemo(() => getResult(game), [game]);
@@ -95,6 +95,7 @@ export default function Game({ banner }) {
           interactive={interactive}
           onDrop={onDrop}
           players={players}
+          showInitials={showInitials}
           youSlot={youSlot}
         />
 

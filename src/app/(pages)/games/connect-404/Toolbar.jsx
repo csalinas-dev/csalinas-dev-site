@@ -2,6 +2,8 @@
 
 import styled from "@emotion/styled";
 
+import { InitialsToggle } from "./components";
+
 const Container = styled.div`
   align-items: center;
   background-color: var(--absentBackground);
@@ -65,6 +67,9 @@ const Action = styled.button`
  * The action is optional, and a null handler means the button is not there at
  * all rather than there and inert. Online there is no "restart" mid-game: a
  * shared board is not one player's to wipe.
+ *
+ * The initials toggle is unconditional — it is a display preference, so it is
+ * there in both modes and reads the context itself.
  */
 export const Toolbar = ({ cells, moves, onRestart }) => (
   <Container>
@@ -72,6 +77,7 @@ export const Toolbar = ({ cells, moves, onRestart }) => (
     <Progress>
       {moves} / {cells} pieces
     </Progress>
+    <InitialsToggle />
     {onRestart && (
       <Action onClick={onRestart} type="button">
         {/* The Font Awesome kit replaces this <i> with an <svg> after mount, so

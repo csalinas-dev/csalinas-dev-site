@@ -1,6 +1,8 @@
 "use client";
 
-import { createContext, useMemo, useReducer } from "react";
+import { createContext, useEffect, useMemo, useReducer, useState } from "react";
+
+import { readPieceInitials } from "@/lib/pieceInitials";
 
 import reducer from "./reducer";
 // Aliased: `newGame` is also the name of the action creator this module
@@ -11,13 +13,15 @@ import { newGame as freshGame } from "./reducer/newGame";
 export const createDefaultState = () => freshGame();
 
 /**
- * The five facts everything below this provider is allowed to know.
+ * The seven facts everything below this provider is allowed to know.
  *
- *   state     `{ game, players }` — the engine state and the cast
- *   dispatch  the same actions in both modes; online turns them into requests
- *   canPlay   MAY THIS DEVICE COMMIT A TURN RIGHT NOW. The only authority on it.
- *   canReset  may this device start the next game
- *   online    null when there is no room — the per-player view lives here
+ *   state            `{ game, players }` — the engine state and the cast
+ *   dispatch         the same actions in both modes; online turns them into requests
+ *   canPlay          MAY THIS DEVICE COMMIT A TURN RIGHT NOW. The only authority on it.
+ *   canReset         may this device start the next game
+ *   online           null when there is no room — the per-player view lives here
+ *   showInitials     does THIS browser stamp the initial on its marbles
+ *   setShowInitials  turns that on and off
  *
  * THIS IS THE SEAM AND IT IS LOAD-BEARING. `canPlay` is the one place "may I
  * act" is decided, and `online?.youSlot` is the one source of which seat this
@@ -25,6 +29,13 @@ export const createDefaultState = () => freshGame();
  * `game.turn` when `online` is set: on one device they are the same player and
  * online they are usually not, and a board that works that out for itself is a
  * board #144 has to rewrite.
+ *
+ * The last two are the odd pair out and deliberately so: a DISPLAY preference,
+ * not game state. They ride here rather than through `dispatch` because online
+ * `dispatch` IS the wire, and a preference that has to be remembered *not* to
+ * send is a preference that will one day be sent. Two plain keys on the context
+ * value cannot reach room state, cannot move the revision, and cannot change
+ * what the other player sees or how the game runs.
  */
 export const Context = createContext({
   state: createDefaultState(),
@@ -32,6 +43,8 @@ export const Context = createContext({
   canPlay: true,
   canReset: false,
   online: null,
+  showInitials: false,
+  setShowInitials: () => {},
 });
 
 /**
@@ -46,6 +59,16 @@ export const ContextProvider = ({ children }) => {
   // first client render has to produce exactly the markup the server did.
   const [state, dispatch] = useReducer(reducer, undefined, createDefaultState);
 
+  const [showInitials, setShowInitials] = useState(false);
+
+  // The stored preference can't seed the initial state, for the same reason the
+  // board can't: the first client render has to match the server's markup.
+  // Restore it right after mount instead.
+  useEffect(() => {
+    const saved = readPieceInitials();
+    if (saved !== null) setShowInitials(saved);
+  }, []);
+
   const store = useMemo(
     () => ({
       state,
@@ -57,8 +80,10 @@ export const ContextProvider = ({ children }) => {
       // game is over it is the rematch, and the endgame panel owns it.
       canReset: state.game.lastTurn !== null || state.game.finished,
       online: null,
+      showInitials,
+      setShowInitials,
     }),
-    [state, dispatch]
+    [state, dispatch, showInitials]
   );
 
   return <Context.Provider value={store}>{children}</Context.Provider>;

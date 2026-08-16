@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { readPieceInitials } from "@/lib/pieceInitials";
 import { absenceOf } from "@/lib/realtime/absence";
 import { useRoom } from "@/lib/realtime/useRoom";
 
@@ -43,6 +44,17 @@ export const OnlineGame = ({ code, onLeave }) => {
   } = useRoom({ code, game: C404_GAME_ID });
 
   const [notice, setNotice] = useState(null);
+
+  // Whether THIS browser stamps the initial on its pieces. Deliberately not in
+  // the room's state: both players set it independently, and pressing the toggle
+  // sends nothing and moves no revision. It is restored after mount for the same
+  // reason the hotseat provider does it — the page is prerendered.
+  const [showInitials, setShowInitials] = useState(false);
+
+  useEffect(() => {
+    const saved = readPieceInitials();
+    if (saved !== null) setShowInitials(saved);
+  }, []);
 
   // The seat this browser holds, resolved by the server from its token. Null for
   // a spectator, which is what closes the board to them.
@@ -133,6 +145,8 @@ export const OnlineGame = ({ code, onLeave }) => {
     () => ({
       state: { game, players: cast },
       dispatch,
+      showInitials,
+      setShowInitials,
       online: {
         // Left or dropped, so the bar can explain a board that has stopped
         // moving. Mid-game the seat is never deleted — it has to stay for the
@@ -157,6 +171,7 @@ export const OnlineGame = ({ code, onLeave }) => {
       game,
       notice,
       opponent,
+      showInitials,
       spectating,
       youSlot,
     ],

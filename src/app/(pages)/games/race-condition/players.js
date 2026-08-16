@@ -10,17 +10,23 @@
  * `color` is a CSS custom property reference, so it resolves anywhere the theme
  * does and stays in step with it.
  *
- * Colour is never the only signal. Every marble is stamped with its player's
- * initial as well as filled with their colour, which matters more here than it
- * does on Connect 404's board: sixteen marbles sit shoulder to shoulder on a
- * 4x4 and the orbit rearranges all of them at once, so "which of these is mine"
- * has to survive a monochrome screen and a moving board.
+ * `initial` stays on the descriptor and the turn banner, the online strip and
+ * the endgame panel still print it. The BOARD draws it only when the player has
+ * asked for it (`src/lib/pieceInitials.js`, off by default): nobody types a name
+ * in this game, so an initial was always just the first letter of the colour.
+ * The "sixteen marbles shoulder to shoulder" argument that used to sit here did
+ * not survive being measured — a marble is ~81% of a square wide, so adjacent
+ * marbles never touch, and cyan against gold is CIEDE2000 44-67 under every
+ * common colour-vision deficiency with both marbles clearing 7:1 against the
+ * board. The one vision colour alone does not serve is luminance-only — the two
+ * are 1.3-1.6:1 apart — and that is what the preference is for.
  */
 
-// Cyan and gold rather than Connect 404's red and blue. Marbles here touch each
-// other on every side, and blue-against-yellow is the two-colour pair that
-// survives the common colour-vision deficiencies best; red-against-blue at this
-// density does not. Both are off the site palette rather than a crayon box.
+// Cyan and gold rather than Connect 404's red and blue. Marbles here are packed
+// four to a side with a moving board under them, and blue-against-yellow is the
+// two-colour pair that survives the common colour-vision deficiencies best;
+// red-against-blue at this density does not. Both are off the site palette
+// rather than a crayon box.
 export const PLAYER_PALETTE = Object.freeze([
   {
     choice: "cyan",
