@@ -201,6 +201,19 @@ export const Toc = styled("details")`
     position: sticky;
     top: 60px;
 
+    /* How many headings a post has, and how long each one is, are the author's
+       choices — and on a synced post that author is not on this side. A sticky
+       box taller than the viewport does not scroll with the page once pinned: it
+       stays at top: 60px and everything below the viewport's bottom edge is
+       simply unreachable. Measured on /blog/toc-overflow with ten entries in the
+       rail (an unremarkable count for a longform newsletter): 949px of rail
+       pinned at 60 in a 1000px viewport, the last entry's bottom at 1026. So the
+       rail scrolls itself instead of running off the screen. 100svh is the same
+       unit globals.css gives <body>; 76px is the 60px offset plus some air. */
+    max-height: calc(100svh - 76px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+
     /* Open and non-collapsible up here, so the summary is a label rather than a
        control — no disclosure triangle, no pointer affordance. */
     summary {

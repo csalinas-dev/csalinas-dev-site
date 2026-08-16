@@ -2,6 +2,9 @@
 //
 //   node .agent/scripts/verify-blog-overflow.mjs <baseUrl> [--widths 1200,430] [--paths /blog/x,/blog/y]
 //
+// Prefix `--paths` runs with MSYS_NO_PATHCONV=1 under Git Bash, or it rewrites
+// the leading slash into a Windows path and the URL fails to navigate.
+//
 // Seed .agent/fixtures/substack/feed-overflow.xml first — that fixture IS the
 // input to this script:
 //
@@ -131,6 +134,14 @@ const DEFAULT_PAGES = [
     carries: "a 4-entry TOC, one entry holding a 200-character run",
   },
   {
+    // The rail's other axis. How many sections a post has is the author's
+    // choice too, and a pinned box taller than the viewport does not scroll
+    // with the page — the entries past the bottom edge are unreachable.
+    path: "/blog/toc-tall",
+    anchor: (a) => a.tocEntries >= 14,
+    carries: "a 14-entry TOC",
+  },
+  {
     path: "/blog/hashtag",
     anchor: (a) => a.longestRun > 0,
     carries: "the MDX control post",
@@ -238,19 +249,33 @@ const PAGE_SCRIPT = `(async () => {
 
   // The rail, measured against ITSELF rather than against the viewport. A TOC
   // entry that spills is broken long before it reaches the page edge: at 1200px
-  // the rail is 150px and the article starts at x=262, so a 589px entry is
-  // painted over the article's opening paragraphs while body.scrollWidth is
-  // still a contented 1200. Only past ~145 unbreakable characters does it also
-  // become a page-level overflow, so the page-level assertions cannot stand in
-  // for this one.
-  const tocBox = document.querySelector("details");
+  // the rail is 150px wide and ends at x=214, so a 507px entry is painted over
+  // the article beside it while body.scrollWidth is still a contented 1200.
+  // Only past ~145 unbreakable characters does it ALSO become a page-level
+  // overflow, so nothing above can stand in for this.
+  //
+  // scrollWidth, not getBoundingClientRect(): the entry is a flex item of a
+  // column flex container, so its BOX is stretched to the rail's 150px whatever
+  // it holds — measured 150 on all four entries with the wrap rule removed,
+  // while their content ran to 210, 507, 1568 and 175. A box measurement here
+  // would report the bug as fine.
+  const tocEl = document.querySelector("details");
   const tocLinks = [...document.querySelectorAll("details a")];
+  const tocStyle = tocEl ? getComputedStyle(tocEl) : null;
   const toc = {
     entries: tocLinks.length,
-    boxW: tocBox ? round(tocBox.getBoundingClientRect().width) : null,
+    boxW: tocLinks.length ? Math.max(...tocLinks.map((a) => a.clientWidth)) : null,
     maxEntryW: tocLinks.length
-      ? Math.max(...tocLinks.map((a) => round(a.getBoundingClientRect().width)))
+      ? Math.max(...tocLinks.map((a) => a.scrollWidth))
       : null,
+    // Only meaningful where the rail is pinned. Below 900px it is a collapsed
+    // <details> in normal flow, and a tall list there just scrolls with the
+    // page like everything else.
+    sticky: tocStyle?.position === "sticky",
+    h: tocEl ? round(tocEl.getBoundingClientRect().height) : null,
+    // The offset it sticks at (60px, clearing the sticky nav) is the top of the
+    // room it has; the viewport's bottom edge is the other end.
+    room: tocStyle ? innerHeight - parseFloat(tocStyle.top || "0") : null,
   };
 
   return {
@@ -354,10 +379,19 @@ try {
         fail(`a <${m.widest.tag}> escapes: laid out ${m.widest.w}px wide in a ${m.viewport.w}px viewport`);
       }
 
-      // The rail against itself. 1px of slack for subpixel rounding.
-      if (m.toc.maxEntryW != null && m.toc.maxEntryW > m.toc.boxW + 1) {
+      // The rail against itself, and the only assertion here that fails at 1200
+      // on an ordinary heading rather than only on a pasted token.
+      if (m.toc.maxEntryW != null && m.toc.maxEntryW > m.toc.boxW) {
         fail(
-          `a TOC entry is ${m.toc.maxEntryW}px wide in a ${m.toc.boxW}px rail — it is painted over the article`
+          `a TOC entry's content is ${m.toc.maxEntryW}px wide in a ${m.toc.boxW}px rail — it is painted over the article`
+        );
+      }
+
+      // Same rail, other axis: pinned and taller than the room it is pinned in
+      // means the entries below the fold can never be reached.
+      if (m.toc.sticky && m.toc.h > m.toc.room) {
+        fail(
+          `the pinned TOC is ${m.toc.h}px tall with ${m.toc.room}px of room — its last entries are unreachable`
         );
       }
 
@@ -366,7 +400,8 @@ try {
           `text ${m.paragraphMax}  body.scrollWidth ${m.body.scrollWidth}/${m.body.clientWidth}  ` +
           `widest ${m.widest?.tag} ${m.widest?.w}  overflow-wrap: ${m.article.overflowWrap}` +
           (m.toc.entries
-            ? `  toc ${m.toc.entries} entries, widest ${m.toc.maxEntryW}/${m.toc.boxW}`
+            ? `  toc ${m.toc.entries} entries, widest content ${m.toc.maxEntryW}/${m.toc.boxW}` +
+              (m.toc.sticky ? `, pinned ${m.toc.h}/${m.toc.room}` : "")
             : "")
       );
     }
