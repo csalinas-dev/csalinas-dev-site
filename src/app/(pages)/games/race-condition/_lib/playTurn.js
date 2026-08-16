@@ -27,7 +27,7 @@
 import { DrawReason, MoveError, OVERTIME_SPINS } from "./constants";
 import { isBoardFull, isCellInRange, isEmpty } from "./board";
 import { completedLines } from "./lines";
-import { canMove } from "./moves";
+import { applyMove, canMove } from "./moves";
 import { orbit } from "./orbit";
 
 const MESSAGES = {
@@ -125,18 +125,16 @@ export const playTurn = (state, turn, slot) => {
     return reject(state, MoveError.BadTurn);
   }
 
-  // Step 1 — the optional slide.
-  let played = cells;
-
+  // Step 1 — the optional slide. `applyMove` is the one implementation of it;
+  // it hands back `cells` BY REFERENCE when the slide is declined, which is what
+  // the `played === cells` check below reads.
   if (move !== null) {
     const refusal = canMove(state, move.from, move.to, slot);
 
     if (refusal !== null) return reject(state, refusal);
-
-    played = [...cells];
-    played[move.to] = played[move.from];
-    played[move.from] = null;
   }
+
+  const played = applyMove(cells, move);
 
   // Step 2 — the placement, judged against the board the slide left behind.
   if (!isCellInRange(place)) return reject(state, MoveError.OutOfRange);
