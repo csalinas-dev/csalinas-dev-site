@@ -9,7 +9,7 @@ const TermsAndConditions = () => {
       <Title>Terms and Conditions</Title>
 
       <Typography variant="h4" component="h2" gutterBottom>
-        Last Updated: August 3, 2026
+        Last Updated: August 16, 2026
       </Typography>
 
       <Typography variant="body1" paragraph>
@@ -65,7 +65,7 @@ const TermsAndConditions = () => {
       </Typography>
 
       <Typography variant="body1" paragraph>
-        Tic-Tac-Overflow, Edge Case, Connect 404 and Race Condition can be played online with other people. Each game lives in a room with a four-character code, and anyone holding that code can join it or watch it. Codes are listed nowhere, but they are short and they are not secret — share one only with the people you mean to play with.
+        Several of the games can be played online with other people. Each game lives in a room with a four-character code, and anyone holding that code can join it or watch it. Codes are listed nowhere, but they are short and they are not secret — share one only with the people you mean to play with.
       </Typography>
 
       <Typography variant="body1" paragraph>
