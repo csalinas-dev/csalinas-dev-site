@@ -26,7 +26,7 @@
 // The exit code is this script's own rather than shot.mjs's. shot.mjs does exit
 // 1 on a thrown page script here too, so the missing-`result` guard below is
 // belt-and-braces — but it costs a line and it keeps this gate's contract from
-// depending on which revision of shot.mjs the branch carries.
+// depending on shot.mjs's verdict at all.
 //
 // Sections are named so a LEGITIMATE change can be excluded from a comparison
 // with --only (after seeding synced posts, `footer` and `cards` change on
@@ -156,8 +156,10 @@ const capture = (path) => {
     throw new Error(`shot.mjs printed no JSON for ${url}\n${shot.stdout?.slice(0, 400)}`);
   }
 
-  // shot.mjs on this branch predates #158 and reports a thrown page script as a
-  // successful run with no `result`. Refuse it rather than record a null page.
+  // Redundant with #158 — shot.mjs now exits 3 when a page script throws or
+  // returns nothing, so the status check above already catches it. Kept so this
+  // gate never has to trust shot.mjs's verdict: a run that reported a page with
+  // no `result` as a success would otherwise be recorded as a null page.
   if (!payload.result) {
     throw new Error(`the page script returned nothing for ${url} — it threw, or the page has no content`);
   }

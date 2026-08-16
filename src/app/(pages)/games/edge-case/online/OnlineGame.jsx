@@ -70,12 +70,24 @@ export const OnlineGame = ({ code, name, onLeave, spectate = false }) => {
   // the only thing that knows whose idea it was.
   const leaving = useRef(false);
 
-  // `me` alone is not enough to conclude it. `me` is resolved per payload from
-  // whatever token that payload was fetched with, so a snapshot that arrives
-  // without one — a stream whose ticket did not redeem, for instance — reports
-  // `me: null` for a player who is still very much sitting in the room. The
-  // roster cannot lie in the same way: if the seat is really gone, it is gone
-  // from `players` too, and that is what this asks.
+  // The case this used to defend against on its own — a payload that arrives
+  // without an identity (a stream whose ticket did not redeem) reporting
+  // `me: null` for a player who is still sitting in the room — is now handled
+  // in the core, by `keepSeat` in `@/lib/realtime/identity`. That is the one
+  // place that rule lives, and `me` here is already repaired by the time it
+  // arrives: it goes null only when the seat is genuinely gone.
+  //
+  // What is left is the question the core cannot answer, and the reason this
+  // stays: `keepSeat` repairs `me`, it never says you were *removed*. Only
+  // `heldSlot.current !== null` separates "I had a seat and lost it" from "I
+  // never had one", which is what stops a genuine spectator being told they
+  // were removed, and only `leaving` knows whose idea it was.
+  //
+  // The `players.some(...)` half is the restatement of `keepSeat`'s rule, and a
+  // coarser one: the core also declines a slot that a newcomer has since taken.
+  // Where the two differ this simply does not fire, which is the safe way round
+  // — it can only ever make the sentence appear less often, never wrongly. If
+  // they ever disagree the core is right, so change it there, not here.
   const removed =
     !me &&
     !leaving.current &&
