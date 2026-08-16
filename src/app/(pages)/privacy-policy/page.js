@@ -141,11 +141,12 @@ const PrivacyPolicy = () => {
         <ListItem>Google reCAPTCHA, on the registration form, to keep automated sign-ups out</ListItem>
         <ListItem>Font Awesome, which serves the site&apos;s icons</ListItem>
         <ListItem>github-contributions-api.jogruber.de, on the GitHub page only, which supplies the contribution graph</ListItem>
+        <ListItem>substackcdn.com, on blog posts that came from my newsletter, which serves the images in them and therefore sees your IP address when one of those posts loads</ListItem>
         <ListItem>Google or GitHub, but only if you choose to sign in with one of them</ListItem>
       </List>
 
       <Typography variant="body1" paragraph>
-        Content for the project pages comes from Hygraph, but my server fetches it — your browser never contacts them.
+        Two things on the Website are written somewhere else and fetched by my server rather than by your browser: the Mini Motorways page&apos;s data, which comes from Hygraph, and the text of the blog posts that started life on my Substack newsletter, which my server collects on a schedule and stores. Your browser never contacts either one to read a post here.
       </Typography>
 
       <Typography variant="body1" paragraph>

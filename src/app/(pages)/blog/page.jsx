@@ -2,6 +2,10 @@ import Image from "next/image";
 
 import { FormattedDate, Section, Title } from "@/components";
 import { getPosts } from "@/lib/blog";
+// Directly, NOT `@/lib/substack`: the index statically re-exports ./sync, which
+// would pull sanitize-html and fast-xml-parser into this route's bundle and run
+// auditAllowlist() on the render path.
+import { scheduleSubstackRefresh } from "@/lib/substack/refresh";
 
 import {
   Body,
@@ -28,6 +32,10 @@ export const metadata = {
 };
 
 const Blog = async () => {
+  // Registers an after() callback and returns; the sync runs once the response
+  // is finished. See src/lib/substack/refresh.js.
+  scheduleSubstackRefresh();
+
   const posts = await getPosts();
 
   return (

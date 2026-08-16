@@ -1,9 +1,14 @@
 // The idempotent sync. Read the feed, decide per post, write only what changed.
 //
 // Callable with no HTTP request and no framework around it (#151 section 5;
-// #154 wires the trigger). It must NEVER be called from a page render — a blog
-// page that syncs is a blog page that fails when Substack is down, which is the
-// exact thing #151 section 9 forbids.
+// #154 wired the trigger).
+//
+// IT IS CALLED FROM A BLOG PAGE — but never DURING one. `src/lib/substack/
+// refresh.js` registers it with `after()`, so it runs once the response is
+// finished, behind a 10-minute single-flight gate. The durable half of the old
+// rule survives unchanged: NEVER `await` this in a render. A blog page that
+// waits for Substack is a blog page that fails when Substack is down, which is
+// the exact thing #151 section 9 forbids.
 //
 // Two injected seams, `readFeed` and `store`, are the whole abstraction budget.
 // They exist so the pipeline can be exercised end to end with no network and no

@@ -2,6 +2,10 @@ import { notFound } from "next/navigation";
 
 import { FormattedDate, Link } from "@/components";
 import { getAdjacentPosts, getPost } from "@/lib/blog";
+// Directly, NOT `@/lib/substack`: the index statically re-exports ./sync, which
+// would pull sanitize-html and fast-xml-parser into this route's bundle and run
+// auditAllowlist() on the render path.
+import { scheduleSubstackRefresh } from "@/lib/substack/refresh";
 
 import { PostBody } from "./PostBody";
 import {
@@ -53,6 +57,12 @@ const ogImages = (cover) => {
 };
 
 export async function generateMetadata({ params }) {
+  // Here as well as in Page: a link to a post that has not synced yet is exactly
+  // the case where the trigger matters, and this can notFound() before Page runs.
+  // Calling it twice in one request is free — the gate collapses the second call
+  // onto the first's promise. See src/lib/substack/refresh.js.
+  scheduleSubstackRefresh();
+
   const { slug } = await params;
   const post = await getPost(slug);
 
@@ -75,6 +85,8 @@ export async function generateMetadata({ params }) {
 }
 
 export default async function Page({ params }) {
+  scheduleSubstackRefresh();
+
   const { slug } = await params;
   const post = await getPost(slug);
 

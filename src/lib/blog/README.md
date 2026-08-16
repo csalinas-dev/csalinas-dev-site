@@ -77,7 +77,12 @@ that arrives between deploys has to be reachable without a rebuild.
 
 **No cache.** Not `unstable_cache`, not `revalidate`. A stale listing right after
 a sync is a worse first bug than one small query per blog request; add caching
-when there is a measurement saying it is needed.
+when there is a measurement saying it is needed. The refresh gate the same routes
+register (`src/lib/substack/throttle.js`) is not a counterexample and must not be
+conflated with this one: it throttles the **write** path — how often the feed is
+fetched — while the read path stays uncached on purpose, which is exactly what
+lets a completed background sync appear on the very next request with no
+`revalidatePath`.
 
 **A store error is logged by code, never by message.** A driver is free to echo
 back the values it was handed and one of those is an article body — the same rule
