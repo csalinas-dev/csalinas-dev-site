@@ -57,6 +57,13 @@ const { sanitizePostHtml, sanitizeText, auditAllowlist } = await load("sanitize.
 const { normalizeItem } = await load("normalize.js");
 const { syncSubstackPosts } = await load("sync.js");
 
+// The reserved-slug list the sync defaults to. Loadable here for exactly the
+// reason sync.js imports it RELATIVELY: it has no imports of its own, so plain
+// `node` can read it without the `@/` alias or an .mdx compiler.
+const { MDX_SLUGS } = await import(
+  pathToFileURL(join(ROOT, "src/content/posts/slugs.js")).href
+);
+
 // ── harness ────────────────────────────────────────────────────────────────
 let failures = 0;
 
@@ -1072,6 +1079,66 @@ await checkAsync("colliding slugs become foo and foo-2, and re-running does not 
   assertEq(store.rows.size, 2, "a re-run duplicated a post");
 
   return slugs.join(", ");
+});
+
+// AN MDX POST ALWAYS OWNS ITS SLUG. This is the sync half of the rule; the read
+// half (a row that somehow already holds a reserved slug is dropped from the
+// listing) is checked by verify-blog-posts.mjs. Both halves exist because one
+// alone leaves a race — a post synced before an MDX post is added would keep the
+// URL.
+await checkAsync("a post whose slug is reserved by an MDX post is stored as <slug>-2", async () => {
+  anchor("feed-reserved-slug", "https://fixture.substack.com/p/hashtag");
+
+  // No `reservedSlugs` option: the DEFAULT has to be the MDX list, or the rule
+  // would hold only inside this script.
+  assert(MDX_SLUGS.includes("hashtag"), "ANCHOR FAILED: src/content/posts/slugs.js no longer reserves 'hashtag'");
+
+  const store = makeStore();
+  const report = await sync("feed-reserved-slug", store);
+
+  assertEq(report.created, 2, "the reserved collision aborted the run instead of suffixing past it");
+
+  const slugs = [...store.rows.values()].map((row) => row.slug);
+
+  assertEq(slugs, ["hashtag-2", "unreserved"], "the reserved slug was not skipped");
+  assert(!slugs.includes("hashtag"), "an MDX post's slug was written to the SubstackPost table");
+
+  return slugs.join(", ");
+});
+
+await checkAsync("re-syncing over a reserved collision still writes nothing the second time", async () => {
+  const store = makeStore();
+
+  await sync("feed-reserved-slug", store);
+
+  const before = [...store.rows.values()].map((row) => row.slug);
+  const writes = store.writes;
+
+  await sync("feed-reserved-slug", store);
+
+  assert(writes > 0, "ANCHOR FAILED: the first sync wrote nothing, so a second writing nothing proves nothing");
+  assertEq(store.writes - writes, 0, "the second run wrote to the store");
+  assertEq([...store.rows.values()].map((row) => row.slug), before, "a re-run renumbered the suffixed slug");
+
+  return `0 writes after ${writes}`;
+});
+
+await checkAsync("the reservation is about the list, not about one hardcoded name", async () => {
+  const store = makeStore();
+  // A slug the fixture really does derive, reserved through the option — so the
+  // skip is shown to follow the list rather than the word "hashtag".
+  const report = await syncSubstackPosts({
+    feedUrl: FEED_URL,
+    readFeed: async () => fixture("feed-single-item"),
+    store,
+    reservedSlugs: ["the-only-post"],
+    now: CLOCK,
+  });
+
+  assertEq(report.created, 1, "the run did not create the post");
+  assertEq([...store.rows.values()][0].slug, "the-only-post-2", "the injected reserved slug was not skipped");
+
+  return "the-only-post-2";
 });
 
 await checkAsync("a concurrent insert of the same sourceId is absorbed, not reported as a failure", async () => {

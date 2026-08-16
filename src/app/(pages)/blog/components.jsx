@@ -85,17 +85,24 @@ export const Category = styled("span")`
   }
 `;
 
+// A synced post's title and excerpt are third-party text. The Card's own
+// `overflow: hidden` already stops one unbreakable token from inflating the
+// grid track (a grid item that clips has an automatic minimum size of 0), so the
+// page never widens — but without this the token would be silently sliced off
+// mid-character at the card's edge instead of wrapping.
 export const CardTitle = styled("h2")`
   color: var(--function);
   font-size: 1.35rem;
   line-height: 1.3;
   margin: 0;
+  overflow-wrap: anywhere;
 `;
 
 export const Excerpt = styled("p")`
   color: var(--muted);
   font-size: 1rem;
   margin: 0;
+  overflow-wrap: anywhere;
 `;
 
 export const Tags = styled("div")`

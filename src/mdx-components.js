@@ -2,6 +2,8 @@ import NextImage from "next/image";
 import { highlight } from "sugar-high";
 
 import { CopyButton, Link } from "@/components";
+// Shared with `withHeadingIds`, which does the same job for synced posts.
+import { slugifyHeading } from "@/lib/blog/headings";
 
 // This module must stay a server module — no "use client". @next/mdx aliases
 // next-mdx-import-source-file to src/mdx-components in an src/-rooted repo, and
@@ -68,19 +70,12 @@ const toText = (node) =>
         ? toText(node.props.children)
         : "";
 
-const slugify = (value) =>
-  value
-    .toLowerCase()
-    .trim()
-    .replace(/[^\p{L}\p{N}]+/gu, "-")
-    .replace(/^-+|-+$/g, "");
-
 // Gives headings the ids the post's table of contents links to. An incoming id
 // wins: remark-gfm's footnotes section arrives as <h2 id="footnote-label"> and
 // has to keep it. Two identical headings in one post would collide; no post
 // does that.
 const Heading2 = ({ id, children, ...props }) => (
-  <h2 id={id ?? slugify(toText(children))} {...props}>
+  <h2 id={id ?? slugifyHeading(toText(children))} {...props}>
     {children}
   </h2>
 );

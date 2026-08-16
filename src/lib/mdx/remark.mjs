@@ -4,13 +4,15 @@
  * and the blog ships no new packages.
  */
 
+// Explicit extension and relative: this module is loaded by next.config.mjs
+// under plain Node, with no bundler and no `@/` alias.
+import { minutesForWords } from "../blog/reading-time.mjs";
+
 const walk = (node, type, fn) => {
   if (!node || typeof node !== "object") return;
   if (node.type === type) fn(node);
   for (const child of node.children ?? []) walk(child, type, fn);
 };
-
-const WORDS_PER_MINUTE = 200;
 
 /**
  * Injects `export const readingTime = <minutes>` into every compiled post, from
@@ -18,13 +20,16 @@ const WORDS_PER_MINUTE = 200;
  * ESM and not the contents of code fences (those are `code.value`, never `text`
  * children). The estree is hand-built because @mdx-js serializes an mdxjsEsm
  * node from `data.estree`, not from `value`.
+ *
+ * The words-per-minute constant and the rounding are shared with the synced
+ * posts' HTML word count — see src/lib/blog/reading-time.mjs.
  */
 export const remarkReadingTime = () => (tree) => {
   let words = 0;
   walk(tree, "text", (n) => {
     words += n.value.split(/\s+/).filter(Boolean).length;
   });
-  const minutes = Math.max(1, Math.round(words / WORDS_PER_MINUTE));
+  const minutes = minutesForWords(words);
 
   tree.children.push({
     type: "mdxjsEsm",

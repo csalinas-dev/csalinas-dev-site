@@ -121,6 +121,14 @@ answer to "Substack changed the title after we assigned a slug": the title
 updates in place and every inbound link to the old URL survives. The tempting
 `update: { ...post }` would rewrite it and nothing would fail loudly.
 
+**An MDX post always owns its slug.** `freeSlug` skips any candidate in
+`reservedSlugs` (default: `src/content/posts/slugs.js`) exactly as it skips one
+already taken, so a Substack post whose path reduces to an MDX slug is stored as
+`<slug>-2` and `/blog/<slug>` keeps serving the hand-written post. That import is
+**relative** — the `@/` alias does not resolve under the plain-node hook the
+verify script uses. The read half of the rule lives in `src/lib/blog`; both
+halves exist because one alone leaves a race.
+
 **The content hash is taken after sanitization**, over exactly the values that
 would be written. So "hash equal" means "the stored row is already identical to
 what we would write", and tightening the sanitizer allowlist changes every hash
