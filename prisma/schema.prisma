@@ -112,3 +112,35 @@ model WordleGame {
 
   @@unique([userId, date])
 }
+
+// Blog posts ingested from the Substack RSS feed (src/lib/substack).
+//
+// Additive by construction: the deploy runs `prisma db push` WITHOUT
+// --accept-data-loss (.github/workflows/deploy.yml), so this table may only ever
+// gain columns. Nothing in src/lib/substack deletes a row — a feed that stops
+// listing a post (RSS shows only the most recent ~20) must never remove it.
+model SubstackPost {
+  id          String   @id @default(cuid())
+  // The RSS <guid>. Substack emits the canonical post URL with
+  // isPermaLink="false" and exposes no numeric id, so this is the only stable
+  // identity available. NOT the title -- see #151 section 2.
+  sourceId    String   @unique @db.VarChar(400)
+  // Assigned once at insert and NEVER rewritten. This is the public URL.
+  slug        String   @unique @db.VarChar(191)
+  title       String   @db.VarChar(512)
+  description String?  @db.Text
+  contentHtml String   @db.LongText // sanitized; see src/lib/substack/sanitize.js
+  coverImage  String?  @db.VarChar(1024)
+  author      String?  @db.VarChar(255)
+  sourceUrl   String   @db.VarChar(1024)
+  publishedAt DateTime
+  // sha256 of exactly the mutable fields above. Equal hash => nothing to write.
+  contentHash String   @db.Char(64)
+  // Last time this ROW changed. An unchanged post is deliberately not touched,
+  // so this is not "last time the feed was read" -- that belongs to the sync
+  // report (#154).
+  syncedAt    DateTime @updatedAt
+  createdAt   DateTime @default(now())
+
+  @@index([publishedAt])
+}

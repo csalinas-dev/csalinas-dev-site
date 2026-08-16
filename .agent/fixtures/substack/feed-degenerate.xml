@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Well-formed XML carrying items that must NOT become posts. One good item is
+  included last so the checks can prove the run continued past every skip
+  instead of aborting on the first one.
+-->
+<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title><![CDATA[Fixture Publication]]></title>
+    <link>https://fixture.substack.com</link>
+    <item>
+      <title><![CDATA[Unparseable Date]]></title>
+      <description><![CDATA[Its pubDate is not a date.]]></description>
+      <link>https://fixture.substack.com/p/unparseable-date</link>
+      <guid isPermaLink="false">https://fixture.substack.com/p/unparseable-date</guid>
+      <pubDate>whenever, honestly</pubDate>
+      <content:encoded><![CDATA[<p>A body that will never be stored.</p>]]></content:encoded>
+    </item>
+    <item>
+      <title><![CDATA[Empty Body]]></title>
+      <description><![CDATA[Its content:encoded is empty.]]></description>
+      <link>https://fixture.substack.com/p/empty-body</link>
+      <guid isPermaLink="false">https://fixture.substack.com/p/empty-body</guid>
+      <pubDate>Thu, 13 Aug 2026 09:00:00 GMT</pubDate>
+      <content:encoded></content:encoded>
+    </item>
+    <item>
+      <title><![CDATA[Body Is All Chrome]]></title>
+      <description><![CDATA[Its whole body is markup the sanitizer discards.]]></description>
+      <link>https://fixture.substack.com/p/all-chrome</link>
+      <guid isPermaLink="false">https://fixture.substack.com/p/all-chrome</guid>
+      <pubDate>Wed, 12 Aug 2026 09:00:00 GMT</pubDate>
+      <content:encoded><![CDATA[<script>alert(1)</script><style>p{color:red}</style>]]></content:encoded>
+    </item>
+    <item>
+      <title><![CDATA[No Identity]]></title>
+      <description><![CDATA[It has neither a guid nor a link.]]></description>
+      <pubDate>Tue, 11 Aug 2026 09:00:00 GMT</pubDate>
+      <content:encoded><![CDATA[<p>A body with nowhere to belong.</p>]]></content:encoded>
+    </item>
+    <item>
+      <title><![CDATA[The Survivor]]></title>
+      <description><![CDATA[The only item in this feed that should be stored.]]></description>
+      <link>https://fixture.substack.com/p/the-survivor</link>
+      <guid isPermaLink="false">https://fixture.substack.com/p/the-survivor</guid>
+      <dc:creator><![CDATA[Fixture Author]]></dc:creator>
+      <pubDate>Mon, 10 Aug 2026 09:00:00 GMT</pubDate>
+      <content:encoded><![CDATA[<p>The run continued past every skip above.</p>]]></content:encoded>
+    </item>
+  </channel>
+</rss>
