@@ -10,6 +10,16 @@
 import { getFeedUrl } from "./config";
 import { recordSyncOutcome } from "./status";
 
+// EVERY LOG LINE HERE GOES TO STDERR, deliberately, including the happy ones.
+//
+// `console.info` and `console.log` write to STDOUT, and scripts/sync-substack.mjs
+// pipes stdout verbatim into $GITHUB_STEP_SUMMARY — a single info line lands in
+// the middle of the markdown and corrupts the run page. (This was not
+// hypothetical: the first end-to-end run put `refresh: starting` above the
+// headline.) Under `next start` stderr is the same server log, so nothing is
+// lost there.
+const log = (line) => process.stderr.write(`${line}\n`);
+
 // A report for a failure that happened before `syncSubstackPosts` could produce
 // one of its own — shaped exactly like a feed-scope failure, because that is
 // what it is: nothing was read and nothing was written.
@@ -50,7 +60,7 @@ export async function runSubstackSync() {
     return await settle(failedBefore(null, error.message));
   }
 
-  console.info("[substack] refresh: starting");
+  log("[substack] refresh: starting");
 
   let report;
 
@@ -81,12 +91,12 @@ const settle = async (report) => {
   const status = await recordSyncOutcome(report);
 
   if (report.ok) {
-    console.info(
+    log(
       `[substack] refresh: ok — ${report.itemsSeen} seen, ${report.created} created, ` +
         `${report.updated} updated, ${report.unchanged} unchanged, ${report.skipped} skipped`
     );
   } else {
-    console.error(
+    log(
       `[substack] refresh: FAILED — ${report.errors[0]?.message ?? "unknown"}; serving stored posts`
     );
   }
