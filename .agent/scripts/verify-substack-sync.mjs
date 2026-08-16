@@ -397,6 +397,16 @@ check("RSS field names appear only in feed.js", () => {
 // ── sanitization: the security battery ─────────────────────────────────────
 section("Sanitization — attack battery");
 
+// A srcset copied VERBATIM from a <source> in the live astralcodexten.com feed,
+// truncated to two candidates. Do not "tidy" the commas or the `$s_!y1xB!` out of
+// it: Substack's CDN puts comma-separated transform parameters inside the URL
+// PATH, which is exactly the shape a `split(",")` validator mangles. An invented
+// Substack-flavoured value has the hostname right and the shape wrong, and that
+// is how a validator that deleted every real <source> passed every check here.
+const REAL_SUBSTACK_SRCSET =
+  "https://substackcdn.com/image/fetch/$s_!y1xB!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F0a377c57_1000x750.jpeg 424w, " +
+  "https://substackcdn.com/image/fetch/$s_!y1xB!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F0a377c57_1000x750.jpeg 1456w";
+
 const PAYLOADS = [
   ["plain script", "<script>alert(1)</script>"],
   ["event handler on an allowed tag", '<img src="https://x.example/y.png" onerror="alert(1)">'],
@@ -446,6 +456,56 @@ const decodeEntities = (value) =>
     .replace(/&#(\d+);?/g, (unused, dec) => String.fromCodePoint(parseInt(dec, 10)))
     .replace(/&amp;/gi, "&");
 
+// Splits a srcset the way a BROWSER does — and deliberately NOT by calling the
+// same `parse-srcset` the sanitizer calls, because a checker that shares an
+// implementation with the thing it checks cannot catch that implementation being
+// wrong. Per the HTML spec a candidate URL is a run of non-whitespace characters,
+// so a comma separates candidates only at a candidate boundary and is legal
+// inside a URL. `split(",")` gets this wrong in both directions at once: it
+// shreds Substack's real CDN URLs (whose transform parameters are comma-separated
+// path segments) AND it is what let this very helper read
+// `"https://ok/a.png 1x, /admin/x 2x"` as clean off its first candidate.
+const srcsetCandidates = (value) => {
+  const urls = [];
+  let pos = 0;
+
+  while (pos < value.length) {
+    while (pos < value.length && /[\s,]/.test(value[pos])) pos += 1;
+
+    if (pos >= value.length) break;
+
+    const start = pos;
+
+    while (pos < value.length && !/\s/.test(value[pos])) pos += 1;
+
+    const url = value.slice(start, pos);
+
+    if (url.endsWith(",")) {
+      urls.push(url.replace(/,+$/, ""));
+      continue;
+    }
+
+    urls.push(url);
+
+    // Skip this candidate's descriptor: it ends at the next comma that is not
+    // inside parentheses, or at the end of the attribute.
+    let parens = false;
+
+    while (pos < value.length) {
+      const character = value[pos];
+
+      pos += 1;
+
+      if (parens) {
+        if (character === ")") parens = false;
+      } else if (character === "(") parens = true;
+      else if (character === ",") break;
+    }
+  }
+
+  return urls.filter(Boolean);
+};
+
 const assertClean = (html, label) => {
   assert(
     !/<\s*\/?\s*(script|iframe|svg|object|embed|form|button|style|xmp|textarea|meta|base|h1|noscript|template|math)\b/i.test(html),
@@ -464,10 +524,7 @@ const assertClean = (html, label) => {
     // A srcset is a candidate LIST. Testing the attribute as one string only
     // ever looks at the first candidate, so `"https://ok/a.png 1x, /admin/x 2x"`
     // would read as clean — split it and judge every candidate.
-    const urls =
-      name.toLowerCase() === "srcset"
-        ? value.split(",").map((candidate) => candidate.trim().split(/\s+/)[0]).filter(Boolean)
-        : [value];
+    const urls = name.toLowerCase() === "srcset" ? srcsetCandidates(value) : [value];
 
     for (const url of urls) {
       assert(
@@ -584,27 +641,69 @@ check("a dropped <source> is counted, and a legitimate one keeps its whole srcse
     `the <img> fallback was lost along with the <source>: ${dropped.html}`
   );
 
+  // The kept half uses a srcset copied VERBATIM out of the live
+  // astralcodexten.com feed, commas and all. An invented "Substack-flavoured"
+  // value (https://substackcdn.com/w_1456.png 1456w, …) is what let a
+  // `split(",")` validator pass this check while deleting every <source> in
+  // every real post: the comma-separated transform parameters live INSIDE the
+  // CDN path, and 59 of 67 real `src` values contain one. Census for the tags,
+  // the feed itself for the values.
   const kept = sanitizePostHtml(
-    '<picture><source srcset="https://cdn.example/w1456.png 1456w, https://cdn.example/w728.png 728w" sizes="100vw" type="image/webp"><img src="https://cdn.example/w728.png"></picture>'
+    `<picture><source srcset="${REAL_SUBSTACK_SRCSET}" sizes="100vw" type="image/webp"><img src="https://cdn.example/w728.png"></picture>`
   );
 
   assert(kept.html.includes("<source"), `a fully absolute <source> was dropped: ${kept.html}`);
-  assert(kept.html.includes("1456w") && kept.html.includes("728w"), `the srcset lost a candidate: ${kept.html}`);
+  assert(kept.html.includes("1456w") && kept.html.includes("424w"), `the srcset lost a candidate: ${kept.html}`);
+  assert(
+    kept.html.includes("c_limit,f_webp,q_auto:good"),
+    `the commas inside the CDN path did not survive: ${kept.html}`
+  );
   assertEq(kept.imagesDropped, 0, "a valid <source> was counted as dropped");
 
-  return `dropped ${dropped.imagesDropped}, kept the absolute one`;
+  return `dropped ${dropped.imagesDropped}, kept the real CDN srcset`;
 });
 
-check("a dropped element leaves no stray closing tag behind", () => {
-  // sanitize-html has no "delete this element" transform, so a drop degrades the
-  // element to something the allowlist discards — and that stand-in must be
-  // VOID. Degrading void <img>/<source> to a non-void <span> emitted a literal
-  // `</span>` into the stored HTML whenever a sibling followed in the same
-  // parent, which only reproduces with the sibling present.
+check("a srcset with no usable candidate is rejected rather than kept empty", () => {
+  // `.every` on an empty candidate list is `true`, which would leave a
+  // `required` srcset not actually required and a meaningless <source> sitting
+  // inside the <picture> with imagesDropped at 0.
+  for (const value of [",", "   ", "", ",,,"]) {
+    const { html, imagesDropped } = sanitizePostHtml(`<source srcset="${value}">`);
+
+    assert(!html.includes("<source"), `<source srcset="${value}"> survived with no candidate: ${html}`);
+    assertEq(imagesDropped, 1, `<source srcset="${value}"> was dropped without being counted`);
+  }
+
+  return "4 empty candidate lists rejected and counted";
+});
+
+check("a dropped element does not corrupt the next closing tag at its depth", () => {
+  // UPSTREAM BUG, sanitize-html 2.17.7 (index.js:667-681): a transform that
+  // renames the tag records it in transformMap[depth], and the `skip` branch
+  // returns BEFORE the line that deletes that entry. The stale entry is consumed
+  // by the next element closed at the same depth — anywhere in the document, not
+  // just a sibling. With a non-void stand-in that emitted a literal `</span>` in
+  // place of a `</a>`; with a void one (`col`) the closing tag vanished
+  // entirely. BOTH render the same wrong page, so a check that only looks for a
+  // stray `</span>` reports the second form as fixed.
+  //
+  // Every case therefore puts a NON-VOID element at the drop's own depth, which
+  // is what the earlier three cases were missing — their non-void neighbours
+  // were all a level up.
   const cases = [
     '<p><img src="x"><img src="https://ok.example/a.png"></p>',
     '<picture><source srcset="x"><img src="https://ok.example/a.png"></picture>',
     '<figure><picture><source srcset="x"></picture><figcaption>cap</figcaption></figure>',
+    '<figure><img src="x"><figcaption>cap</figcaption></figure>',
+    '<p><img src="rel.png">a<strong>b</strong>c</p>',
+    '<blockquote><img src="x"><p>quote</p></blockquote>',
+    // The one that matters most: the swallowed </a> turns the rest of the
+    // paragraph into a clickable third-party link, with both the relative image
+    // and the link chosen by the untrusted side.
+    '<p><img src="rel.png"><a href="https://evil.example/phish">click</a> the rest of this paragraph</p>',
+    // The dropped element and its victim need not be siblings — only at the same
+    // parser depth.
+    '<picture><source srcset="/rel"></picture><p><a href="https://evil.example/x">click</a> rest</p>',
   ];
 
   for (const input of cases) {
@@ -624,6 +723,17 @@ check("a dropped element leaves no stray closing tag behind", () => {
 
     assertEq(open, [], `an element was never closed: ${html}`);
   }
+
+  // The balance walk above proves the structure; this states the harm, so a
+  // future reader knows what the check is actually protecting.
+  const { html } = sanitizePostHtml(
+    '<p><img src="rel.png"><a href="https://evil.example/phish">click</a> the rest of this paragraph</p>'
+  );
+
+  assert(
+    /<\/a>\s*the rest of this paragraph/.test(html),
+    `the dropped <img> swallowed the </a>, so the whole paragraph links off-site: ${html}`
+  );
 
   return `${cases.length} shapes balanced`;
 });
@@ -728,6 +838,12 @@ check("feed-hostile's shape battery — the census wrappers, with only relative 
     'class="captioned-image-container"',
     "contenteditable=",
     "&lt;iframe src=",
+    // A srcset copied verbatim from the live feed. The invented value this
+    // replaced had Substack's hostname and nobody's path, so it could not show
+    // that a comma lives INSIDE a real CDN URL.
+    "c_limit,f_webp,q_auto:good,fl_progressive:steep",
+    // A dropped element followed by a NON-VOID element at its own depth.
+    'src="rel.png"',
   ]) {
     assert(xml.includes(needle), `ANCHOR FAILED: feed-hostile.xml lost ${needle} — this check would pass vacuously`);
   }
@@ -744,9 +860,11 @@ check("feed-hostile's shape battery — the census wrappers, with only relative 
 
   assertClean(html, "feed-hostile shape battery");
 
-  // Three hostile <source>s (relative, protocol-relative, javascript:), all
-  // dropped and all counted.
-  assertEq(imagesDropped, 3, "the hostile <source> elements were not all dropped and counted");
+  // Three hostile <source>s (relative, protocol-relative, javascript:) plus the
+  // relative <img> in the trailing paragraph — all dropped, all counted. The
+  // count is exact on purpose: over-rejection reads as "we dropped an image"
+  // to the sync report, which is the same lie as under-reporting.
+  assertEq(imagesDropped, 4, "the hostile elements were not all dropped and counted, or a legitimate one was");
   assertEq(embedsRemoved, 2, "both iframes should be counted as removed embeds");
 
   assert(!/<div|<span|<button|<svg|<path|<polyline/i.test(html), `layout or UI chrome survived: ${html}`);
@@ -755,8 +873,14 @@ check("feed-hostile's shape battery — the census wrappers, with only relative 
 
   // Not passing by deleting everything: the legitimate content is still there.
   assert(html.includes('src="https://substackcdn.com/real.png"'), `the valid image was lost: ${html}`);
-  assert(html.includes("1456w") && html.includes("728w"), `the fully absolute <source> was dropped: ${html}`);
+  assert(html.includes("1456w") && html.includes("424w"), `the fully absolute <source> was dropped: ${html}`);
+  assert(
+    html.includes("c_limit,f_webp,q_auto:good"),
+    `the commas inside the real CDN path cost the <source> its srcset: ${html}`
+  );
   assert(html.includes("caption text") && html.includes("shape tail"), `prose was eaten: ${html}`);
+  // The dropped <img src="rel.png"> must not take the following </a> with it.
+  assert(/<\/a>\s*trailing prose/.test(html), `a dropped element swallowed the next closing tag: ${html}`);
   assert(
     html.includes('rel="noopener noreferrer nofollow ugc"') && !html.includes('rel="dofollow"'),
     `the feed's own rel/target were not replaced: ${html}`

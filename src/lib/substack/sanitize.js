@@ -28,6 +28,7 @@
 // and it needs the same bespoke allowlist anyway.
 
 import sanitizeHtml from "sanitize-html";
+import parseSrcset from "parse-srcset";
 
 // Relative URLs are the trap this config exists to close twice over. A bare
 // `href="/admin/delete"` or `src="x"` in third-party content carries NO scheme,
@@ -52,14 +53,45 @@ const isMailto = (url) => {
   }
 };
 
-// A srcset is a comma-separated candidate list. Kept only if EVERY candidate is
-// absolute, rather than trying to repair a partly-relative list.
-const srcsetIsAbsolute = (srcset) =>
-  String(srcset)
-    .split(",")
-    .map((candidate) => candidate.trim().split(/\s+/)[0])
-    .filter(Boolean)
-    .every((url) => absolute(url) !== null);
+// A srcset is a candidate list, and splitting it is NOT `split(",")`. Per the
+// HTML spec a candidate URL is a run of non-whitespace characters — a comma only
+// ends a candidate at a candidate boundary, and is perfectly legal inside a URL.
+// Substack's CDN puts its transform parameters in the path, so essentially every
+// real srcset it emits contains commas:
+//
+//   https://substackcdn.com/image/fetch/$s_!y1xB!,w_424,c_limit,f_webp,…/….jpeg 424w, …
+//
+// Splitting that on "," yields one absolute URL plus `w_424`, `c_limit`, `f_webp`
+// … which are not URLs at all, so an `every(absolute)` check rejects the whole
+// attribute. Measured against the live astralcodexten.com feed: 59 of 67 `src`
+// values contain a comma, and the naive split deleted EVERY <source> in every
+// image-bearing post while reporting them as dropped images. A control that
+// destroys all legitimate content is not strict, it is broken.
+//
+// `parse-srcset` is the WHATWG algorithm, and specifically it is the SAME parser
+// sanitize-html runs on this attribute microseconds later (index.js:456). Using
+// it here rather than transcribing the spec a second time means the validator and
+// the library's own filter can never disagree about where a candidate begins —
+// and a disagreement in the narrowing direction is precisely how a hostile
+// candidate would escape review. It is already resolved in the lockfile as
+// sanitize-html's own dependency; declaring it directly removes a phantom import
+// rather than adding supply-chain surface.
+const srcsetIsAbsolute = (srcset) => {
+  let candidates;
+
+  try {
+    candidates = parseSrcset(String(srcset));
+  } catch {
+    return false;
+  }
+
+  // No candidate at all — `srcset=","`, `srcset="   "`, or a list whose every
+  // descriptor is malformed. Rejected explicitly, because `.every` on an empty
+  // list is `true`, which would leave a `required` srcset not actually required.
+  if (!candidates.length) return false;
+
+  return candidates.every((candidate) => absolute(candidate.url) !== null);
+};
 
 // Link hygiene applied to every surviving <a>: this is untrusted user-generated
 // content pointing off-site.
@@ -141,17 +173,52 @@ const ELEMENTS = {
   td: { attributes: ["colspan", "rowspan"] },
 };
 
-// What a dropped element degrades to. sanitize-html has no "delete this
-// element" transform, so a transform that wants an element gone has to name
-// something the allowlist will discard — and that something must be VOID.
-// Verified against 2.17.7: on the close tag the library only suppresses
-// `</name>` for names in its own `selfClosing` list ('img', 'br', 'hr', 'area',
-// 'base', 'basefont', 'input', 'link', 'meta', 'col'), so degrading a void
-// <img>/<source> to a non-void <span> emitted a stray `</span>` into the stored
-// HTML whenever a sibling followed it in the same parent. `col` is on that list,
-// is absent from ALLOWED_TAGS so it is discarded, and is absent from
-// nonTextTags so it swallows nothing around it.
-const DROPPED_ELEMENT = "col";
+// HOW AN ELEMENT IS DELETED — and why it is not done by renaming the tag.
+//
+// UPSTREAM BUG, sanitize-html 2.17.7, index.js:667-681. A transform that returns
+// a different `tagName` records it in `transformMap[depth]` so the closing tag
+// can be rewritten to match. But when the new name is not allowed, `onclosetag`
+// takes the `skip` branch and `return`s at line 672 — BEFORE line 680 deletes
+// `transformMap[depth]`. The stale entry survives and is consumed by the NEXT
+// element closed at that same depth, anywhere in the document, whose closing tag
+// is then emitted under the wrong name.
+//
+// That is not cosmetic. Renaming to a non-void stand-in (`span`) emitted a
+// literal `</span>` where a `</a>` belonged; renaming to a void one (`col`)
+// suppressed the closing tag entirely, because `col` is on sanitize-html's
+// `selfClosing` list. Both render the same wrong page:
+//
+//   in   <p><img src="rel.png"><a href="https://evil/x">click</a> rest of it</p>
+//   out  <p><a href="https://evil/x" …>click rest of it</p>
+//
+// — the whole remainder of the paragraph becomes a clickable third-party link,
+// with both the dropped image and the link chosen by the untrusted side.
+//
+// The workaround is to never create a `transformMap` entry: the transform keeps
+// the element's own tag name and simply omits the URL attribute that failed, and
+// `exclusiveFilter` (below) deletes the element at its closing tag instead. That
+// path has no rename in it, so nothing can go stale. If the upstream `return` is
+// ever moved after the `delete`, this stays correct — it does not depend on the
+// bug, only on avoiding the code path that has it.
+//
+// EXCLUSIVE FILTER, derived from the same table as everything else so no element
+// can be given a `required` URL without also being deletable. It is also where
+// the drop is COUNTED, rather than in the transform: sanitize-html's own
+// attribute pass runs after the transform and can itself delete a URL attribute
+// (an unparseable srcset descriptor, for one), so the close tag is the only
+// place that sees what the element finally holds. Counting anywhere earlier
+// reports drops that did not happen and misses ones that did.
+const makeExclusiveFilter = (counters) => (frame) => {
+  const element = ELEMENTS[frame.tag];
+
+  if (!element?.required) return false;
+
+  const drop = element.required.some((name) => !frame.attribs[name]);
+
+  if (drop) counters[element.onDrop] += 1;
+
+  return drop;
+};
 
 // Contents discarded, not just the tag — and one list, used by BOTH
 // sanitizePostHtml and sanitizeText, because two copies drift and the copy that
@@ -189,10 +256,6 @@ const ALLOWED_TAGS = [
 // it.
 export const auditAllowlist = (elements = ELEMENTS, allowedTags = ALLOWED_TAGS) => {
   const problems = [];
-
-  if (allowedTags.includes(DROPPED_ELEMENT)) {
-    problems.push(`<${DROPPED_ELEMENT}> is what a dropped element degrades to, so allowing it would make every drop visible instead of gone.`);
-  }
 
   for (const [tag, element] of Object.entries(elements)) {
     if (!allowedTags.includes(tag)) problems.push(`<${tag}> declares attributes but is not in ALLOWED_TAGS.`);
@@ -250,7 +313,12 @@ const ALLOWED_ATTRIBUTES = Object.fromEntries(
 
 // One generated transform per element that can carry a URL. Because it is
 // generated, there is no element for which somebody can forget to write it.
-const makeTransform = (tag, element, counters) => (unusedTagName, attribs) => {
+//
+// It only ever EMITS: a URL that fails its validator is left out of the result,
+// and `tagName` is returned unchanged. Deleting the element is `makeExclusiveFilter`'s
+// job, for the upstream reason spelled out above — a transform that renames the
+// tag corrupts the closing tag of an unrelated element later in the document.
+const makeTransform = (tag, element) => (unusedTagName, attribs) => {
   const next = {};
   let urlsKept = 0;
 
@@ -260,13 +328,6 @@ const makeTransform = (tag, element, counters) => (unusedTagName, attribs) => {
     if (value) {
       next[name] = value;
       urlsKept += 1;
-      continue;
-    }
-
-    if (element.required?.includes(name)) {
-      counters[element.onDrop] += 1;
-
-      return { tagName: DROPPED_ELEMENT, attribs: {} };
     }
   }
 
@@ -293,13 +354,15 @@ const makeConfig = (counters) => ({
 
   nonTextTags: NON_TEXT_TAGS,
 
+  exclusiveFilter: makeExclusiveFilter(counters),
+
   transformTags: {
     h1: "h2",
 
     ...Object.fromEntries(
       Object.entries(ELEMENTS)
         .filter(([, element]) => element.urls)
-        .map(([tag, element]) => [tag, makeTransform(tag, element, counters)])
+        .map(([tag, element]) => [tag, makeTransform(tag, element)])
     ),
 
     // EVERY iframe is removed — none are allowed, by host or otherwise. An

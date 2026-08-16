@@ -60,13 +60,43 @@ same-origin `GET` on a path a third party chose — while `imagesDropped` stayed
 closed and the fourth did not; a fourth hand-written transform would have been
 the same bug waiting for the fifth element.
 
+A `srcset` is **not** split on `,`. Per the HTML spec a candidate URL is a run of
+non-whitespace characters, so a comma inside a URL path is legal — and Substack's
+CDN puts its transform parameters in the path, which makes commas the norm rather
+than the exception (measured on the live `astralcodexten.com` feed: 59 of 67 `src`
+values contain one). Splitting on `,` turned one real candidate into an absolute
+URL plus four fragments that are not URLs at all, so an "every candidate is
+absolute" check rejected the whole attribute and deleted every `<source>` in every
+image-bearing post while reporting them as dropped images. The validator therefore
+calls `parse-srcset` — the WHATWG algorithm, and specifically the *same* parser
+`sanitize-html` runs on the attribute immediately afterwards, so the two can never
+disagree about where a candidate begins.
+
 When a required URL fails, the whole element is dropped and counted into
 `imagesDropped`, so the removal reaches the sync report rather than vanishing.
-A dropped element degrades to `<col>`, which sanitize-html discards — and it must
-be a **void** element, because the library only suppresses the closing tag for
-names in its own `selfClosing` list, so degrading a void `<img>`/`<source>` to a
-non-void `<span>` leaked a stray `</span>` into the stored HTML whenever a
-sibling followed it.
+
+**The drop is done by `exclusiveFilter`, not by renaming the tag, and that is a
+workaround for an upstream bug.** In `sanitize-html` 2.17.7
+(`node_modules/sanitize-html/index.js:667-681`) a transform that returns a
+different `tagName` records it in `transformMap[depth]`; if the new name is not
+allowed, `onclosetag` takes the `skip` branch and returns *before* the line that
+deletes that entry. The stale entry is then consumed by the **next** element
+closed at the same depth — anywhere in the document, not just a sibling — whose
+closing tag is emitted under the wrong name. Renaming to a non-void stand-in
+emitted a literal `</span>` where a `</a>` belonged; renaming to a void one
+(`<col>`) suppressed the closing tag entirely. Both render the same wrong page:
+
+    in   <p><img src="rel.png"><a href="https://evil/x">click</a> rest of it</p>
+    out  <p><a href="https://evil/x" …>click rest of it</p>
+
+— the remainder of the paragraph becomes a clickable third-party link, with both
+the dropped image and the link chosen by the untrusted side. Keeping the tag name
+and deleting the element at its closing tag creates no `transformMap` entry, so
+there is nothing to go stale. Do not "simplify" this back into the transform.
+The counter lives in `exclusiveFilter` for a second reason: `sanitize-html`'s own
+attribute pass runs *after* the transform and can itself delete a URL attribute
+(an unparseable `srcset` descriptor, say), so the closing tag is the only place
+that sees what the element finally holds.
 
 **Every `<iframe>` is removed.** None are allowed, by host or otherwise: an
 iframe is a third-party origin executing script inside this page, a host
