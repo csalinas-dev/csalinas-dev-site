@@ -58,6 +58,31 @@ export const canMove = ({ cells }, from, to, slot) => {
 };
 
 /**
+ * The board a slide leaves behind — step 1 applied, nothing judged.
+ *
+ * `playTurn` runs this, and it is exported so #143's staged turn can show the
+ * position it is about to commit and ask `emptyCells` where a marble may still
+ * go, without restating step 1 in a component. It does NOT check legality:
+ * callers offer moves from `legalMoves`, and `playTurn` runs `canMove` before it
+ * gets here.
+ *
+ * @param {(String|Number|null)[]} cells - The board
+ * @param {?{from: Number, to: Number}} move - The slide, or null to decline it
+ * @returns {(String|Number|null)[]} A NEW board, or `cells` BY REFERENCE when the
+ *   move is declined — the same "nothing happened" identity the rest of the
+ *   engine uses.
+ */
+export const applyMove = (cells, move) => {
+  if (move == null) return cells;
+
+  const next = [...cells];
+  next[move.to] = next[move.from];
+  next[move.from] = null;
+
+  return next;
+};
+
+/**
  * Every slide the player could make this turn.
  *
  * Returns `[]` on turn one for free — there is no opponent marble on the board

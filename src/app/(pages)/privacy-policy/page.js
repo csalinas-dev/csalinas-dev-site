@@ -9,7 +9,7 @@ const PrivacyPolicy = () => {
       <Title>Privacy Policy</Title>
 
       <Typography variant="h4" component="h2" gutterBottom>
-        Last Updated: August 3, 2026
+        Last Updated: August 16, 2026
       </Typography>
 
       <Typography variant="body1" paragraph>
@@ -49,7 +49,7 @@ const PrivacyPolicy = () => {
       </Typography>
 
       <Typography variant="body1" paragraph>
-        Tic-Tac-Overflow and Edge Case can be played online against other people. Playing online creates a room — one database row, identified by a four-character code — holding the game in progress and, for each player, a seat number, a colour, a display name, and the times they joined and were last seen. No account is involved, and nothing in a room is linked to one even if you happen to be signed in.
+        Several of the games can be played online against other people. Playing online creates a room — one database row, identified by a four-character code — holding the game in progress and, for each player, a seat number, a colour, a display name, and the times they joined and were last seen. No account is involved, and nothing in a room is linked to one even if you happen to be signed in.
       </Typography>
 
       <Typography variant="body1" paragraph>
@@ -61,11 +61,11 @@ const PrivacyPolicy = () => {
       </Typography>
 
       <Typography variant="body1" paragraph>
-        Edge Case asks for a display name in its lobby and remembers your last one in your browser; Tic-Tac-Overflow does not ask, and calls you Player 1 or Player 2. Whatever you type is shown to everyone in the room, so treat it as public and do not put anything in it you would not want a stranger to read.
+        Edge Case asks for a display name in its lobby and remembers your last one in your browser. The other online games do not ask, and call you by your seat or your colour. Whatever you type is shown to everyone in the room, so treat it as public and do not put anything in it you would not want a stranger to read.
       </Typography>
 
       <Typography variant="body1" paragraph>
-        The Website needs some way to tell which browser holds which seat, and it does not use an account for that. The first time you play online, your browser generates a random identifier and saves it under CSALINAS-PLAYER-TOKEN in local storage. It travels with your moves so the server can work out whose turn was just taken, which is also how you get your seat back after a refresh or a dropped connection.
+        The Website needs some way to tell which browser holds which seat, and it does not use an account for that. The first time you open an online game — playing or watching — your browser generates a random identifier and saves it under CSALINAS-PLAYER-TOKEN in both local storage and a cookie of the same name — either one alone is enough, and keeping both is what stops a refresh in a private window turning you into a different player. It travels with your moves so the server can work out whose turn was just taken, which is also how you get your seat back after a refresh or a dropped connection.
       </Typography>
 
       <Typography variant="body1" paragraph>
@@ -108,7 +108,7 @@ const PrivacyPolicy = () => {
       </Typography>
 
       <Typography variant="body1" paragraph>
-        The Website sets a cookie when you sign in — that is how a session survives a page load. The analytics and anti-spam services described below set cookies of their own. There are no advertising cookies.
+        The Website sets a cookie when you sign in — that is how a session survives a page load — and a CSALINAS-PLAYER-TOKEN cookie holding the multiplayer identifier described above, alongside the copy in local storage. The analytics and anti-spam services described below set cookies of their own. There are no advertising cookies.
       </Typography>
 
       <Typography variant="body1" paragraph>
@@ -121,7 +121,7 @@ const PrivacyPolicy = () => {
         <ListItem>HASHTAG-… — your saved Hashtag puzzles</ListItem>
         <ListItem>TICTACOVERFLOW-PREVIEW — whether Tic-Tac-Overflow hints at the mark your next move will clear</ListItem>
         <ListItem>EDGECASE-NAME — the display name you last used in Edge Case</ListItem>
-        <ListItem>CSALINAS-PLAYER-TOKEN — the multiplayer identifier described above</ListItem>
+        <ListItem>CSALINAS-PLAYER-TOKEN — the multiplayer identifier described above, kept here and in a cookie of the same name</ListItem>
       </List>
 
       <Typography variant="body1" paragraph>
@@ -169,6 +169,7 @@ const PrivacyPolicy = () => {
         <ListItem>Streaming tickets and rate limit counters — seconds to a minute, in memory only</ListItem>
         <ListItem>Your account and its Wordleverse history — for as long as the account exists</ListItem>
         <ListItem>Anything in local storage — until you clear it</ListItem>
+        <ListItem>The CSALINAS-PLAYER-TOKEN cookie — one year, renewed each time you open an online game, or until you clear it</ListItem>
       </List>
 
       <Typography variant="body1" paragraph>

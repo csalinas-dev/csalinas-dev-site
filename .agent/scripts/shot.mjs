@@ -2,7 +2,10 @@
 // Usage: node .agent/scripts/shot.mjs <url> <width> <out.png|-> [evalFile.js]
 // Prints {"viewport":{w,h,requested},"result":<evalFile value>} on stdout — the viewport is
 // read back from the page, not assumed from argv.
-// Exit 0 ok, 2 bad usage, 1 runtime/CDP failure.
+// Exit 0 ok, 2 bad usage, 1 runtime/CDP failure, 3 the page script reported failure
+// (`ok` falsy, threw, or returned nothing at all).
+// A result with NO `ok` field is a measurement, not an assertion: it exits 0 and says so
+// on stderr. A genuinely side-effect-only page script should end with `true`.
 import { spawn } from "node:child_process";
 import {
   existsSync,
@@ -111,7 +114,7 @@ const s = attached.sessionId;
 
 // A thrown expression comes back inside a *successful* CDP result, so send()
 // rejecting cannot cover it.
-const evaluate = async (expression) => {
+const evaluate = async (expression, what = "evaluate") => {
   const { result } = await send(
     "Runtime.evaluate",
     { expression, returnByValue: true, awaitPromise: true },
@@ -119,7 +122,7 @@ const evaluate = async (expression) => {
   );
   if (result.exceptionDetails)
     throw new Error(
-      `evaluate threw: ${
+      `${what} threw: ${
         result.exceptionDetails.exception?.description ??
         result.exceptionDetails.text
       }`
@@ -148,8 +151,44 @@ if (viewport.w !== width)
       `A page with no <meta name="viewport"> lays out at 980px under mobile emulation (on below 900px).`
   );
 
+// The page script's own verdict, recorded here and acted on at the very end — a
+// failing run still prints its payload and still writes its screenshot, because a
+// failed replay is exactly the run you want the PNG of.
 const payload = { viewport };
-if (evalFile) payload.result = await evaluate(readFileSync(evalFile, "utf8"));
+let failure = null; // the reason this run failed, or null
+let assertedNothing = false; // a measurement: it returned a value, but no `ok`
+
+if (evalFile) {
+  let result;
+  try {
+    result = await evaluate(readFileSync(evalFile, "utf8"), "the page script");
+  } catch (e) {
+    // An assertion that never finished is not an assertion that passed.
+    failure = e.message;
+    payload.error = failure;
+  }
+
+  if (!failure) {
+    payload.result = result;
+
+    if (result === undefined || result === null) {
+      // JSON.stringify drops an undefined `result` key, so the printed payload
+      // would otherwise say nothing at all. The usual cause is an async IIFE
+      // that forgot to `return`; a real side-effect-only script ends with `true`.
+      failure =
+        "the page script returned no value — nothing was measured and nothing was asserted";
+      payload.error = failure;
+    } else if (typeof result === "object" && "ok" in result) {
+      if (!result.ok)
+        failure = `the page script reported ok: ${JSON.stringify(result.ok)}${
+          result.error ? ` — ${result.error}` : ""
+        }`;
+    } else {
+      assertedNothing = true;
+    }
+  }
+}
+
 console.log(JSON.stringify(payload, null, 2));
 
 if (out && out !== "-") {
@@ -171,5 +210,20 @@ if (out && out !== "-") {
     `wrote ${out} (${viewport.w}x${h} px; viewport ${viewport.w}x${viewport.h})`
   );
 }
+
+if (failure) {
+  // Repeated on stderr, in full: a caller reading only the tail — or only
+  // stderr — still gets to see WHAT disagreed, which is the part that is
+  // actionable. A bare non-zero teaches nobody anything.
+  console.error(`shot.mjs: FAILED — ${failure}`);
+  console.error(JSON.stringify(payload.result ?? payload, null, 2));
+  process.exit(3);
+}
+
+if (assertedNothing)
+  console.error(
+    `shot.mjs: NOTE the page script returned no "ok" field, so this run asserted nothing — ` +
+      `exit 0 means Chrome ran and printed a value, not that anything passed.`
+  );
 
 process.exit(0);
