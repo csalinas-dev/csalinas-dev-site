@@ -1,4 +1,4 @@
-import { toResponse } from "@/lib/realtime/errors";
+import { badRequest, toResponse } from "@/lib/realtime/errors";
 import { clientIp, limitOr429, readJson } from "@/lib/realtime/http";
 import { getRoom } from "@/lib/realtime/rooms";
 import { issueTicket } from "@/lib/realtime/tickets";
@@ -18,7 +18,11 @@ const RATE_LIMIT = 60;
  * stream URL, so the credential that authorizes moves never lands in a proxy
  * log. See `src/lib/realtime/tickets.js`.
  *
- * Spectators have no token and need no ticket — they open the stream bare.
+ * Spectators have no token and need no ticket — they open the stream bare, so a
+ * request that arrives here without one has nothing to exchange: the ticket it
+ * would get back stands in for nobody and the stream now refuses it as
+ * `bad-ticket`. Saying so here makes it a 400 the caller can read instead of a
+ * 403 two requests later that looks like the room rejecting them.
  */
 export async function POST(request, { params }) {
   try {
@@ -28,6 +32,10 @@ export async function POST(request, { params }) {
     if (limited) return limited;
 
     const body = await readJson(request);
+
+    if (!body.token) {
+      throw badRequest("Missing or malformed player token.", "bad-token");
+    }
 
     // Resolve the room first: a ticket for a dead room should be an honest 410
     // now rather than a stream that opens and immediately says `gone`.
