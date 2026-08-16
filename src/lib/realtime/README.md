@@ -202,6 +202,8 @@ await send({ type: "PLACE", cell: 4 }, { optimistic: true });
 ## Local development
 
 There is no MySQL in the repo's dev setup by default; `docker compose up db`
-provides one. Apply the schema with `npx prisma db push`. In production the
-deploy workflow runs `prisma db push --skip-generate` against the freshly built
-image *before* the app serves traffic.
+provides one. Apply the schema with `npx prisma db push` — run `npm ci` first in a
+fresh checkout, or `npx` fetches a Prisma major this schema does not support and fails
+with a `P1012` that looks like a connection error (`CLAUDE.md` → Development). In
+production the deploy workflow runs `prisma db push --skip-generate` against the
+freshly built image *before* the app serves traffic.
