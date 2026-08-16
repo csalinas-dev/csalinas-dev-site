@@ -64,10 +64,22 @@ export const Grid = styled("div")`
   align-items: start;
   display: grid;
   gap: 48px;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
+
+  /* minmax(0, …) and this floor are the same statement made at both ends: a
+     grid track is min-content sized by default and a grid item's automatic
+     minimum size is its min-content width, so ONE unbreakable run of characters
+     inside the article — a pasted credential, a commit hash, a twelve-column
+     table — inflates the whole column and with it the page. Without it the
+     symptom is not "one line overflows": every ordinary paragraph of the post
+     is laid out at the width of that one token. The article's grid item is an
+     unstyled <div> in PostBody.jsx, so the floor has to be set from here. */
+  > * {
+    min-width: 0;
+  }
 
   @media (min-width: 900px) {
-    grid-template-columns: 150px 1fr;
+    grid-template-columns: 150px minmax(0, 1fr);
   }
 `;
 
@@ -114,6 +126,10 @@ export const PostTitle = styled("h1")`
   letter-spacing: -0.02em;
   line-height: ${TITLE_LINE_HEIGHT};
   margin: 0;
+  /* A synced post's title is third-party text too, and it is rendered here
+     rather than inside <Article> — at 66px, one unbreakable token is 1500px
+     wide on a phone. */
+  overflow-wrap: anywhere;
 
   @media (min-width: 900px) {
     font-size: 66px;
@@ -135,9 +151,16 @@ export const Description = styled("p")`
   font-size: 19px;
   line-height: 1.6;
   max-width: 52ch;
+  /* Third-party text, same as the title above it. */
+  overflow-wrap: anywhere;
 `;
 
-export const Hero = styled(NextImage)`
+// One declaration block, two elements. An MDX post's cover is a StaticImageData
+// object and goes through next/image; a synced post's is a remote URL string and
+// renders as a plain <img> (no `remotePatterns` coupling to a third party's CDN
+// hostname — see src/lib/blog/README.md). Sharing the CSS is what stops the two
+// heroes drifting apart.
+const HERO_CSS = `
   aspect-ratio: 3 / 1;
   border-radius: 12px;
   height: auto;
@@ -145,6 +168,14 @@ export const Hero = styled(NextImage)`
   object-fit: cover;
   user-select: none;
   width: 100%;
+`;
+
+export const Hero = styled(NextImage)`
+  ${HERO_CSS}
+`;
+
+export const RemoteHero = styled("img")`
+  ${HERO_CSS}
 `;
 
 // The nav is position: sticky; top: 0 (src/components/Nav.jsx), so the spec's
@@ -169,6 +200,19 @@ export const Toc = styled("details")`
   @media (min-width: 900px) {
     position: sticky;
     top: 60px;
+
+    /* How many headings a post has, and how long each one is, are the author's
+       choices — and on a synced post that author is not on this side. A sticky
+       box taller than the viewport does not scroll with the page once pinned: it
+       stays at top: 60px and everything below the viewport's bottom edge is
+       simply unreachable. Measured on /blog/toc-overflow with ten entries in the
+       rail (an unremarkable count for a longform newsletter): 949px of rail
+       pinned at 60 in a 1000px viewport, the last entry's bottom at 1026. So the
+       rail scrolls itself instead of running off the screen. 100svh is the same
+       unit globals.css gives <body>; 76px is the 60px offset plus some air. */
+    max-height: calc(100svh - 76px);
+    overflow-y: auto;
+    scrollbar-width: thin;
 
     /* Open and non-collapsible up here, so the summary is a label rather than a
        control — no disclosure triangle, no pointer affordance. */
@@ -205,11 +249,28 @@ export const TocList = styled("div")`
   }
 `;
 
+// The label is a heading lifted out of the article by PostBody, so on a synced
+// post this is third-party text too — and it is the narrowest place any of it
+// lands: a 150px rail, of which the rule and the gap take 20px. `min-width: 0`
+// on the Grid child pins the *track*; it does nothing for the text, which is an
+// anonymous flex item here whose automatic minimum size is its own min-content
+// width. One unbreakable run therefore paints straight out of the rail, across
+// the article at 1200px and off the page at ~145 characters.
+//
+// `align-items: start` rather than `center`: once the label may wrap it usually
+// does — the entries are whole sentences in a 130px column — and a rule centred
+// against a four-line block reads as belonging to no line at all. The offset
+// puts it on the first line's optical centre. `1lh` and not a number, and no
+// line-height of its own: it resolves against whatever line box this entry
+// inherits, which is what keeps the mobile TOC on an MDX post laid out to the
+// pixel as it was (an explicit line-height here moved every entry by 1px).
 export const TocEntry = styled("a")`
-  align-items: center;
+  align-items: start;
   color: var(--muted);
   display: flex;
   gap: 8px;
+  min-width: 0;
+  overflow-wrap: anywhere;
   text-decoration: none;
 
   &:before {
@@ -217,6 +278,7 @@ export const TocEntry = styled("a")`
     content: "";
     flex: none;
     height: 1px;
+    margin-top: calc((1lh - 1px) / 2);
     width: 12px;
   }
 
@@ -242,11 +304,27 @@ export const Progress = styled("div")`
 
 // The prose theme. Section forces font-size: 1.5rem !important on itself, which
 // the article would otherwise inherit — hence its own explicit size.
+//
+// It also renders markup nobody on this side wrote. A synced body is ordinary
+// newsletter content — a pasted JWT, a commit hash, a wallet address, a
+// hyphen-free URL, a metrics table — and all of it survives sanitize.js intact,
+// correctly: narrowing what a visitor's own writing may contain is the wrong
+// lever for a layout bug. So the theme has to survive content the author did not
+// choose. Measured by .agent/scripts/verify-blog-overflow.mjs at 1200 and 430.
 export const Article = styled("article")`
   color: var(--foreground);
   font-size: 17px;
   line-height: 1.75;
   max-width: 68ch;
+  /* anywhere, not break-word: only anywhere also shrinks the min-content width,
+     and it is the min-content width that inflates the grid track. */
+  overflow-wrap: anywhere;
+  /* The backstop for what wrapping cannot fix — forty nested lists are 1600px
+     of indentation whatever the words do. clip rather than hidden or auto: it
+     creates no scroll container and no block formatting context, so margins
+     still collapse through the article exactly as they did and the MDX posts'
+     measured geometry does not move. */
+  overflow-x: clip;
 
   > p:first-of-type::first-letter {
     color: var(--comment);
@@ -362,14 +440,30 @@ export const Article = styled("article")`
     padding: 0;
   }
 
+  /* A table is the one block wrapping cannot rescue: its width is the sum of
+     its columns. Let it scroll inside the article rather than push the article
+     past the page — display: block is what makes overflow-x apply at all, since
+     it is ignored on display: table. The visible cost is that a table
+     narrower than the column no longer stretches to fill it; no MDX post has a
+     table, and a twelve-column synced one reads far better scrollable at 79px a
+     column than squeezed into 32px on a phone. */
   table {
     border-collapse: collapse;
+    display: block;
+    overflow-x: auto;
     width: 100%;
   }
 
+  /* Cells opt back out of the article's overflow-wrap: anywhere. A table's width
+     is the sum of its columns' min-content widths, and if a cell may break
+     mid-word that is a couple of characters a column: the twelve-column table
+     then squeezes to 32px columns and "Metric 0" wraps to four lines, which
+     fits the page and cannot be read. Breaking words normally makes it wider
+     than the article instead, which is what the scroll above is for. */
   th,
   td {
     border-bottom: 1px solid var(--selectionBackground);
+    overflow-wrap: normal;
     padding: 0.5rem;
     text-align: left;
   }
@@ -469,10 +563,19 @@ export const Footer = styled("div")`
 `;
 
 // margin-left: auto keeps a lone "next" on the right when there is no previous.
+//
+// The label is the NEIGHBOURING post's title, so prev/next is another surface
+// rendering third-party text — and a flex item's automatic minimum size is its
+// min-content width, so one unbreakable title here widens the footer, the page
+// and every post that happens to sit beside that post in the ordering. The full
+// list of those surfaces, and how to re-derive it rather than trust it, is in
+// src/lib/blog/README.md.
 export const FooterLink = styled(Link)`
   display: flex;
   flex-flow: column nowrap;
   gap: 4px;
+  min-width: 0;
+  overflow-wrap: anywhere;
   text-decoration: none;
 
   &.next {

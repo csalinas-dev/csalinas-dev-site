@@ -112,3 +112,58 @@ model WordleGame {
 
   @@unique([userId, date])
 }
+
+// Blog posts ingested from the Substack RSS feed (src/lib/substack).
+//
+// Additive by construction: the deploy runs `prisma db push` WITHOUT
+// --accept-data-loss (.github/workflows/deploy.yml), so this table may only ever
+// gain columns. Nothing in src/lib/substack deletes a row — a feed that stops
+// listing a post (RSS shows only the most recent ~20) must never remove it.
+model SubstackPost {
+  id          String   @id @default(cuid())
+  // The RSS <guid>. Substack emits the canonical post URL with
+  // isPermaLink="false" and exposes no numeric id, so this is the only stable
+  // identity available. NOT the title -- see #151 section 2.
+  sourceId    String   @unique @db.VarChar(400)
+  // Assigned once at insert and NEVER rewritten. This is the public URL.
+  slug        String   @unique @db.VarChar(191)
+  title       String   @db.VarChar(512)
+  description String?  @db.Text
+  contentHtml String   @db.LongText // sanitized; see src/lib/substack/sanitize.js
+  coverImage  String?  @db.VarChar(1024)
+  author      String?  @db.VarChar(255)
+  sourceUrl   String   @db.VarChar(1024)
+  publishedAt DateTime
+  // sha256 of exactly the mutable fields above. Equal hash => nothing to write.
+  contentHash String   @db.Char(64)
+  // Last time this ROW changed. An unchanged post is deliberately not touched,
+  // so this is not "last time the feed was read" -- that belongs to the sync
+  // report (#154).
+  syncedAt    DateTime @updatedAt
+  createdAt   DateTime @default(now())
+
+  @@index([publishedAt])
+}
+
+// How the Substack sync is doing. Exactly one row, id 1.
+//
+// It exists because the trigger moved onto the READ path
+// (src/lib/substack/refresh.js): a failure there has no workflow run to redden
+// and no operator watching, so "this has been failing for a week" has to outlive
+// the process that saw it. Without this table a crash loop would also re-alert on
+// every boot, since the counters would reset with the process.
+//
+// `lastReason` is a reportable()-capped feed-scope message and NEVER a Prisma
+// error.message — P1001's contains the database host, and this repo's Actions
+// logs and issue bodies are public.
+model SubstackSyncStatus {
+  id                  Int       @id @default(1)
+  lastAttemptAt       DateTime?
+  lastSuccessAt       DateTime?
+  ok                  Boolean   @default(true)
+  consecutiveFailures Int       @default(0)
+  firstFailureAt      DateTime?
+  lastNotifiedAt      DateTime?
+  lastReason          String?   @db.VarChar(255)
+  updatedAt           DateTime  @updatedAt
+}

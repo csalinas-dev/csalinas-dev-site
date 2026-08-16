@@ -9,6 +9,11 @@ jobs:
   deploy:
     runs-on: [self-hosted, sfo3-02]
 
+    # `issues: write` is for the sync alert steps below; without it they 403.
+    permissions:
+      contents: read
+      issues: write
+
     defaults:
       run:
         working-directory: /srv/sites/csalinas.dev/_/app
@@ -33,6 +38,100 @@ jobs:
 
       - name: (Re)start containers
         run: docker compose up -d app
+
+      # After `up -d`, not before: the site being back up matters more than the
+      # newsletter being fresh, and the schema push has to have run first.
+      # `continue-on-error` because a Substack outage must not redden a deploy
+      # that otherwise succeeded — the alert steps below are how it surfaces.
+      #
+      # $GITHUB_STEP_SUMMARY is a path on the RUNNER HOST, not inside the
+      # container, so the step writes it rather than the script. And `docker
+      # compose`'s own progress chatter goes to stderr, which is why only stdout
+      # may reach the summary.
+      - name: Sync blog from Substack
+        id: sync
+        continue-on-error: true
+        run: |
+          set +e
+          docker compose run --rm app node scripts/sync-substack.mjs \
+            > "$RUNNER_TEMP/substack-sync.md" 2> "$RUNNER_TEMP/substack-sync.err"
+          code=$?
+          set -e
+          cat "$RUNNER_TEMP/substack-sync.md" >> "$GITHUB_STEP_SUMMARY"
+          cat "$RUNNER_TEMP/substack-sync.md"
+          cat "$RUNNER_TEMP/substack-sync.err" >&2
+          if [ "$code" = "2" ]; then echo "::warning::Substack sync skipped at least one item — see the job summary."; fi
+          if [ "$code" != "0" ] && [ "$code" != "2" ]; then exit "$code"; fi
+
+      # KEYED ON `steps.sync.outcome`, NOT `failure()`. `continue-on-error: true`
+      # means the job never fails, so `failure()` would never fire and this alarm
+      # would be silently dead. `outcome` is the step's result BEFORE the flag is
+      # applied, and it is the only thing here that still carries the truth.
+      #
+      # Neither alert step gets `continue-on-error`: a Substack outage is allowed
+      # to pass quietly, but a BROKEN ALARM is worth a red run, and by this point
+      # the site is already up.
+      - name: Open or update the sync alert issue
+        if: ${{ steps.sync.outcome == 'failure' }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require("fs");
+            const TITLE = "Substack sync is failing";
+            const run = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+
+            let report = "";
+            try {
+              report = fs.readFileSync(`${process.env.RUNNER_TEMP}/substack-sync.md`, "utf8").trim();
+            } catch {}
+            // A fatal before the sync produces no markdown at all. Say so rather
+            // than filing an empty issue that reads like a formatting bug.
+            if (!report) report = "_The sync produced no summary — it failed before it could run. See the run log._";
+
+            const { data: open } = await github.rest.issues.listForRepo({
+              ...context.repo, state: "open", labels: "ops", per_page: 100,
+            });
+            const existing = open.find((issue) => issue.title === TITLE);
+
+            if (existing) {
+              // Comment rather than file a second one: a sync that has been
+              // broken for a week should be one issue, not seven.
+              await github.rest.issues.createComment({
+                ...context.repo, issue_number: existing.number,
+                body: `Still failing — ${run}\n\n${report}`,
+              });
+              return;
+            }
+
+            // No 🤖 label: the conductor triages this like any other new issue.
+            await github.rest.issues.create({
+              ...context.repo, title: TITLE, labels: ["bug", "ops"],
+              body: `The blog sync failed during a deploy. The blog is still serving the posts already stored; what has stopped is new posts arriving.\n\nRun: ${run}\n\n${report}`,
+            });
+
+      - name: Close the sync alert issue
+        if: ${{ steps.sync.outcome == 'success' }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const TITLE = "Substack sync is failing";
+            const run = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+
+            const { data: open } = await github.rest.issues.listForRepo({
+              ...context.repo, state: "open", labels: "ops", per_page: 100,
+            });
+            const existing = open.find((issue) => issue.title === TITLE);
+
+            // Nothing open means nothing to recover from. Silence is correct.
+            if (!existing) return;
+
+            await github.rest.issues.createComment({
+              ...context.repo, issue_number: existing.number,
+              body: `Sync recovered — ${run}`,
+            });
+            await github.rest.issues.update({
+              ...context.repo, issue_number: existing.number, state: "closed",
+            });
 
       - name: Prune dangling images
         run: docker image prune -f

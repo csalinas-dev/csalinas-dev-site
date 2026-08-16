@@ -1,7 +1,11 @@
 import { notFound } from "next/navigation";
 
 import { FormattedDate, Link } from "@/components";
-import { getAdjacentPosts, getPost, getPostSlugs } from "@/content/posts";
+import { getAdjacentPosts, getPost } from "@/lib/blog";
+// Directly, NOT `@/lib/substack`: the index statically re-exports ./sync, which
+// would pull sanitize-html and fast-xml-parser into this route's bundle and run
+// auditAllowlist() on the render path.
+import { scheduleSubstackRefresh } from "@/lib/substack/refresh";
 
 import { PostBody } from "./PostBody";
 import {
@@ -22,15 +26,16 @@ import {
   RailTag,
   RailTags,
   ReadTime,
+  RemoteHero,
   TitleColon,
   TitleTail,
 } from "./components";
 
-export const dynamicParams = false;
-
-export function generateStaticParams() {
-  return getPostSlugs().map((slug) => ({ slug }));
-}
+// A synced post may arrive between deploys, so the slug set is not knowable at
+// build time — and the Docker image runs `next build` before the deploy runs
+// `prisma db push`, so nothing here may query then either. Hence no
+// `generateStaticParams` and no `dynamicParams`. See src/lib/blog/README.md.
+export const dynamic = "force-dynamic";
 
 // Editorial titles are "Lead: tail"; the tail drops to a light weight on its
 // own line. Only the first colon splits — a title without one renders whole.
@@ -40,9 +45,26 @@ const splitTitle = (title) => {
   return { lead: title.slice(0, at), tail: title.slice(at + 1).trim() };
 };
 
+// An MDX cover carries its intrinsic size; a synced one is only a URL. No
+// canonical is emitted for a synced post: this site owns the URL and the
+// metadata, and pointing one at substack.com hands the post's SEO away.
+const ogImages = (cover) => {
+  if (!cover) return undefined;
+
+  return typeof cover === "string"
+    ? [{ url: cover }]
+    : [{ url: cover.src, width: cover.width, height: cover.height }];
+};
+
 export async function generateMetadata({ params }) {
+  // Here as well as in Page: a link to a post that has not synced yet is exactly
+  // the case where the trigger matters, and this can notFound() before Page runs.
+  // Calling it twice in one request is free — the gate collapses the second call
+  // onto the first's promise. See src/lib/substack/refresh.js.
+  scheduleSubstackRefresh();
+
   const { slug } = await params;
-  const post = getPost(slug);
+  const post = await getPost(slug);
 
   if (!post) {
     notFound();
@@ -57,14 +79,16 @@ export async function generateMetadata({ params }) {
       title,
       description,
       publishedTime: date,
-      images: [{ url: cover.src, width: cover.width, height: cover.height }],
+      images: ogImages(cover),
     },
   };
 }
 
 export default async function Page({ params }) {
+  scheduleSubstackRefresh();
+
   const { slug } = await params;
-  const post = getPost(slug);
+  const post = await getPost(slug);
 
   if (!post) {
     notFound();
@@ -75,17 +99,17 @@ export default async function Page({ params }) {
     description,
     date,
     category,
-    cover,
     hero,
     link,
     linkLabel,
     readingTime,
     tags = [],
     Content,
+    contentHtml,
   } = post;
   const external = /^https?:\/\//.test(link ?? "");
   const { lead, tail } = splitTitle(title);
-  const { previous, next } = getAdjacentPosts(slug);
+  const { previous, next } = await getAdjacentPosts(slug);
 
   return (
     <PostPage>
@@ -107,7 +131,7 @@ export default async function Page({ params }) {
       </Header>
       <Grid>
         <Rail>
-          <RailCategory>{category}</RailCategory>
+          {category && <RailCategory>{category}</RailCategory>}
           {/* Local midnight, or a YYYY-MM-DD parses as UTC and renders a day early
               west of Greenwich — same as the Wordleverse header. */}
           <FormattedDate date={new Date(date + "T00:00:00")} />
@@ -130,14 +154,28 @@ export default async function Page({ params }) {
               </>
             )}
           </PostTitle>
-          <Description>{description}</Description>
+          {description && <Description>{description}</Description>}
         </div>
       </Grid>
-      <Hero alt={title} src={hero ?? cover} placeholder="blur" priority />
+      {hero &&
+        (typeof hero === "string" ? (
+          <RemoteHero alt={title} src={hero} />
+        ) : (
+          <Hero alt={title} src={hero} placeholder="blur" priority />
+        ))}
       <PostBody>
-        <Article>
-          <Content />
-        </Article>
+        {Content ? (
+          <Article>
+            <Content />
+          </Article>
+        ) : (
+          /* On <Article> ITSELF, never a wrapper div: the drop cap is
+             `> p:first-of-type::first-letter` in components.jsx, a direct-child
+             selector, and a wrapper would silently kill it. The HTML is the
+             artefact src/lib/substack/sanitize.js already produced — there is no
+             second sanitization pass here and nothing is relaxed. */
+          <Article dangerouslySetInnerHTML={{ __html: contentHtml }} />
+        )}
       </PostBody>
       <Footer>
         {previous && (

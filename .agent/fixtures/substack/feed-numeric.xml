@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Titles that a number-coercing XML parser silently corrupts.
+
+  "007" becomes the number 7 and "1.50" becomes 1.5 if parseTagValue is left on,
+  and the damage is invisible: nothing throws, the post just quietly gets a
+  different title from the one the author wrote. The bare-integer case ("2026" in
+  feed-base.xml) round-trips through String() unharmed, so it cannot catch this
+  on its own.
+-->
+<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title><![CDATA[Fixture Publication]]></title>
+    <link>https://fixture.substack.com</link>
+    <item>
+      <title><![CDATA[007]]></title>
+      <description><![CDATA[A title with a leading zero.]]></description>
+      <link>https://fixture.substack.com/p/007</link>
+      <guid isPermaLink="false">https://fixture.substack.com/p/007</guid>
+      <pubDate>Fri, 14 Aug 2026 10:00:00 GMT</pubDate>
+      <content:encoded><![CDATA[<p>Leading zeros do not survive a number.</p>]]></content:encoded>
+    </item>
+    <item>
+      <title><![CDATA[1.50]]></title>
+      <description><![CDATA[A title with a trailing zero after a decimal point.]]></description>
+      <link>https://fixture.substack.com/p/version-1-50</link>
+      <guid isPermaLink="false">https://fixture.substack.com/p/version-1-50</guid>
+      <pubDate>Thu, 13 Aug 2026 10:00:00 GMT</pubDate>
+      <content:encoded><![CDATA[<p>Trailing zeros do not survive a number either.</p>]]></content:encoded>
+    </item>
+  </channel>
+</rss>
