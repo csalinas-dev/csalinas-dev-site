@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  One item whose body is the attack battery, delivered THROUGH the XML parser
+  rather than handed straight to the sanitizer.
+
+  This is a genuinely different test from the string battery in the verify
+  script: the parser decodes XML entities before the sanitizer ever sees the
+  markup, so a payload written as &lt;script&gt; here arrives at the sanitizer as
+  a real <script> tag. Anything that reassembles during that decode shows up
+  here and nowhere else.
+
+  The title and dc:creator carry payloads too — those go through sanitizeText,
+  not sanitizePostHtml.
+-->
+<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title><![CDATA[Hostile Fixture]]></title>
+    <description><![CDATA[Everything in here is trying to get out.]]></description>
+    <link>https://hostile.substack.com</link>
+    <item>
+      <title>&lt;script&gt;alert(1)&lt;/script&gt;Hostile &amp; Titled</title>
+      <description>&lt;img src=x onerror=alert(1)&gt;A subtitle.</description>
+      <link>https://hostile.substack.com/p/hostile-post</link>
+      <guid isPermaLink="false">https://hostile.substack.com/p/hostile-post</guid>
+      <dc:creator>&lt;svg onload=alert(1)&gt;Author</dc:creator>
+      <pubDate>Sat, 15 Aug 2026 06:00:00 GMT</pubDate>
+      <enclosure url="javascript:alert(1)" length="0" type="image/jpeg"/>
+      <content:encoded>&lt;script&gt;alert(1)&lt;/script&gt;&lt;p onmouseover="alert(1)"&gt;event handler&lt;/p&gt;&lt;a href="javascript:alert(1)"&gt;scheme&lt;/a&gt;&lt;a href="JaVaScRiPt:alert(1)"&gt;case&lt;/a&gt;&lt;a href="  javascript:alert(1)"&gt;space&lt;/a&gt;&lt;a href="&amp;#0000106;avascript:alert(1)"&gt;padded entity&lt;/a&gt;&lt;a href="//evil.example/x"&gt;protocol relative&lt;/a&gt;&lt;a href="/admin/delete"&gt;relative&lt;/a&gt;&lt;img src="x"&gt;&lt;img src="data:text/html;base64,PHNjcmlwdD4="&gt;&lt;xmp&gt;&lt;script&gt;alert(1)&lt;/script&gt;&lt;/xmp&gt;&lt;textarea&gt;&lt;/textarea/&gt;&lt;img src=x onerror=alert(1)&gt;&lt;svg&gt;&lt;a&gt;&lt;animate attributeName="href" values="javascript:alert(1)"/&gt;&lt;/a&gt;&lt;/svg&gt;&lt;form action="javascript:alert(1)"&gt;&lt;button formaction="javascript:alert(1)"&gt;go&lt;/button&gt;&lt;/form&gt;&lt;object data="javascript:alert(1)"&gt;&lt;/object&gt;&lt;embed src="javascript:alert(1)"&gt;&lt;style&gt;body{background:url("javascript:alert(1)")}&lt;/style&gt;&lt;iframe srcdoc="&amp;lt;script&amp;gt;alert(1)&amp;lt;/script&amp;gt;"&gt;&lt;/iframe&gt;&lt;meta http-equiv="refresh" content="0;url=https://evil.example"&gt;&lt;base href="https://evil.example/"&gt;&lt;!--&lt;img src=x onerror=alert(1)--&gt;&lt;p&gt;survivor&lt;/p&gt;</content:encoded>
+    </item>
+  </channel>
+</rss>

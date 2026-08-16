@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Two DIFFERENT posts whose Substack paths slugify to the same local slug:
+  /p/hello-world and /p/hello.world both reduce to "hello-world".
+
+  What this proves: the first keeps "hello-world", the second becomes
+  "hello-world-2", and re-running the sync does NOT renumber either of them —
+  the slug is chosen once at insert and then frozen.
+-->
+<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title><![CDATA[Fixture Publication]]></title>
+    <link>https://fixture.substack.com</link>
+    <item>
+      <title><![CDATA[Hello World]]></title>
+      <description><![CDATA[The first of the pair.]]></description>
+      <link>https://fixture.substack.com/p/hello-world</link>
+      <guid isPermaLink="false">https://fixture.substack.com/p/hello-world</guid>
+      <dc:creator><![CDATA[Fixture Author]]></dc:creator>
+      <pubDate>Fri, 14 Aug 2026 10:00:00 GMT</pubDate>
+      <content:encoded><![CDATA[<p>The first of the pair.</p>]]></content:encoded>
+    </item>
+    <item>
+      <title><![CDATA[Hello. World.]]></title>
+      <description><![CDATA[The second of the pair.]]></description>
+      <link>https://fixture.substack.com/p/hello.world</link>
+      <guid isPermaLink="false">https://fixture.substack.com/p/hello.world</guid>
+      <dc:creator><![CDATA[Fixture Author]]></dc:creator>
+      <pubDate>Thu, 13 Aug 2026 10:00:00 GMT</pubDate>
+      <content:encoded><![CDATA[<p>The second of the pair.</p>]]></content:encoded>
+    </item>
+  </channel>
+</rss>
