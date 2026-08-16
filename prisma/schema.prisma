@@ -144,3 +144,26 @@ model SubstackPost {
 
   @@index([publishedAt])
 }
+
+// How the Substack sync is doing. Exactly one row, id 1.
+//
+// It exists because the trigger moved onto the READ path
+// (src/lib/substack/refresh.js): a failure there has no workflow run to redden
+// and no operator watching, so "this has been failing for a week" has to outlive
+// the process that saw it. Without this table a crash loop would also re-alert on
+// every boot, since the counters would reset with the process.
+//
+// `lastReason` is a reportable()-capped feed-scope message and NEVER a Prisma
+// error.message — P1001's contains the database host, and this repo's Actions
+// logs and issue bodies are public.
+model SubstackSyncStatus {
+  id                  Int       @id @default(1)
+  lastAttemptAt       DateTime?
+  lastSuccessAt       DateTime?
+  ok                  Boolean   @default(true)
+  consecutiveFailures Int       @default(0)
+  firstFailureAt      DateTime?
+  lastNotifiedAt      DateTime?
+  lastReason          String?   @db.VarChar(255)
+  updatedAt           DateTime  @updatedAt
+}

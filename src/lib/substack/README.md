@@ -142,9 +142,25 @@ post is edited — verified across 40 real items.)
 ~20 posts, so "not in the feed" means "old", never "removed". There is no delete
 path and there should not be one.
 
-**Never call `syncSubstackPosts` from a page render.** #151 section 5 and 9: a
-blog page that syncs is a blog page that breaks when Substack is down. #154 wires
-the trigger.
+**Never `await` `syncSubstackPosts` in a page render.** #151 section 5 and 9: a
+blog page that waits for Substack is a blog page that breaks when Substack is
+down.
+
+The blog pages *do* call it — after they have finished rendering. #154 made the
+read path the trigger: both blog routes call `scheduleSubstackRefresh()` from
+`./refresh.js` as their first statement, and that function does exactly one
+thing, `after(cb)` from `next/server`, so the sync starts once the response is
+already on the wire. A slow, down or garbage feed therefore cannot reach a
+visitor; the page renders from MySQL exactly as it would have. The cost is that
+the visitor who triggers a sync does not see its result — the next one does.
+
+Calls are bounded by `./throttle.js`, a **10-minute single-flight gate**: a run
+already in flight is joined rather than duplicated, and a completed run closes
+the window for ten minutes whether it succeeded or failed. The gate is
+deliberately not `unstable_cache` — it bounds a *write*, not a return value, and
+`unstable_cache` gives no single-flight across concurrent misses. Its header
+carries the full reasoning. The deploy also syncs once, through
+`scripts/sync-substack.mjs`.
 
 ## The report
 
