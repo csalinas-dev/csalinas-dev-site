@@ -29,8 +29,10 @@
   script asserts is still no wider than the viewport.
 
   Seed it with:
-    node --env-file=.env .agent/scripts/seed-substack-fixture.mjs \
-      .agent/fixtures/substack/feed-overflow.xml
+    DATABASE_URL="mysql://root:pw@127.0.0.1:<port>/csalinas" \
+      node .agent/scripts/seed-substack-fixture.mjs .agent/fixtures/substack/feed-overflow.xml
+
+  Full throwaway-database recipe is in that script's header.
 -->
 <rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:dc="http://purl.org/dc/elements/1.1/">
   <channel>

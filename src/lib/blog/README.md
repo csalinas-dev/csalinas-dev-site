@@ -212,4 +212,6 @@ regression gate it is, and look at a post with your eyes before claiming one
 
 The third seeds nothing itself: run `seed-substack-fixture.mjs` over
 `feed-overflow.xml` first, or its anchors will tell you the fixture is missing.
-Both need a running `next start`.
+Both need a running `next start`. That seeding wants a throwaway database, and
+the recipe for one — container, schema, invocation, teardown — is in
+`.agent/scripts/seed-substack-fixture.mjs`'s header.

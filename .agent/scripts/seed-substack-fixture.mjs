@@ -1,7 +1,54 @@
 // Seeds a throwaway database with synced posts, from a fixture. No network.
 //
-//   DATABASE_URL="mysql://root:pw@127.0.0.1:33153/blog" \
-//     node .agent/scripts/seed-substack-fixture.mjs .agent/fixtures/substack/feed-base.xml
+// THE CANONICAL RECIPE for getting a database the blog gates can be seeded into
+// lives here, and every other place that mentions this script points at it. Six
+// copies of it had drifted apart before it was written down once (#166).
+//
+// A worktree does not arrive with a database this may be pointed at, and there
+// is no step below that reads, copies, prints or filters a configuration file to
+// find one — you make a throwaway, use it, and destroy it. Derive the container
+// name and BOTH ports from your issue number so two agents on this machine can
+// never collide, and write the connection string out literally on each command:
+// shell state does not survive between an agent's tool calls, and the password
+// is one you invented for a container you are about to delete.
+//
+//   docker run -d --name issue166-mysql -e MYSQL_ROOT_PASSWORD=issue166 \
+//     -e MYSQL_DATABASE=csalinas -p 127.0.0.1:33166:3306 mysql:8.0
+//   npm ci
+//   npx prisma generate
+//   DATABASE_URL="mysql://root:issue166@127.0.0.1:33166/csalinas" \
+//     npx prisma db push --skip-generate
+//   DATABASE_URL="mysql://root:issue166@127.0.0.1:33166/csalinas" \
+//     node .agent/scripts/seed-substack-fixture.mjs .agent/fixtures/substack/feed-overflow.xml
+//
+// Then tear the container down — this is a step, not an afterthought; a stray
+// container holds its port against the next agent who derives the same one:
+//
+//   docker rm -f issue166-mysql
+//
+// TWO FAILURES THAT DO NOT LOOK LIKE THEIR CAUSE, both of which have already
+// cost this repo agent-rounds. Check them before concluding the recipe is wrong:
+//
+//   - `docker run` returns before MySQL is accepting connections. A `db push`
+//     that fails to connect seconds after the container starts means it is still
+//     initialising. Wait and re-run it.
+//   - `npx prisma` with no node_modules present silently downloads the NEWEST
+//     Prisma, which rejects this repo's v6 schema with P1012 — a message that
+//     reads like a database connection failure. `npm ci` comes first, always.
+//
+// Serving the seeded rows, for the gates that need a running site — a fresh
+// worktree has no build, so there is one:
+//
+//   DATABASE_URL="mysql://root:issue166@127.0.0.1:33166/csalinas" npm run build
+//   DATABASE_URL="mysql://root:issue166@127.0.0.1:33166/csalinas" \
+//     ./node_modules/.bin/next start -p 3166
+//   node .agent/scripts/verify-blog-overflow.mjs http://127.0.0.1:3166
+//
+// Blog routes are force-dynamic, so a post seeded AFTER that build is on the
+// page without rebuilding — seed order does not matter, only that both halves
+// carry the same DATABASE_URL. Kill the server by the PID listening on your own
+// port (`netstat -ano | grep ':3166.*LISTENING'`), never by image name: other
+// agents on this machine are running node too.
 //
 // Runs the REAL syncSubstackPosts against the REAL prismaStore, with `readFeed`
 // returning the fixture file instead of fetching. So what lands in the table is
