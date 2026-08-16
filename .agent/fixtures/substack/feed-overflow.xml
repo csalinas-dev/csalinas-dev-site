@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  The LAYOUT battery. Every body in here is valid, ordinary newsletter content
+  that survives sanitize.js completely intact — that is the point. None of it is
+  a sanitizer problem and none of it can be fixed there.
+
+  What it attacks is the prose theme: an unbreakable run of characters, a table
+  with more columns than the column it lands in, and a list nested deeper than
+  any author would type. Each one sets a min-content width larger than the
+  article's track, which (without the rules added in #153's revision) inflates
+  the <article> element itself and puts a horizontal scrollbar on <body> — the
+  site's scroll container. The symptom is not "one line overflows": EVERY
+  paragraph of the post is then laid out wider than the phone.
+
+  Measured by .agent/scripts/verify-blog-overflow.mjs at 1200px and 430px. The
+  ordinary paragraph wrapped around each payload is the control: it is what the
+  script asserts is still no wider than the viewport.
+
+  Seed it with:
+    node --env-file=.env .agent/scripts/seed-substack-fixture.mjs \
+      .agent/fixtures/substack/feed-overflow.xml
+-->
+<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title><![CDATA[Overflow Fixture]]></title>
+    <link>https://overflow.substack.com</link>
+    <item>
+      <title><![CDATA[A Token Nobody Can Break]]></title>
+      <description><![CDATA[A pasted credential in the middle of a paragraph.]]></description>
+      <link>https://overflow.substack.com/p/unbreakable-token</link>
+      <guid isPermaLink="false">https://overflow.substack.com/p/unbreakable-token</guid>
+      <dc:creator><![CDATA[Overflow Author]]></dc:creator>
+      <pubDate>Sat, 15 Aug 2026 09:00:00 GMT</pubDate>
+      <content:encoded><![CDATA[<p>An ordinary paragraph, here so the measurement can tell an overflowing line apart from an article box that has been inflated to the width of its widest unbreakable thing. If the article inflates, this paragraph is laid out wider than the viewport too, and the reader has to pan sideways to finish every line of it.</p><p>The session came back as eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9eyJzdWIiOiIxMjM0NTY3ODkwIn0 and that was the whole of it.</p><p>An ordinary paragraph, here so the measurement can tell an overflowing line apart from an article box that has been inflated to the width of its widest unbreakable thing. If the article inflates, this paragraph is laid out wider than the viewport too, and the reader has to pan sideways to finish every line of it.</p>]]></content:encoded>
+    </item>
+    <item>
+      <title><![CDATA[Hashes, Wallets And A URL With No Hyphens]]></title>
+      <description><![CDATA[The identifiers an ordinary newsletter pastes without thinking.]]></description>
+      <link>https://overflow.substack.com/p/long-identifiers</link>
+      <guid isPermaLink="false">https://overflow.substack.com/p/long-identifiers</guid>
+      <dc:creator><![CDATA[Overflow Author]]></dc:creator>
+      <pubDate>Sat, 15 Aug 2026 10:00:00 GMT</pubDate>
+      <content:encoded><![CDATA[<p>An ordinary paragraph, here so the measurement can tell an overflowing line apart from an article box that has been inflated to the width of its widest unbreakable thing. If the article inflates, this paragraph is laid out wider than the viewport too, and the reader has to pan sideways to finish every line of it.</p><p>The transaction is 0x3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b290.</p><p>Downloaded as quarterly_engineering_headcount_and_attrition_summary_final_v3_reviewed.xlsx.</p><p><a href="https://example.com/verylongpathsegmentwithnohyphensoranythingelsetobreakonatallhere">https://example.com/verylongpathsegmentwithnohyphensoranythingelsetobreakonatallhere</a></p><p>An ordinary paragraph, here so the measurement can tell an overflowing line apart from an article box that has been inflated to the width of its widest unbreakable thing. If the article inflates, this paragraph is laid out wider than the viewport too, and the reader has to pan sideways to finish every line of it.</p>]]></content:encoded>
+    </item>
+    <item>
+      <title><![CDATA[Twelve Columns Of Metrics]]></title>
+      <description><![CDATA[A table wider than the column it lands in.]]></description>
+      <link>https://overflow.substack.com/p/wide-table</link>
+      <guid isPermaLink="false">https://overflow.substack.com/p/wide-table</guid>
+      <dc:creator><![CDATA[Overflow Author]]></dc:creator>
+      <pubDate>Sat, 15 Aug 2026 11:00:00 GMT</pubDate>
+      <content:encoded><![CDATA[<p>An ordinary paragraph, here so the measurement can tell an overflowing line apart from an article box that has been inflated to the width of its widest unbreakable thing. If the article inflates, this paragraph is laid out wider than the viewport too, and the reader has to pan sideways to finish every line of it.</p><table><tr><th>Metric 0</th><th>Metric 1</th><th>Metric 2</th><th>Metric 3</th><th>Metric 4</th><th>Metric 5</th><th>Metric 6</th><th>Metric 7</th><th>Metric 8</th><th>Metric 9</th><th>Metric 10</th><th>Metric 11</th></tr><tr><td>1644</td><td>1781</td><td>1918</td><td>2055</td><td>2192</td><td>2329</td><td>2466</td><td>2603</td><td>2740</td><td>2877</td><td>3014</td><td>3151</td></tr><tr><td>3288</td><td>3425</td><td>3562</td><td>3699</td><td>3836</td><td>3973</td><td>4110</td><td>4247</td><td>4384</td><td>4521</td><td>4658</td><td>4795</td></tr><tr><td>4932</td><td>5069</td><td>5206</td><td>5343</td><td>5480</td><td>5617</td><td>5754</td><td>5891</td><td>6028</td><td>6165</td><td>6302</td><td>6439</td></tr></table><p>An ordinary paragraph, here so the measurement can tell an overflowing line apart from an article box that has been inflated to the width of its widest unbreakable thing. If the article inflates, this paragraph is laid out wider than the viewport too, and the reader has to pan sideways to finish every line of it.</p>]]></content:encoded>
+    </item>
+    <item>
+      <title><![CDATA[Forty Levels Of List]]></title>
+      <description><![CDATA[Nesting no author would type and a feed will happily deliver.]]></description>
+      <link>https://overflow.substack.com/p/deep-nesting</link>
+      <guid isPermaLink="false">https://overflow.substack.com/p/deep-nesting</guid>
+      <dc:creator><![CDATA[Overflow Author]]></dc:creator>
+      <pubDate>Sat, 15 Aug 2026 12:00:00 GMT</pubDate>
+      <content:encoded><![CDATA[<p>An ordinary paragraph, here so the measurement can tell an overflowing line apart from an article box that has been inflated to the width of its widest unbreakable thing. If the article inflates, this paragraph is laid out wider than the viewport too, and the reader has to pan sideways to finish every line of it.</p><ul><li>level 1<ul><li>level 2<ul><li>level 3<ul><li>level 4<ul><li>level 5<ul><li>level 6<ul><li>level 7<ul><li>level 8<ul><li>level 9<ul><li>level 10<ul><li>level 11<ul><li>level 12<ul><li>level 13<ul><li>level 14<ul><li>level 15<ul><li>level 16<ul><li>level 17<ul><li>level 18<ul><li>level 19<ul><li>level 20<ul><li>level 21<ul><li>level 22<ul><li>level 23<ul><li>level 24<ul><li>level 25<ul><li>level 26<ul><li>level 27<ul><li>level 28<ul><li>level 29<ul><li>level 30<ul><li>level 31<ul><li>level 32<ul><li>level 33<ul><li>level 34<ul><li>level 35<ul><li>level 36<ul><li>level 37<ul><li>level 38<ul><li>level 39<ul><li>level 40</li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul><p>An ordinary paragraph, here so the measurement can tell an overflowing line apart from an article box that has been inflated to the width of its widest unbreakable thing. If the article inflates, this paragraph is laid out wider than the viewport too, and the reader has to pan sideways to finish every line of it.</p>]]></content:encoded>
+    </item>
+    <item>
+      <title><![CDATA[Token eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9eyJzdWIiOiIxMjM0NTY3ODkwIn0 In A Title]]></title>
+      <description><![CDATA[And in a subtitle: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9eyJzdWIiOiIxMjM0NTY3ODkwIn0]]></description>
+      <link>https://overflow.substack.com/p/unbreakable-title</link>
+      <guid isPermaLink="false">https://overflow.substack.com/p/unbreakable-title</guid>
+      <dc:creator><![CDATA[Overflow Author]]></dc:creator>
+      <pubDate>Sat, 15 Aug 2026 13:00:00 GMT</pubDate>
+      <content:encoded><![CDATA[<p>An ordinary paragraph, here so the measurement can tell an overflowing line apart from an article box that has been inflated to the width of its widest unbreakable thing. If the article inflates, this paragraph is laid out wider than the viewport too, and the reader has to pan sideways to finish every line of it.</p>]]></content:encoded>
+    </item>
+  </channel>
+</rss>

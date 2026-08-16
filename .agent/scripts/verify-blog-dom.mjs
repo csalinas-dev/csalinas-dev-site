@@ -1,4 +1,5 @@
-// "The MDX posts render exactly as they do today" — as a measurement.
+// "The MDX posts' structure, text and article geometry did not change" — as a
+// measurement.
 //
 //   node .agent/scripts/verify-blog-dom.mjs <baseUrl> <out.json> [--expect <file>] [--only a,b,c]
 //
@@ -8,12 +9,24 @@
 // The comparison is the point: an assertion about how a post renders is a claim,
 // a byte-for-byte diff against the old build is a proof.
 //
+// WHAT IT DOES NOT PROVE: appearance. Every emotion class name is normalized to
+// `css-*` (they are content hashes — they move whenever any styled component's
+// CSS changes anywhere, so comparing them would make the gate fire on unrelated
+// edits), and no computed style is read. A purely visual change that moves no
+// geometry therefore passes: changing `h3 { color: var(--function) }` to red in
+// [slug]/components.jsx is visible on two of the three posts and reports "No
+// differences". Structure, text, metadata, anchors, ordering and the article's
+// width/height are what is under the gate; colour, weight and spacing that does
+// not reflow are not. A change to how a post LOOKS still needs an eye or a
+// screenshot.
+//
 // Capture the baseline from a second, clean worktree of the base branch, never
 // from your own tree. A baseline taken from modified code proves nothing.
 //
-// The exit code is this script's own, not shot.mjs's: on `epic/substack-rss`
-// shot.mjs predates #158 and exits 0 even when the page script throws, so a
-// missing `result` is treated here as a failure rather than trusted.
+// The exit code is this script's own rather than shot.mjs's. shot.mjs does exit
+// 1 on a thrown page script here too, so the missing-`result` guard below is
+// belt-and-braces — but it costs a line and it keeps this gate's contract from
+// depending on which revision of shot.mjs the branch carries.
 //
 // Sections are named so a LEGITIMATE change can be excluded from a comparison
 // with --only (after seeding synced posts, `footer` and `cards` change on
@@ -32,14 +45,22 @@ const USAGE =
   "usage: node .agent/scripts/verify-blog-dom.mjs <baseUrl> <out.json> [--expect <file>] [--only a,b,c]";
 
 const argv = process.argv.slice(2);
-const positional = argv.filter((arg) => !arg.startsWith("--"));
 const flag = (name) => {
   const at = argv.indexOf(`--${name}`);
 
   return at === -1 ? null : argv[at + 1];
 };
 
-const [baseUrl, out] = positional;
+// A flag's VALUE is not a positional. Without this, `--expect base.json <url>
+// <out>` silently takes baseUrl = "base.json" and compares a capture of nothing
+// against itself.
+const flagged = new Set(
+  ["expect", "only"].map((name) => argv.indexOf(`--${name}`) + 1).filter((at) => at > 0)
+);
+
+const [baseUrl, out] = argv.filter(
+  (arg, at) => !arg.startsWith("--") && !flagged.has(at)
+);
 
 if (!baseUrl || !out) {
   console.error(`verify-blog-dom.mjs: missing arguments\n${USAGE}`);

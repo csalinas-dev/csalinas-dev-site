@@ -64,10 +64,22 @@ export const Grid = styled("div")`
   align-items: start;
   display: grid;
   gap: 48px;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
+
+  /* minmax(0, …) and this floor are the same statement made at both ends: a
+     grid track is min-content sized by default and a grid item's automatic
+     minimum size is its min-content width, so ONE unbreakable run of characters
+     inside the article — a pasted credential, a commit hash, a twelve-column
+     table — inflates the whole column and with it the page. Without it the
+     symptom is not "one line overflows": every ordinary paragraph of the post
+     is laid out at the width of that one token. The article's grid item is an
+     unstyled <div> in PostBody.jsx, so the floor has to be set from here. */
+  > * {
+    min-width: 0;
+  }
 
   @media (min-width: 900px) {
-    grid-template-columns: 150px 1fr;
+    grid-template-columns: 150px minmax(0, 1fr);
   }
 `;
 
@@ -114,6 +126,10 @@ export const PostTitle = styled("h1")`
   letter-spacing: -0.02em;
   line-height: ${TITLE_LINE_HEIGHT};
   margin: 0;
+  /* A synced post's title is third-party text too, and it is rendered here
+     rather than inside <Article> — at 66px, one unbreakable token is 1500px
+     wide on a phone. */
+  overflow-wrap: anywhere;
 
   @media (min-width: 900px) {
     font-size: 66px;
@@ -135,6 +151,8 @@ export const Description = styled("p")`
   font-size: 19px;
   line-height: 1.6;
   max-width: 52ch;
+  /* Third-party text, same as the title above it. */
+  overflow-wrap: anywhere;
 `;
 
 // One declaration block, two elements. An MDX post's cover is a StaticImageData
@@ -255,11 +273,27 @@ export const Progress = styled("div")`
 
 // The prose theme. Section forces font-size: 1.5rem !important on itself, which
 // the article would otherwise inherit — hence its own explicit size.
+//
+// It also renders markup nobody on this side wrote. A synced body is ordinary
+// newsletter content — a pasted JWT, a commit hash, a wallet address, a
+// hyphen-free URL, a metrics table — and all of it survives sanitize.js intact,
+// correctly: narrowing what a visitor's own writing may contain is the wrong
+// lever for a layout bug. So the theme has to survive content the author did not
+// choose. Measured by .agent/scripts/verify-blog-overflow.mjs at 1200 and 430.
 export const Article = styled("article")`
   color: var(--foreground);
   font-size: 17px;
   line-height: 1.75;
   max-width: 68ch;
+  /* anywhere, not break-word: only anywhere also shrinks the min-content width,
+     and it is the min-content width that inflates the grid track. */
+  overflow-wrap: anywhere;
+  /* The backstop for what wrapping cannot fix — forty nested lists are 1600px
+     of indentation whatever the words do. clip rather than hidden or auto: it
+     creates no scroll container and no block formatting context, so margins
+     still collapse through the article exactly as they did and the MDX posts'
+     measured geometry does not move. */
+  overflow-x: clip;
 
   > p:first-of-type::first-letter {
     color: var(--comment);
@@ -375,14 +409,30 @@ export const Article = styled("article")`
     padding: 0;
   }
 
+  /* A table is the one block wrapping cannot rescue: its width is the sum of
+     its columns. Let it scroll inside the article rather than push the article
+     past the page — display: block is what makes overflow-x apply at all, since
+     it is ignored on display: table. The visible cost is that a table
+     narrower than the column no longer stretches to fill it; no MDX post has a
+     table, and a twelve-column synced one reads far better scrollable at 79px a
+     column than squeezed into 32px on a phone. */
   table {
     border-collapse: collapse;
+    display: block;
+    overflow-x: auto;
     width: 100%;
   }
 
+  /* Cells opt back out of the article's overflow-wrap: anywhere. A table's width
+     is the sum of its columns' min-content widths, and if a cell may break
+     mid-word that is a couple of characters a column: the twelve-column table
+     then squeezes to 32px columns and "Metric 0" wraps to four lines, which
+     fits the page and cannot be read. Breaking words normally makes it wider
+     than the article instead, which is what the scroll above is for. */
   th,
   td {
     border-bottom: 1px solid var(--selectionBackground);
+    overflow-wrap: normal;
     padding: 0.5rem;
     text-align: left;
   }
@@ -482,10 +532,17 @@ export const Footer = styled("div")`
 `;
 
 // margin-left: auto keeps a lone "next" on the right when there is no previous.
+//
+// The label is the NEIGHBOURING post's title, so prev/next is a third surface
+// rendering third-party text — and a flex item's automatic minimum size is its
+// min-content width, so one unbreakable title here widens the footer, the page
+// and every post that happens to sit beside that post in the ordering.
 export const FooterLink = styled(Link)`
   display: flex;
   flex-flow: column nowrap;
   gap: 4px;
+  min-width: 0;
+  overflow-wrap: anywhere;
   text-decoration: none;
 
   &.next {

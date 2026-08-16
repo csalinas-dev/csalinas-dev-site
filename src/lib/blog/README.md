@@ -105,14 +105,48 @@ automatically. Filtering in a component instead would leave old rows on the old
 rules forever. If something renders badly because a tag was dropped, change the
 allowlist — not the renderer.
 
+**The body is third-party, so the prose theme has to survive content the author
+did not write.** This is the same class of statement as the sanitizer's and it is
+a *layout* one, not a security one: a pasted credential, a commit hash, a wallet
+address, a hyphen-free URL and a twelve-column metrics table are all ordinary
+newsletter content, all of it survives `sanitize.js` completely intact, and none
+of it is a sanitizer problem — narrowing what a visitor's own writing may contain
+would be the wrong lever for a layout bug.
+
+Each of those sets a min-content width larger than the article's grid track, and
+a grid track is min-content sized by default. The failure that produces is not
+"one line overflows": the `<article>` element itself inflates to the width of its
+widest unbreakable thing (measured: 382px → 663px in a 430px viewport from one
+63-character token), so **every** paragraph in the post is laid out wider than
+the phone and `<body>` — this site's scroll container — scrolls sideways. So
+`[slug]/components.jsx` carries `overflow-wrap: anywhere` and `overflow-x: clip`
+on `Article`, `min-width: 0` plus `minmax(0, 1fr)` on the body grid, a scrollable
+`table` (with cells opting back out of `anywhere`, or the columns squeeze to
+32px instead of scrolling), and `overflow-wrap: anywhere` on the title, the
+subtitle, the prev/next links and the listing's cards — the three other places a
+synced post's own text is rendered.
+
+`.agent/scripts/verify-blog-overflow.mjs` is the gate, over
+`.agent/fixtures/substack/feed-overflow.xml`, at 1200px and 430px.
+
 ## Verifying
 
 ```bash
 node .agent/scripts/verify-blog-posts.mjs      # pure modules; no network, no database
 node .agent/scripts/verify-blog-dom.mjs <url> out.json [--expect base.json]
+node .agent/scripts/verify-blog-overflow.mjs <url> [--widths 1200,430]
 ```
 
-The second one captures the rendered DOM of `/blog` and the three MDX posts and
-diffs it against a capture from an unmodified base branch — the mechanism behind
-"existing posts render exactly as they do today". It needs a running
-`next start`.
+The second captures the rendered DOM of `/blog` and the three MDX posts and diffs
+it against a capture from an unmodified base branch. It proves **structure, text,
+metadata and article geometry are unchanged** — not appearance: emotion class
+names are normalized to `css-*` (they are content hashes and move on any CSS
+edit anywhere) and no computed style is read, so a purely visual change that
+reflows nothing passes it. Turning `h3 { color: var(--function) }` red is visible
+on two of the three posts and reports "No differences". Treat it as the
+regression gate it is, and look at a post with your eyes before claiming one
+*looks* the same.
+
+The third seeds nothing itself: run `seed-substack-fixture.mjs` over
+`feed-overflow.xml` first, or its anchors will tell you the fixture is missing.
+Both need a running `next start`.
