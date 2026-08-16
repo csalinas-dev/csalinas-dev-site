@@ -2,7 +2,12 @@
 // run it by hand.
 //
 //   docker compose run --rm app node scripts/sync-substack.mjs
-//   DATABASE_URL=… SUBSTACK_FEED_URL=… npm run sync:substack
+//   DATABASE_URL="mysql://root:<pw>@127.0.0.1:<port>/csalinas" \
+//     SUBSTACK_FEED_URL=… npm run sync:substack
+//
+// The second form writes rows, so that database is a throwaway MySQL container
+// you start and destroy — full recipe in .agent/scripts/seed-substack-fixture.mjs's
+// header. Never point it at whatever a worktree happens to be configured for.
 //
 // STDOUT IS THE MARKDOWN SUMMARY AND NOTHING ELSE, EVER. The deploy step pipes
 // it straight into $GITHUB_STEP_SUMMARY, so one stray console.log corrupts the
