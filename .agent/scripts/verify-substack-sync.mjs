@@ -53,7 +53,7 @@ const MODULE_DIR = join(ROOT, "src/lib/substack");
 const load = (file) => import(pathToFileURL(join(MODULE_DIR, file)).href);
 
 const { parseFeedXml } = await load("feed.js");
-const { sanitizePostHtml, sanitizeText } = await load("sanitize.js");
+const { sanitizePostHtml, sanitizeText, auditAllowlist } = await load("sanitize.js");
 const { normalizeItem } = await load("normalize.js");
 const { syncSubstackPosts } = await load("sync.js");
 
@@ -411,6 +411,18 @@ const PAYLOADS = [
   ["protocol-relative href", '<a href="//evil.example/x">x</a>'],
   ["root-relative href", '<a href="/admin/delete">x</a>'],
   ["relative img src", '<img src="x">'],
+  ["relative img srcset", '<img src="https://ok.example/a.png" srcset="/admin/delete 2x">'],
+  // The <source> family. These shipped: `source` was allowlisted with `srcset`
+  // while the absolute check lived in a hand-written `img` transform, so the
+  // scheme-less ones survived — and inside <picture> the browser PREFERS the
+  // <source>, so the visitor's browser would have fetched a path chosen by a
+  // third party from this site's own origin, with imagesDropped still 0.
+  ["relative source srcset inside picture", '<picture><source srcset="/api/github/card?key=x 1x"><img src="https://substackcdn.com/a.png"></picture>'],
+  ["bare-relative source srcset", '<picture><source srcset="x.png"><img src="https://substackcdn.com/a.png"></picture>'],
+  ["source srcset with sizes and type", '<source srcset="/admin/delete 2x" sizes="100vw" type="image/webp">'],
+  ["source srcset, one absolute candidate and one relative", '<source srcset="https://ok.example/a.png 1x, /admin/x 2x">'],
+  ["protocol-relative source srcset", '<source srcset="//evil.example/x.png 1x">'],
+  ["javascript: source srcset", '<source srcset="javascript:alert(1)">'],
   ["CVE-2026-44990 <xmp> raw text", "<xmp><script>alert(1)</script></xmp>"],
   ["2.17.6 mXSS via <textarea/>", "<textarea/><script>alert(1)</script>"],
   ["2.17.6 mXSS via </textarea/>", "<textarea></textarea/><img src=x onerror=alert(1)>"],
@@ -448,12 +460,30 @@ const assertClean = (html, label) => {
   assert(!/javascript:/i.test(decoded), `${label}: a javascript: scheme survived — ${html}`);
   assert(!/data:text\/html/i.test(decoded), `${label}: a data:text/html URL survived — ${html}`);
 
-  for (const [, url] of html.matchAll(/\b(?:href|src|srcset)="([^"]*)"/gi)) {
-    assert(
-      /^(https?:|mailto:)/i.test(url.trim()),
-      `${label}: a non-http(s)/mailto URL survived — ${JSON.stringify(url)}`
-    );
+  for (const [, name, value] of html.matchAll(/\b(href|src|srcset)="([^"]*)"/gi)) {
+    // A srcset is a candidate LIST. Testing the attribute as one string only
+    // ever looks at the first candidate, so `"https://ok/a.png 1x, /admin/x 2x"`
+    // would read as clean — split it and judge every candidate.
+    const urls =
+      name.toLowerCase() === "srcset"
+        ? value.split(",").map((candidate) => candidate.trim().split(/\s+/)[0]).filter(Boolean)
+        : [value];
+
+    for (const url of urls) {
+      assert(
+        /^(https?:|mailto:)/i.test(url.trim()),
+        `${label}: a non-http(s)/mailto URL survived in ${name} — ${JSON.stringify(url)}`
+      );
+    }
   }
+
+  // A relative URL has no scheme to fail on, so it is the one class of hostile
+  // URL that scheme checking cannot see. This is the assertion that would have
+  // caught <source srcset="/admin/x">; the loop above is what enforces it.
+  assert(
+    !/\b(?:href|src|srcset)="\s*\//i.test(html),
+    `${label}: a root-relative URL survived — ${html}`
+  );
 };
 
 for (const [label, payload] of PAYLOADS) {
@@ -540,6 +570,87 @@ check("the CONTENTS of raw-text elements are discarded, not surfaced as prose", 
   return html;
 });
 
+check("a dropped <source> is counted, and a legitimate one keeps its whole srcset", () => {
+  const dropped = sanitizePostHtml(
+    '<picture><source srcset="/api/github/card?key=x 1x"><img src="https://substackcdn.com/a.png"></picture>'
+  );
+
+  assert(!dropped.html.includes("<source"), `the relative <source> survived: ${dropped.html}`);
+  // Counted, not silently vanished: the sync report is how an operator learns a
+  // post lost an image, and 0 here is the failure mode that hid this bug.
+  assertEq(dropped.imagesDropped, 1, "a dropped <source> was not counted into imagesDropped");
+  assert(
+    dropped.html.includes('src="https://substackcdn.com/a.png"'),
+    `the <img> fallback was lost along with the <source>: ${dropped.html}`
+  );
+
+  const kept = sanitizePostHtml(
+    '<picture><source srcset="https://cdn.example/w1456.png 1456w, https://cdn.example/w728.png 728w" sizes="100vw" type="image/webp"><img src="https://cdn.example/w728.png"></picture>'
+  );
+
+  assert(kept.html.includes("<source"), `a fully absolute <source> was dropped: ${kept.html}`);
+  assert(kept.html.includes("1456w") && kept.html.includes("728w"), `the srcset lost a candidate: ${kept.html}`);
+  assertEq(kept.imagesDropped, 0, "a valid <source> was counted as dropped");
+
+  return `dropped ${dropped.imagesDropped}, kept the absolute one`;
+});
+
+check("a dropped element leaves no stray closing tag behind", () => {
+  // sanitize-html has no "delete this element" transform, so a drop degrades the
+  // element to something the allowlist discards — and that stand-in must be
+  // VOID. Degrading void <img>/<source> to a non-void <span> emitted a literal
+  // `</span>` into the stored HTML whenever a sibling followed in the same
+  // parent, which only reproduces with the sibling present.
+  const cases = [
+    '<p><img src="x"><img src="https://ok.example/a.png"></p>',
+    '<picture><source srcset="x"><img src="https://ok.example/a.png"></picture>',
+    '<figure><picture><source srcset="x"></picture><figcaption>cap</figcaption></figure>',
+  ];
+
+  for (const input of cases) {
+    const { html } = sanitizePostHtml(input);
+
+    assert(!/<\/(span|wbr|col)>/i.test(html), `a stray closing tag leaked into the output: ${html}`);
+
+    // Every close tag must have a matching open tag. Self-closing tags carry
+    // their own terminator, so drop them before balancing what is left.
+    const paired = html.replace(/<[a-z0-9]+[^>]*\/>/gi, "");
+    const open = [];
+
+    for (const [, slash, tag] of paired.matchAll(/<(\/?)([a-z0-9]+)/gi)) {
+      if (slash) assert(open.pop() === tag.toLowerCase(), `unbalanced markup around </${tag}>: ${html}`);
+      else open.push(tag.toLowerCase());
+    }
+
+    assertEq(open, [], `an element was never closed: ${html}`);
+  }
+
+  return `${cases.length} shapes balanced`;
+});
+
+check("the allowlist audit rejects a URL attribute that skips its validator", () => {
+  // The structural guarantee, attacked. `auditAllowlist` is the same function
+  // sanitize.js runs at import time, so this proves the guard is real rather
+  // than decorative — and that the shipped table passes it.
+  assertEq(auditAllowlist(), [], "the shipped allowlist does not satisfy its own audit");
+
+  const tags = ["a", "img", "source", "video"];
+  const broken = [
+    ["a URL attribute allowlisted as plain", { source: { attributes: ["srcset", "sizes"], urls: {} } }],
+    ["a URL attribute on a newly allowed element", { video: { attributes: ["src", "poster"] } }],
+    ["a validator on an attribute missing from URL_BEARING", { img: { attributes: [], urls: { longsrc: "url" } } }],
+    ["an unknown validator", { img: { attributes: [], urls: { src: "trustMeItsFine" } } }],
+    ["a required URL that is not declared as a URL", { img: { attributes: [], urls: {}, required: ["src"], onDrop: "imagesDropped" } }],
+    ["an element dropped with no counter", { source: { attributes: [], urls: { srcset: "srcset" }, required: ["srcset"] } }],
+  ];
+
+  for (const [label, table] of broken) {
+    assert(auditAllowlist(table, tags).length > 0, `the audit accepted ${label}`);
+  }
+
+  return `${broken.length} broken tables rejected`;
+});
+
 check("div and span are discarded but their text is kept", () => {
   const { html } = sanitizePostHtml('<div class="footnote"><span style="color:red">inner</span></div>');
 
@@ -599,6 +710,59 @@ check("every payload in feed-hostile is neutralized after the XML round-trip", (
   assert(!/[<>]/.test(post.author ?? ""), `the author kept an angle bracket: ${post.author}`);
 
   return "clean";
+});
+
+check("feed-hostile's shape battery — the census wrappers, with only relative URLs", () => {
+  // Item 2 exists because item 1 did not: this fixture carried no
+  // <picture>/<source> at all while the census counted 84 of each in real
+  // bodies, and that is exactly where the hole was. Every hostile URL in item 2
+  // is RELATIVE, so nothing here can be caught by a scheme check.
+  const xml = fixture("feed-hostile");
+
+  for (const needle of [
+    "&lt;picture&gt;",
+    'srcset="/api/github/card?key=x 1x"',
+    'srcset="/relative.png 2x"',
+    "&lt;button",
+    "&lt;svg",
+    'class="captioned-image-container"',
+    "contenteditable=",
+    "&lt;iframe src=",
+  ]) {
+    assert(xml.includes(needle), `ANCHOR FAILED: feed-hostile.xml lost ${needle} — this check would pass vacuously`);
+  }
+
+  const items = parseFeedXml(xml).items;
+
+  assertEq(items.length, 2, "feed-hostile lost its shape-battery item");
+
+  const item = items[1];
+
+  assert(item.contentEncoded.includes("<source "), "the parser did not decode the shape payload into real markup");
+
+  const { html, imagesDropped, embedsRemoved } = sanitizePostHtml(item.contentEncoded);
+
+  assertClean(html, "feed-hostile shape battery");
+
+  // Three hostile <source>s (relative, protocol-relative, javascript:), all
+  // dropped and all counted.
+  assertEq(imagesDropped, 3, "the hostile <source> elements were not all dropped and counted");
+  assertEq(embedsRemoved, 2, "both iframes should be counted as removed embeds");
+
+  assert(!/<div|<span|<button|<svg|<path|<polyline/i.test(html), `layout or UI chrome survived: ${html}`);
+  assert(!/\sclass=|\sstyle=|\sdata-[a-z-]+=|contenteditable/i.test(html), `an attribute laundered through: ${html}`);
+  assert(!/<h1/i.test(html) && html.includes("<h2>demoted heading</h2>"), `h1 was not demoted: ${html}`);
+
+  // Not passing by deleting everything: the legitimate content is still there.
+  assert(html.includes('src="https://substackcdn.com/real.png"'), `the valid image was lost: ${html}`);
+  assert(html.includes("1456w") && html.includes("728w"), `the fully absolute <source> was dropped: ${html}`);
+  assert(html.includes("caption text") && html.includes("shape tail"), `prose was eaten: ${html}`);
+  assert(
+    html.includes('rel="noopener noreferrer nofollow ugc"') && !html.includes('rel="dofollow"'),
+    `the feed's own rel/target were not replaced: ${html}`
+  );
+
+  return `imagesDropped=${imagesDropped}, embedsRemoved=${embedsRemoved}`;
 });
 
 // ── embed policy ───────────────────────────────────────────────────────────

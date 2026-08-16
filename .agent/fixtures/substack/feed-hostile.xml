@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  One item whose body is the attack battery, delivered THROUGH the XML parser
-  rather than handed straight to the sanitizer.
+  Two items whose bodies are the attack battery, delivered THROUGH the XML
+  parser rather than handed straight to the sanitizer.
 
   This is a genuinely different test from the string battery in the verify
   script: the parser decodes XML entities before the sanitizer ever sees the
@@ -11,6 +11,27 @@
 
   The title and dc:creator carry payloads too — those go through sanitizeText,
   not sanitizePostHtml.
+
+  ITEM 1 is the scheme/raw-text/CVE battery: payloads whose danger is what they
+  ARE.
+
+  ITEM 2 is the SHAPE battery, and it exists because of a hole this fixture
+  missed. The first version of this file carried no <picture>/<source> at all,
+  while the tag census taken from 52 real Substack bodies counts picture 84 and
+  source 84 — the single most common image wrapper in the corpus was the one the
+  attack fixture never exercised, and a relative `srcset` on a <source> shipped
+  unchecked because of it. So item 2 is built from the census rather than from
+  imagination, covering the wrappers real posts actually use and the ones this
+  file previously ignored:
+
+    picture/source (84/84)  figure/figcaption (177/30)  div (562)  span (500)
+    button + svg + path + polyline (116 each, Substack's image-zoom chrome)
+    img with srcset/sizes/data-attrs/fetchpriority/loading (178)
+    a with contenteditable/data-component-name/target/rel (1136)
+    iframe with a real src (15)  blockquote (69)  ul/li (21/111)  h1  hr (27)
+
+  Nothing in item 2 has a scheme to fail on: every hostile URL in it is
+  RELATIVE. That is the point — a scheme check cannot see them.
 -->
 <rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
@@ -26,6 +47,16 @@
       <pubDate>Sat, 15 Aug 2026 06:00:00 GMT</pubDate>
       <enclosure url="javascript:alert(1)" length="0" type="image/jpeg"/>
       <content:encoded>&lt;script&gt;alert(1)&lt;/script&gt;&lt;p onmouseover="alert(1)"&gt;event handler&lt;/p&gt;&lt;a href="javascript:alert(1)"&gt;scheme&lt;/a&gt;&lt;a href="JaVaScRiPt:alert(1)"&gt;case&lt;/a&gt;&lt;a href="  javascript:alert(1)"&gt;space&lt;/a&gt;&lt;a href="&amp;#0000106;avascript:alert(1)"&gt;padded entity&lt;/a&gt;&lt;a href="//evil.example/x"&gt;protocol relative&lt;/a&gt;&lt;a href="/admin/delete"&gt;relative&lt;/a&gt;&lt;img src="x"&gt;&lt;img src="data:text/html;base64,PHNjcmlwdD4="&gt;&lt;xmp&gt;&lt;script&gt;alert(1)&lt;/script&gt;&lt;/xmp&gt;&lt;textarea&gt;&lt;/textarea/&gt;&lt;img src=x onerror=alert(1)&gt;&lt;svg&gt;&lt;a&gt;&lt;animate attributeName="href" values="javascript:alert(1)"/&gt;&lt;/a&gt;&lt;/svg&gt;&lt;form action="javascript:alert(1)"&gt;&lt;button formaction="javascript:alert(1)"&gt;go&lt;/button&gt;&lt;/form&gt;&lt;object data="javascript:alert(1)"&gt;&lt;/object&gt;&lt;embed src="javascript:alert(1)"&gt;&lt;style&gt;body{background:url("javascript:alert(1)")}&lt;/style&gt;&lt;iframe srcdoc="&amp;lt;script&amp;gt;alert(1)&amp;lt;/script&amp;gt;"&gt;&lt;/iframe&gt;&lt;meta http-equiv="refresh" content="0;url=https://evil.example"&gt;&lt;base href="https://evil.example/"&gt;&lt;!--&lt;img src=x onerror=alert(1)--&gt;&lt;p&gt;survivor&lt;/p&gt;</content:encoded>
+    </item>
+    <item>
+      <title><![CDATA[Shape Battery: The Wrappers Real Posts Use]]></title>
+      <description><![CDATA[Every hostile URL below is relative, so no scheme check can see it.]]></description>
+      <link>https://hostile.substack.com/p/shape-battery</link>
+      <guid isPermaLink="false">https://hostile.substack.com/p/shape-battery</guid>
+      <dc:creator>Shape Author</dc:creator>
+      <pubDate>Sat, 15 Aug 2026 07:00:00 GMT</pubDate>
+      <enclosure url="https://substackcdn.com/cover.jpg" length="0" type="image/jpeg"/>
+      <content:encoded>&lt;div class="captioned-image-container" data-attrs="{}"&gt;&lt;figure&gt;&lt;picture&gt;&lt;source srcset="/api/github/card?key=x 1x" sizes="100vw" type="image/webp"/&gt;&lt;source srcset="//evil.example/x.png 1x"/&gt;&lt;source srcset="javascript:alert(1)"/&gt;&lt;img src="https://substackcdn.com/real.png" srcset="/relative.png 2x" sizes="100vw" alt="cover" class="sizing-normal" data-attrs="{}" fetchpriority="high" loading="eager"/&gt;&lt;/picture&gt;&lt;figcaption&gt;&lt;span style="color:red"&gt;caption text&lt;/span&gt;&lt;/figcaption&gt;&lt;/figure&gt;&lt;/div&gt;&lt;div class="image-link-expand"&gt;&lt;button class="image-zoom" aria-label="zoom"&gt;&lt;svg viewBox="0 0 10 10"&gt;&lt;path d="M0 0"/&gt;&lt;polyline points="1,1"/&gt;&lt;/svg&gt;&lt;/button&gt;&lt;/div&gt;&lt;p&gt;&lt;a href="https://ok.example/post" contenteditable="true" data-component-name="Link" target="_top" rel="dofollow" class="x"&gt;a real link&lt;/a&gt;&lt;/p&gt;&lt;picture&gt;&lt;source srcset="https://substackcdn.com/w_1456.png 1456w, https://substackcdn.com/w_728.png 728w" sizes="100vw"/&gt;&lt;img src="https://substackcdn.com/w_728.png"/&gt;&lt;/picture&gt;&lt;iframe src="javascript:alert(1)"&gt;&lt;/iframe&gt;&lt;iframe src="https://www.youtube-nocookie.com/embed/abc123"&gt;&lt;/iframe&gt;&lt;h1&gt;demoted heading&lt;/h1&gt;&lt;blockquote&gt;&lt;p&gt;quoted words&lt;/p&gt;&lt;/blockquote&gt;&lt;ul&gt;&lt;li&gt;&lt;strong&gt;one&lt;/strong&gt;&lt;/li&gt;&lt;li&gt;&lt;em&gt;two&lt;/em&gt;&lt;/li&gt;&lt;/ul&gt;&lt;hr/&gt;&lt;p&gt;shape tail&lt;/p&gt;</content:encoded>
     </item>
   </channel>
 </rss>

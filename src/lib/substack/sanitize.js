@@ -52,91 +52,255 @@ const isMailto = (url) => {
   }
 };
 
+// A srcset is a comma-separated candidate list. Kept only if EVERY candidate is
+// absolute, rather than trying to repair a partly-relative list.
+const srcsetIsAbsolute = (srcset) =>
+  String(srcset)
+    .split(",")
+    .map((candidate) => candidate.trim().split(/\s+/)[0])
+    .filter(Boolean)
+    .every((url) => absolute(url) !== null);
+
 // Link hygiene applied to every surviving <a>: this is untrusted user-generated
 // content pointing off-site.
 const LINK_REL = "noopener noreferrer nofollow ugc";
 
+// The validators an attribute may be checked with. Each takes the raw attribute
+// value and returns the value to emit, or null to reject it.
+const URL_VALIDATORS = {
+  url: (value) => absolute(value),
+  // <a href> is the one place a mail link belongs.
+  link: (value) => absolute(value) ?? (isMailto(value) ? String(value).trim() : null),
+  srcset: (value) => (srcsetIsAbsolute(value) ? String(value) : null),
+};
+
+// Every attribute name that can carry a URL, whether or not this config allows
+// it anywhere. Two jobs:
+//
+//   1. It is the registry the import-time invariant below polices: a name on
+//      this list may only be allowlisted through an element's `urls` (i.e. with
+//      a validator), never through its plain `attributes`.
+//   2. It is the scheme-check list handed to sanitize-html, so the second layer
+//      of defence covers every URL attribute rather than a hand-copied subset —
+//      including action/formaction/data/poster/background (CVE-2026-53606),
+//      which no element here allows in the first place.
+const URL_BEARING = new Set([
+  "href", "src", "srcset", "cite", "action", "formaction", "data", "poster",
+  "background", "longdesc", "usemap", "profile", "manifest", "codebase",
+  "lowsrc", "dynsrc", "ping", "xlink:href",
+]);
+
+// THE ALLOWLIST, AS DATA. Both `allowedAttributes` and the `transformTags` that
+// police URLs are DERIVED from this one table, and that is deliberate.
+//
+// This shape replaced three hand-written transforms, because hand-writing them
+// shipped a real hole: `source` was allowlisted with `srcset` while the
+// absolute-URL check lived inside the `img` transform, so `javascript:`, `data:`
+// and `//evil` died on the scheme check but a scheme-LESS `srcset="/admin/x 1x"`
+// had nothing to trip over and survived — and inside <picture> the browser
+// prefers the <source> over the <img>, so a visitor's browser would have issued
+// a same-origin GET on a path a third party chose, with `imagesDropped` still
+// reporting 0. Three elements had the trap closed and the fourth did not, which
+// is what a fourth hand-written transform guarantees for the fifth element.
+//
+// Per element:
+//   attributes — plain, inert attributes, copied through when present.
+//   urls       — attribute -> validator name. These are the only attributes
+//                that may carry a URL, and each is routed through its validator.
+//   required   — URL attributes the element cannot exist without: if one fails,
+//                the whole element is dropped rather than left half-formed.
+//   onDrop     — the counter that drop increments, so it reaches the sync report
+//                instead of vanishing silently.
+//   force      — attributes stamped onto the element when a URL survived.
+const ELEMENTS = {
+  a: {
+    attributes: ["title"],
+    urls: { href: "link" },
+    // No `required`: a link with no usable href keeps its text and loses only
+    // the attribute. Dropping the element would eat words out of a sentence.
+    force: { rel: LINK_REL, target: "_blank" },
+  },
+  img: {
+    attributes: ["alt", "title", "width", "height", "sizes"],
+    urls: { src: "url", srcset: "srcset" },
+    required: ["src"],
+    onDrop: "imagesDropped",
+    force: { loading: "lazy" },
+  },
+  source: {
+    attributes: ["sizes", "type"],
+    urls: { srcset: "srcset" },
+    // A <source> with no usable srcset is not merely inert: leaving it inside a
+    // <picture> would suppress nothing but tell the operator nothing either.
+    // Dropping it lets <picture> fall back to the <img>, which has been through
+    // the same check.
+    required: ["srcset"],
+    onDrop: "imagesDropped",
+  },
+  th: { attributes: ["colspan", "rowspan", "scope"] },
+  td: { attributes: ["colspan", "rowspan"] },
+};
+
+// What a dropped element degrades to. sanitize-html has no "delete this
+// element" transform, so a transform that wants an element gone has to name
+// something the allowlist will discard — and that something must be VOID.
+// Verified against 2.17.7: on the close tag the library only suppresses
+// `</name>` for names in its own `selfClosing` list ('img', 'br', 'hr', 'area',
+// 'base', 'basefont', 'input', 'link', 'meta', 'col'), so degrading a void
+// <img>/<source> to a non-void <span> emitted a stray `</span>` into the stored
+// HTML whenever a sibling followed it in the same parent. `col` is on that list,
+// is absent from ALLOWED_TAGS so it is discarded, and is absent from
+// nonTextTags so it swallows nothing around it.
+const DROPPED_ELEMENT = "col";
+
+// Contents discarded, not just the tag — and one list, used by BOTH
+// sanitizePostHtml and sanitizeText, because two copies drift and the copy that
+// drifts is the one nobody re-attacks. `xmp` and `textarea` are here
+// specifically because they are the raw-text elements behind CVE-2026-44990 and
+// the 2.17.6 mXSS; `svg` because of the 2.17.7 <animate> bypass;
+// `noembed`/`noframes`/`plaintext`/`listing` for the same reason as `xmp` —
+// 2.17.7 keeps their contents inert, but without this they escape the tag and
+// surface as visible prose in the middle of the article.
+const NON_TEXT_TAGS = [
+  "script", "style", "textarea", "option", "noscript",
+  "xmp", "iframe", "svg", "math", "template",
+  "noembed", "noframes", "plaintext", "listing",
+];
+
+const ALLOWED_TAGS = [
+  "p", "br", "hr",
+  // h1 is transformed to h2 below, not allowed: the page already has one.
+  "h2", "h3", "h4", "h5", "h6",
+  "blockquote", "ul", "ol", "li", "dl", "dt", "dd",
+  "strong", "em", "b", "i", "u", "s", "sup", "sub", "small", "mark",
+  "code", "pre",
+  "a", "img", "figure", "figcaption", "picture", "source",
+  "table", "thead", "tbody", "tfoot", "tr", "th", "td", "caption",
+];
+
+// THE STRUCTURAL GUARANTEE. Lists the reasons an element table is unsafe, empty
+// when it is fine. The module refuses to load on a non-empty result, so a
+// URL-bearing attribute cannot be allowlisted without a validator — which is
+// precisely the mistake that shipped `<source srcset>` unchecked, and precisely
+// the mistake a comment saying "remember to add a transform" does not catch.
+//
+// Exported and pure so the verify script can hand it deliberately broken tables
+// and prove the guard is real rather than decorative. Nothing else should call
+// it.
+export const auditAllowlist = (elements = ELEMENTS, allowedTags = ALLOWED_TAGS) => {
+  const problems = [];
+
+  if (allowedTags.includes(DROPPED_ELEMENT)) {
+    problems.push(`<${DROPPED_ELEMENT}> is what a dropped element degrades to, so allowing it would make every drop visible instead of gone.`);
+  }
+
+  for (const [tag, element] of Object.entries(elements)) {
+    if (!allowedTags.includes(tag)) problems.push(`<${tag}> declares attributes but is not in ALLOWED_TAGS.`);
+
+    for (const name of element.attributes ?? []) {
+      if (URL_BEARING.has(name)) {
+        problems.push(
+          `<${tag} ${name}> is a URL-bearing attribute, so it must be declared under \`urls\` with a ` +
+            "validator, not under `attributes` — otherwise a scheme-less relative URL survives the " +
+            "scheme check (it has no scheme to fail on) and resolves against this site's own origin."
+        );
+      }
+    }
+
+    for (const [name, validator] of Object.entries(element.urls ?? {})) {
+      if (!URL_BEARING.has(name)) {
+        problems.push(`<${tag} ${name}> has a URL validator but is missing from URL_BEARING; add it there so that registry stays complete.`);
+      }
+
+      if (!URL_VALIDATORS[validator]) problems.push(`<${tag} ${name}> names an unknown validator ${JSON.stringify(validator)}.`);
+    }
+
+    for (const name of element.required ?? []) {
+      if (!element.urls?.[name]) problems.push(`<${tag}> requires ${name}, which is not one of its URL attributes.`);
+      if (!element.onDrop) problems.push(`<${tag}> drops the element when ${name} fails but names no counter — a silent drop never reaches the sync report.`);
+    }
+  }
+
+  return problems;
+};
+
+// Import time, not first call: a misconfigured allowlist must be a build/boot
+// failure, never a quietly weaker sanitizer.
+const allowlistProblems = auditAllowlist();
+
+if (allowlistProblems.length) {
+  throw new Error(`src/lib/substack/sanitize.js: ${allowlistProblems.join(" ")}`);
+}
+
+// GOTCHA: allowedAttributes is applied AFTER transformTags, so an attribute a
+// transform adds is silently stripped unless it also appears here. `rel` and
+// `target` on `a` are exactly that case — omit them and links still render
+// perfectly, just with no rel. Deriving the map from the same table that
+// declares `force` is what keeps the two in step.
+const ALLOWED_ATTRIBUTES = Object.fromEntries(
+  Object.entries(ELEMENTS).map(([tag, element]) => [
+    tag,
+    [
+      ...Object.keys(element.urls ?? {}),
+      ...(element.attributes ?? []),
+      ...Object.keys(element.force ?? {}),
+    ],
+  ])
+);
+
+// One generated transform per element that can carry a URL. Because it is
+// generated, there is no element for which somebody can forget to write it.
+const makeTransform = (tag, element, counters) => (unusedTagName, attribs) => {
+  const next = {};
+  let urlsKept = 0;
+
+  for (const [name, validator] of Object.entries(element.urls)) {
+    const value = attribs[name] ? URL_VALIDATORS[validator](attribs[name]) : null;
+
+    if (value) {
+      next[name] = value;
+      urlsKept += 1;
+      continue;
+    }
+
+    if (element.required?.includes(name)) {
+      counters[element.onDrop] += 1;
+
+      return { tagName: DROPPED_ELEMENT, attribs: {} };
+    }
+  }
+
+  for (const name of element.attributes ?? []) {
+    if (attribs[name]) next[name] = attribs[name];
+  }
+
+  // Forced attributes only mean anything on an element whose URL survived:
+  // rel/target on an href-less <a> is noise, and loading=lazy on a dropped image
+  // is moot.
+  return { tagName: tag, attribs: urlsKept ? { ...next, ...element.force } : next };
+};
+
 // The config is built per call so the counters it closes over belong to that
 // call — two concurrent sanitizations must not share a tally.
 const makeConfig = (counters) => ({
-  allowedTags: [
-    "p", "br", "hr",
-    // h1 is transformed to h2 below, not allowed: the page already has one.
-    "h2", "h3", "h4", "h5", "h6",
-    "blockquote", "ul", "ol", "li", "dl", "dt", "dd",
-    "strong", "em", "b", "i", "u", "s", "sup", "sub", "small", "mark",
-    "code", "pre",
-    "a", "img", "figure", "figcaption", "picture", "source",
-    "table", "thead", "tbody", "tfoot", "tr", "th", "td", "caption",
-  ],
-
-  // GOTCHA: allowedAttributes is applied AFTER transformTags, so an attribute a
-  // transform adds is silently stripped unless it is also listed here. `rel` and
-  // `target` on `a` are exactly that case — omit them and links still render
-  // perfectly, just with no rel. Check the output for rel=, do not assume.
-  allowedAttributes: {
-    a: ["href", "title", "rel", "target"],
-    img: ["src", "srcset", "sizes", "alt", "title", "width", "height", "loading"],
-    source: ["srcset", "sizes", "type"],
-    th: ["colspan", "rowspan", "scope"],
-    td: ["colspan", "rowspan"],
-  },
+  allowedTags: ALLOWED_TAGS,
+  allowedAttributes: ALLOWED_ATTRIBUTES,
 
   allowedSchemes: ["http", "https", "mailto"],
-  allowedSchemesAppliedToAttributes: ["href", "src", "cite", "srcset"],
+  allowedSchemesAppliedToAttributes: [...URL_BEARING],
   allowProtocolRelative: false,
   disallowedTagsMode: "discard",
 
-  // Contents discarded, not just the tag. `xmp` and `textarea` are on this list
-  // specifically because they are the raw-text elements behind CVE-2026-44990
-  // and the 2.17.6 mXSS; `svg` because of the 2.17.7 <animate> bypass.
-  nonTextTags: [
-    "script", "style", "textarea", "option", "noscript",
-    "xmp", "iframe", "svg", "math", "template",
-  ],
+  nonTextTags: NON_TEXT_TAGS,
 
   transformTags: {
     h1: "h2",
 
-    a: (tagName, attribs) => {
-      const href = attribs.href ? absolute(attribs.href) : null;
-      const mail = !href && attribs.href && isMailto(attribs.href) ? String(attribs.href).trim() : null;
-      const target = href || mail;
-
-      // No usable href: keep the link text, drop the attribute. Dropping the
-      // whole element would silently eat words out of a sentence.
-      if (!target) return { tagName: "a", attribs: {} };
-
-      const next = { href: target, rel: LINK_REL, target: "_blank" };
-
-      if (attribs.title) next.title = attribs.title;
-
-      return { tagName: "a", attribs: next };
-    },
-
-    img: (tagName, attribs) => {
-      const src = attribs.src ? absolute(attribs.src) : null;
-
-      if (!src) {
-        counters.imagesDropped += 1;
-
-        // sanitize-html has no "delete this element" transform, so degrade it to
-        // an inert element the allowlist discards.
-        return { tagName: "span", attribs: {} };
-      }
-
-      const next = { src, loading: "lazy" };
-
-      for (const key of ["alt", "title", "width", "height", "sizes"]) {
-        if (attribs[key]) next[key] = attribs[key];
-      }
-
-      // srcset is a comma-separated list of candidates; keep it only if every
-      // candidate is absolute http(s), rather than trying to repair it.
-      if (attribs.srcset && srcsetIsAbsolute(attribs.srcset)) next.srcset = attribs.srcset;
-
-      return { tagName: "img", attribs: next };
-    },
+    ...Object.fromEntries(
+      Object.entries(ELEMENTS)
+        .filter(([, element]) => element.urls)
+        .map(([tag, element]) => [tag, makeTransform(tag, element, counters)])
+    ),
 
     // EVERY iframe is removed — none are allowed, by host or otherwise. An
     // iframe is a third-party origin executing script inside this page, which
@@ -149,11 +313,14 @@ const makeConfig = (counters) => ({
     // bad allow now is live XSS.
     //
     // But removal must not silently eat content, so the iframe becomes a link
-    // to the same URL and the removal is counted into the sync report.
-    iframe: (tagName, attribs) => {
+    // to the same URL and the removal is counted into the sync report. It is
+    // not in ELEMENTS because it is not an allowed element at all: its src is
+    // never emitted as a src, only as the href of the replacement link — and
+    // that goes through the same validator.
+    iframe: (unusedTagName, attribs) => {
       counters.embedsRemoved += 1;
 
-      const src = attribs.src ? absolute(attribs.src) : null;
+      const src = attribs.src ? URL_VALIDATORS.url(attribs.src) : null;
 
       if (!src) return { tagName: "p", attribs: {}, text: "" };
 
@@ -165,13 +332,6 @@ const makeConfig = (counters) => ({
     },
   },
 });
-
-const srcsetIsAbsolute = (srcset) =>
-  String(srcset)
-    .split(",")
-    .map((candidate) => candidate.trim().split(/\s+/)[0])
-    .filter(Boolean)
-    .every((url) => absolute(url) !== null);
 
 // Sanitizes an article body. Returns the safe HTML plus what was removed, so the
 // sync report can tell an operator that a post lost an embed or an image rather
@@ -206,7 +366,7 @@ export function sanitizeText(value, { maxLength = 512 } = {}) {
     allowedTags: [],
     allowedAttributes: {},
     disallowedTagsMode: "discard",
-    nonTextTags: ["script", "style", "textarea", "option", "noscript", "xmp", "iframe", "svg", "math", "template"],
+    nonTextTags: NON_TEXT_TAGS,
   });
 
   const collapsed = stripped.replace(/&amp;/g, "&").replace(/\s+/g, " ").trim();

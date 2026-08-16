@@ -40,7 +40,33 @@ Two traps in the config that are easy to reintroduce:
   render perfectly, they just carry no `rel`.
 - A relative `href` or `src` carries **no scheme**, so scheme checking never
   fires on it — and once stored and rendered it resolves against `csalinas.dev`.
-  Everything that survives is forced through an absolute `http(s)` check.
+
+The second trap is why the allowlist is **data, not code**. `ELEMENTS` in
+`sanitize.js` declares every surviving element once, and both `allowedAttributes`
+and the `transformTags` that police URLs are *derived* from it: an attribute
+listed under `urls` is routed through a validator (`url`, `link`, `srcset`), and
+`auditAllowlist()` — run at import time, so a mistake is a boot failure — refuses
+to let a name in `URL_BEARING` be allowlisted as a plain attribute instead. There
+is therefore no way to allow a URL-bearing attribute without checking it.
+
+That shape replaced three hand-written transforms, and it replaced them because
+hand-writing them shipped a hole. `<source>` was allowlisted with `srcset` while
+the absolute check lived inside the `img` transform, so `javascript:`, `data:`
+and `//evil` died on the scheme check but a scheme-*less* `srcset="/admin/x 1x"`
+had nothing to trip over and survived. Inside `<picture>` the browser prefers the
+`<source>` over the `<img>`, so a visitor's browser would have issued a
+same-origin `GET` on a path a third party chose — while `imagesDropped` stayed
+`0` and the sync report said nothing had happened. Three elements had the trap
+closed and the fourth did not; a fourth hand-written transform would have been
+the same bug waiting for the fifth element.
+
+When a required URL fails, the whole element is dropped and counted into
+`imagesDropped`, so the removal reaches the sync report rather than vanishing.
+A dropped element degrades to `<col>`, which sanitize-html discards — and it must
+be a **void** element, because the library only suppresses the closing tag for
+names in its own `selfClosing` list, so degrading a void `<img>`/`<source>` to a
+non-void `<span>` leaked a stray `</span>` into the stored HTML whenever a
+sibling followed it.
 
 **Every `<iframe>` is removed.** None are allowed, by host or otherwise: an
 iframe is a third-party origin executing script inside this page, a host
