@@ -65,7 +65,7 @@ const TermsAndConditions = () => {
       </Typography>
 
       <Typography variant="body1" paragraph>
-        Tic-Tac-Overflow and Edge Case can be played online with other people. Each game lives in a room with a four-character code, and anyone holding that code can join it or watch it. Codes are listed nowhere, but they are short and they are not secret — share one only with the people you mean to play with.
+        Tic-Tac-Overflow, Edge Case, Connect 404 and Race Condition can be played online with other people. Each game lives in a room with a four-character code, and anyone holding that code can join it or watch it. Codes are listed nowhere, but they are short and they are not secret — share one only with the people you mean to play with.
       </Typography>
 
       <Typography variant="body1" paragraph>

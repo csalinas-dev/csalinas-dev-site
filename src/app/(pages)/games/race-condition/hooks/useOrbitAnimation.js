@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { orbit } from "../_lib";
 import { applyMoveToIds, emptyIds, orbitIds } from "../board/ids";
+import { turnKey } from "./turnKey";
 
 // How long the position the player built stays on screen before the board turns.
 // The slide and the placement are one beat, the orbit is the next, and without a
@@ -17,10 +18,11 @@ const SPIN_MS = 460;
 // press that produced the line is the one the player needs to see.
 const OVERTIME_SPIN_MS = 300;
 
-// Nothing has been watched yet. Distinct from `null`, which is a real value of
-// `game.lastTurn` (a fresh board), so the first effect after mount can tell "a
-// game that has not started" from "a game that was already in progress when this
-// component mounted" — #144 mounts into the second.
+// Nothing has been watched yet. A symbol rather than null or "": every real
+// board has a `turnKey`, including a fresh one ("new:<slot>"), so the first
+// effect after mount can tell "a game that has not started" from "a game that
+// was already in progress when this component mounted" — online mounts into the
+// second, and there is no "before" to animate from.
 const UNWATCHED = Symbol("unwatched");
 
 /** One fresh id per occupied square. Empty squares stay null. */
@@ -112,22 +114,23 @@ export const useOrbitAnimation = (game) => {
 
   useEffect(() => {
     const { lastTurn } = game;
+    const key = turnKey(game);
 
     // Nothing new happened — a re-render for some other reason.
-    if (lastTurn === watched.current) return undefined;
+    //
+    // BY VALUE, NOT BY IDENTITY, and that is not a tidy-up: online, `game`
+    // arrives as a fresh `JSON.parse` on every resync and the same revision is
+    // re-delivered deliberately (presence changes do not bump it, and the
+    // polling fallback re-applies a snapshot every 2s). Compare the object and
+    // the sixteen marbles spin again every time the opponent's connection
+    // blinks. See `turnKey.js`.
+    if (key === watched.current) return;
 
     const first = watched.current === UNWATCHED;
-    watched.current = lastTurn;
+    watched.current = key;
+    // The only place a running sequence is stopped: a NEW turn interrupts the
+    // one on screen. See the note below on why this is not the cleanup's job.
     cancel();
-
-    // The cleanup cancels the timers and NOTHING ELSE. It must not put
-    // `watched` back: this effect's cleanup runs immediately before the next
-    // turn's effect, so restoring the sentinel there would make every turn after
-    // the first look like the first — settled on arrival, and the whole
-    // animation silently skipped. (React's development-mode double-invoke only
-    // repeats effects on MOUNT, and the mount run is the branch that settles
-    // without animating anyway, so nothing needs restoring for it either.)
-    const teardown = cancel;
 
     // A fresh board, a restart, or a rematch — including one pressed in the
     // middle of a sequence, which is why this cancels first. And a board that was
@@ -136,7 +139,7 @@ export const useOrbitAnimation = (game) => {
     if (lastTurn === null || first) {
       settle({ cells: game.cells, ids: mintIds(game.cells, nextId) });
 
-      return teardown;
+      return;
     }
 
     // Frame 0: the slide applied to the committed ids, and a FRESH id on the
@@ -164,7 +167,7 @@ export const useOrbitAnimation = (game) => {
     if (reduced.current) {
       settle(frames[frames.length - 1]);
 
-      return teardown;
+      return;
     }
 
     // How long the move INTO press `k` takes. The first press is the one being
@@ -202,11 +205,26 @@ export const useOrbitAnimation = (game) => {
     setSpinning(true);
     show(0);
 
-    return teardown;
-    // `teardown` is also the unmount path: React runs the last effect's cleanup
-    // when the component goes away, so a sequence can never outlive the board it
-    // is turning.
+    // THIS EFFECT RETURNS NO CLEANUP, AND THAT IS THE WHOLE POINT.
+    //
+    // A running sequence has to survive a re-render that changed nothing,
+    // because online there are two of those per turn: `send({ optimistic: true })`
+    // renders the turn from the local reducer, and the server's confirmation of
+    // THE SAME TURN arrives ~50ms later as a different object with an identical
+    // `turnKey`. Cancelling the timers from a cleanup meant that second render
+    // killed the orbit at frame 0 and the early return above never restarted it —
+    // the board froze mid-turn, `committed` stopped advancing, and marbles that
+    // had never been settled were left with no id and therefore no DOM node. The
+    // symptom was a board showing one marble while the room held three, and it
+    // only ever appeared online.
+    //
+    // So the sequence's lifetime is the SEQUENCE's, not this effect's: a new turn
+    // cancels the old one explicitly above, and unmount is handled once, below.
   }, [cancel, game, nextId, settle]);
+
+  // The unmount path, and nothing else — no dependency that changes during a
+  // game, so nothing here can interrupt an orbit that is still turning.
+  useEffect(() => cancel, [cancel]);
 
   return {
     cells: playback?.cells ?? committed.cells,

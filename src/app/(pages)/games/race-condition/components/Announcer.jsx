@@ -36,17 +36,30 @@ const presses = (count) => (count === 1 ? "The board turned once." : `The board 
  * row", because "where" is the interesting part and it is the one thing the
  * highlight conveys that words otherwise would not. Both lines are named on a
  * simultaneous draw, in each colour's name.
+ *
+ * Who won, and whether the press won it for somebody else, come in through
+ * `outcome` — the same object the banner and the endgame panel read, derived
+ * once in `Game.jsx`. This used to work it out for itself, which made three
+ * derivations of one rule; they happened to agree, and the way that class of bug
+ * shows up is a screen reader being told a different winner than the screen.
+ *
+ * @param {Object} props
+ * @param {Object} props.game - The engine state
+ * @param {Object} props.outcome - `{ winner, lastMover, orbitedIn }`
+ * @param {Object[]} props.players - The cast
  */
-export const Announcer = ({ game, players }) => {
+export const Announcer = ({ game, outcome, players }) => {
   const message = useMemo(() => {
     const upNext = playerFor(players, game.turn);
+    const { lastMover, orbitedIn, winner } = outcome;
 
     if (!game.lastTurn) {
       return `New game. ${SIZE} by ${SIZE}, ${CELLS} squares, eight marbles each. ${upNext.name} to move.`;
     }
 
-    const { by, move, place, spins } = game.lastTurn;
-    const mover = playerFor(players, by);
+    const { move, place, spins } = game.lastTurn;
+    // `lastMover` is that same seat, resolved once upstream.
+    const mover = lastMover;
 
     const slide =
       move === null
@@ -55,13 +68,12 @@ export const Announcer = ({ game, players }) => {
 
     let sentence = `${slide} ${mover.name} placed on ${cellName(place)}. ${presses(spins)}`;
 
-    if (game.winner !== null) {
-      const winner = playerFor(players, game.winner);
+    if (winner !== null) {
       const line = (game.winningLines ?? [])
         .flatMap((cells) => cells.map(cellName));
 
       return `${sentence} ${winner.name} wins${
-        winner.slot === by ? "" : `, on ${mover.name}'s press`
+        orbitedIn ? `, on ${mover.name}'s press` : ""
       }, with a line at ${list(line)}.`;
     }
 
@@ -85,7 +97,7 @@ export const Announcer = ({ game, players }) => {
     }
 
     return `${sentence} ${upNext.name} to move.`;
-  }, [game, players]);
+  }, [game, outcome, players]);
 
   return (
     <VisuallyHidden aria-atomic="true" aria-live="polite" role="status">

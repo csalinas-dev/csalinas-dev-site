@@ -97,7 +97,7 @@ const Again = styled.button`
  *   the next game — a spectator gets the result and no controls.
  */
 export const Endgame = ({ onPlayAgain, outcome, result }) => {
-  const { lastMover, orbitedIn, winner } = outcome;
+  const { lastMover = null, orbitedIn = false, winner = null } = outcome ?? {};
 
   return (
     <Panel>
