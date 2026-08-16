@@ -146,7 +146,7 @@ const PrivacyPolicy = () => {
       </List>
 
       <Typography variant="body1" paragraph>
-        Two things on the Website are written somewhere else and fetched by my server rather than by your browser: the Mini Motorways page&apos;s data, which comes from Hygraph, and the text of the blog posts that started life on my Substack newsletter, which my server collects on a schedule and stores. Your browser never contacts either one to read a post here.
+        Two things on the Website are written somewhere else and fetched by my server rather than by your browser: the Mini Motorways page&apos;s data, which comes from Hygraph, and the text of the blog posts that started life on my Substack newsletter, which my server copies into its own database. Somebody opening the blog is what sends the server looking for new posts, and it goes after your page has already been sent, so no visitor waits on it. However many people are reading, it fetches no more than once every ten minutes — and on a day when nobody opens the blog, nothing is fetched at all. Deploying a new version of the Website fetches once as well. Your browser never contacts either one for the words of a post.
       </Typography>
 
       <Typography variant="body1" paragraph>
