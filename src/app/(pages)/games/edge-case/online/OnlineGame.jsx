@@ -78,10 +78,16 @@ export const OnlineGame = ({ code, name, onLeave, spectate = false }) => {
   // arrives: it goes null only when the seat is genuinely gone.
   //
   // What is left is the question the core cannot answer, and the reason this
-  // stays: standing up and being removed look identical from the roster, and
-  // only `leaving` knows whose idea it was. The roster test below is kept as a
-  // restatement of `keepSeat`'s rule rather than a second, independent one — if
-  // the two ever disagree the core is right, so change it there, not here.
+  // stays: `keepSeat` repairs `me`, it never says you were *removed*. Only
+  // `heldSlot.current !== null` separates "I had a seat and lost it" from "I
+  // never had one", which is what stops a genuine spectator being told they
+  // were removed, and only `leaving` knows whose idea it was.
+  //
+  // The `players.some(...)` half is the restatement of `keepSeat`'s rule, and a
+  // coarser one: the core also declines a slot that a newcomer has since taken.
+  // Where the two differ this simply does not fire, which is the safe way round
+  // — it can only ever make the sentence appear less often, never wrongly. If
+  // they ever disagree the core is right, so change it there, not here.
   const removed =
     !me &&
     !leaving.current &&

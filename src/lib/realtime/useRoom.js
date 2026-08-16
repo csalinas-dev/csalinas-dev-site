@@ -160,7 +160,9 @@ export function useRoom({ code, game, name, color, spectate = false } = {}) {
   const confirmedRef = useRef(null);
   const tokenRef = useRef(null);
 
-  // The seat this browser was last told it holds. A payload that does not know
+  // The seat this browser was last told it holds — the whole seat object, not
+  // its slot, because slots are recycled and `connectedAt` is what tells our
+  // seat apart from the next player to sit in it. A payload that does not know
   // who we are must not be able to take it away — see identity.js.
   const seatRef = useRef(null);
 
@@ -184,9 +186,10 @@ export function useRoom({ code, game, name, color, spectate = false } = {}) {
     const merged = keepSeat(next, seatRef.current);
 
     // Clearing the ref when the merged payload really has no seat is what lets
-    // a lobby "leave" and a host removal still land: the seat is deleted from
-    // `players`, so `keepSeat` declines to restore it and we stop holding on.
-    seatRef.current = merged.me?.slot ?? null;
+    // a lobby "leave" and a host removal still land: the seat is gone from
+    // `players` (or a different seat now wears its number), so `keepSeat`
+    // declines to restore it and we stop holding on.
+    seatRef.current = merged.me ?? null;
 
     roomRef.current = merged;
     confirmedRef.current = merged;

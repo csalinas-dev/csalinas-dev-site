@@ -42,7 +42,9 @@ import { createRoomWatcher } from "./watch";
 // minted rather than a probe. `crypto.randomUUID()` is 36 characters.
 const TOKEN_PATTERN = /^[A-Za-z0-9._-]{8,64}$/;
 
-function assertToken(token) {
+/** Exported so a route that takes a token but writes nothing — the ticket
+ * exchange — validates it exactly the way the writes here do. */
+export function assertToken(token) {
   if (typeof token !== "string" || !TOKEN_PATTERN.test(token)) {
     throw badRequest("Missing or malformed player token.", "bad-token");
   }

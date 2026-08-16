@@ -1,6 +1,6 @@
-import { badRequest, toResponse } from "@/lib/realtime/errors";
+import { toResponse } from "@/lib/realtime/errors";
 import { clientIp, limitOr429, readJson } from "@/lib/realtime/http";
-import { getRoom } from "@/lib/realtime/rooms";
+import { assertToken, getRoom } from "@/lib/realtime/rooms";
 import { issueTicket } from "@/lib/realtime/tickets";
 
 export const runtime = "nodejs";
@@ -19,10 +19,10 @@ const RATE_LIMIT = 60;
  * log. See `src/lib/realtime/tickets.js`.
  *
  * Spectators have no token and need no ticket — they open the stream bare, so a
- * request that arrives here without one has nothing to exchange: the ticket it
- * would get back stands in for nobody and the stream now refuses it as
- * `bad-ticket`. Saying so here makes it a 400 the caller can read instead of a
- * 403 two requests later that looks like the room rejecting them.
+ * request that arrives here without a usable one has nothing to exchange: the
+ * ticket it would get back stands in for nobody and the stream now refuses it
+ * as `bad-ticket`. Saying so here makes it a 400 the caller can read instead of
+ * a 403 two requests later that looks like the room rejecting them.
  */
 export async function POST(request, { params }) {
   try {
@@ -33,16 +33,17 @@ export async function POST(request, { params }) {
 
     const body = await readJson(request);
 
-    if (!body.token) {
-      throw badRequest("Missing or malformed player token.", "bad-token");
-    }
+    // The same validation every write in rooms.js runs, not merely a presence
+    // check: a token that is present but malformed stands in for nobody either,
+    // so it would mint a ticket that redeems to a seatless stream.
+    const token = assertToken(body.token);
 
     // Resolve the room first: a ticket for a dead room should be an honest 410
     // now rather than a stream that opens and immediately says `gone`.
-    const room = await getRoom(code, body.token);
+    const room = await getRoom(code, token);
 
     return Response.json(
-      { ticket: issueTicket(room.code, body.token) },
+      { ticket: issueTicket(room.code, token) },
       { headers: { "Cache-Control": "no-store" } },
     );
   } catch (err) {

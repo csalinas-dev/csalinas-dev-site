@@ -161,9 +161,18 @@ refresh, a locked phone, or a redeploy costs one round trip.
 `me` is resolved per payload from whatever token *that payload* was fetched
 with, so a payload fetched without one reports `me: null` for a player who is
 still sitting in the room. **A payload that does not know who you are may only
-take your seat away if your slot is also gone from its own `players`.** The
+take your seat away if your seat is also gone from its own `players`.** The
 roster cannot lie the way `me` can: a seat that is really gone — the host
 removed them, or they stood up in the lobby — is gone from `players` too.
+
+**A slot number does not identify a seat.** `nextSlot` hands out the lowest free
+seat, so a lobby seat that is vacated and re-taken puts a newcomer on the same
+number; matching on the number alone would render the departed player *as* the
+newcomer, and it would stick, because every following payload repeats the
+repair. The seat is recognised by `connectedAt` — stamped once when the seat is
+created and never rewritten (`lastSeenAt` is the field that moves), and present
+on every seat of every payload via `publicPlayer`. When either side carries no
+`connectedAt` there is nothing to compare and it degrades to the slot alone.
 
 That rule lives in exactly one place, [`identity.js`](./identity.js)'s
 `keepSeat`, the way `absence.js` is the one place absence is worded. `useRoom`

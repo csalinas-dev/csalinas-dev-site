@@ -6,8 +6,9 @@
 // covers the other:
 //
 //   PURE  `keepSeat` (src/lib/realtime/identity.js) — a payload that does not
-//         know who you are may only un-seat you if your slot is also gone from
-//         its own `players`.
+//         know who you are may only un-seat you if your seat is also gone from
+//         its own `players`, and the seat is recognised by `connectedAt` rather
+//         than by its slot number, because slots are recycled.
 //   LIVE  the stream route — a ticket that is present and cannot be redeemed is
 //         refused with 403 `bad-ticket` instead of quietly serving an anonymous
 //         stream that reports `me: null` to a seated player.
@@ -105,11 +106,21 @@ const section = (title) => console.log(`\n${title}`);
 // ── pure: keepSeat ─────────────────────────────────────────────────────────
 section("keepSeat — when `me: null` is believable");
 
-const seated = (slots) => slots.map((slot) => ({ slot, name: `P${slot}` }));
+// Seats as the wire carries them. `connectedAt` is stamped once when a seat is
+// created and never rewritten (`lastSeenAt` is the field that moves), which is
+// what lets a seat be recognised across payloads — and what tells it apart from
+// the next player to be handed its slot number.
+const seat = (slot, connectedAt = `2026-01-01T00:00:0${slot}.000Z`, name = `P${slot}`) => ({
+  slot,
+  name,
+  connectedAt,
+});
 
-await check("restores `me` when the held slot is still in `players`", () => {
+const seated = (slots) => slots.map((slot) => seat(slot));
+
+await check("restores `me` when the held seat is still in `players`", () => {
   const payload = { me: null, players: seated([0, 1]), revision: 4 };
-  const out = keepSeat(payload, 0);
+  const out = keepSeat(payload, seat(0));
 
   assert(out.me !== null, "the seat was not restored");
   assertEq(out.me.slot, 0, "restored the wrong seat");
@@ -121,11 +132,11 @@ await check("restores `me` when the held slot is still in `players`", () => {
   return "me: null -> slot 0";
 });
 
-await check("leaves `me` null when the held slot is gone from `players`", () => {
+await check("leaves `me` null when the held seat is gone from `players`", () => {
   // The only two ways a seat disappears: the host removed them, or they stood
   // up in the lobby. Then `me: null` is the truth and must be rendered.
   const payload = { me: null, players: seated([1, 2]), revision: 9 };
-  const out = keepSeat(payload, 0);
+  const out = keepSeat(payload, seat(0));
 
   assertEq(out.me, null, "a seat that is really gone was resurrected");
   assertEq(out, payload, "should return the same object when it does nothing");
@@ -133,9 +144,47 @@ await check("leaves `me` null when the held slot is gone from `players`", () => 
   return "seat gone -> stays null";
 });
 
+await check("declines a RECYCLED slot: the newcomer in your old seat is not you", () => {
+  // `nextSlot` hands out the lowest free seat, so a lobby seat that is vacated
+  // and re-taken puts somebody else on the same number. Matching on the number
+  // alone renders the removed player as the newcomer — and it sticks, because
+  // every following payload repeats the repair.
+  const mine = seat(1, "2026-08-16T02:15:52.068Z", "Victim");
+  const theirs = seat(1, "2026-08-16T02:15:52.335Z", "Newcomer");
+
+  for (let repeat = 0; repeat < 3; repeat += 1) {
+    const payload = { me: null, players: [seat(0), theirs], revision: 7 + repeat };
+    const out = keepSeat(payload, mine);
+
+    assertEq(out.me, null, "a removed player was re-seated as the newcomer");
+    assertEq(out, payload, "should return the same object when it does nothing");
+  }
+
+  return "different connectedAt -> refused, every time";
+});
+
+await check("falls back to the slot when `connectedAt` is missing", () => {
+  // Nothing to compare is not evidence of a recycled seat, so this degrades to
+  // matching on the slot alone — no worse than not looking at all.
+  const bare = { slot: 1, name: "P1" };
+
+  assertEq(
+    keepSeat({ me: null, players: [seat(0), bare] }, { slot: 1, name: "P1" })?.me?.slot,
+    1,
+    "a payload with no connectedAt lost the seat entirely"
+  );
+  assertEq(
+    keepSeat({ me: null, players: seated([0, 1]) }, { slot: 1 })?.me?.slot,
+    1,
+    "a held seat with no connectedAt lost the seat entirely"
+  );
+
+  return "slot-only, as before";
+});
+
 await check("never overwrites a non-null `me`", () => {
-  const payload = { me: { slot: 1, name: "P1" }, players: seated([0, 1]) };
-  const out = keepSeat(payload, 0);
+  const payload = { me: seat(1), players: seated([0, 1]) };
+  const out = keepSeat(payload, seat(0));
 
   assertEq(out.me.slot, 1, "the payload's own identity was overwritten");
   assertEq(out, payload, "should return the same object when it does nothing");
@@ -149,26 +198,26 @@ await check("no-ops when no seat is held", () => {
   // silently seating the television.
   const payload = { me: null, players: seated([0, 1]) };
 
-  assertEq(keepSeat(payload, null), payload, "null heldSlot must no-op");
-  assertEq(keepSeat(payload, undefined), payload, "undefined heldSlot must no-op");
-  assertEq(keepSeat(null, 0), null, "a falsy payload must pass through");
+  assertEq(keepSeat(payload, null), payload, "a null held seat must no-op");
+  assertEq(keepSeat(payload, undefined), payload, "an undefined held seat must no-op");
+  assertEq(keepSeat(null, seat(0)), null, "a falsy payload must pass through");
 
   return "spectators stay spectators";
 });
 
 await check("slot 0 is a held seat, not a falsy one", () => {
-  // The seat numbering starts at zero, so anything testing `if (heldSlot)`
+  // The seat numbering starts at zero, so anything testing `if (heldSeat.slot)`
   // would break exactly for the host and nobody else.
   const payload = { me: null, players: seated([0, 1]) };
 
-  assertEq(keepSeat(payload, 0).me?.slot, 0, "slot 0 was treated as no seat");
+  assertEq(keepSeat(payload, seat(0)).me?.slot, 0, "slot 0 was treated as no seat");
 
   return "host's seat survives";
 });
 
 await check("returns a copy rather than mutating the payload", () => {
   const payload = { me: null, players: seated([0, 1]) };
-  const out = keepSeat(payload, 0);
+  const out = keepSeat(payload, seat(0));
 
   assert(out !== payload, "must not return the same object when it repairs");
   assertEq(payload.me, null, "the caller's payload was mutated");
@@ -380,6 +429,19 @@ for (const game of reachable ? ["connect-404", "tto"] : []) {
     });
 
     assertEq(res.status, 400, "a tokenless ticket request must be refused");
+    assertEq(res.body?.error, "bad-token", "wrong error code");
+    return "400 bad-token";
+  });
+
+  await check("POST /ticket with a malformed token is 400 bad-token", async () => {
+    // Present but unusable is the same nobody as absent: it would mint a ticket
+    // that redeems to a token holding no seat — a 200 anonymous stream again.
+    const res = await api(`/api/rooms/${code}/ticket`, {
+      method: "POST",
+      body: JSON.stringify({ token: "x" }),
+    });
+
+    assertEq(res.status, 400, "a malformed token must be refused");
     assertEq(res.body?.error, "bad-token", "wrong error code");
     return "400 bad-token";
   });
