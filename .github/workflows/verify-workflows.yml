@@ -49,10 +49,12 @@ jobs:
           test -d .github/workflows
           test -f .agent/scripts/verify-workflows.mjs
 
-      # Only js-yaml, pinned, rather than `npm ci` of the whole Next.js tree:
-      # the gate has exactly one dependency and this job should stay seconds.
-      - name: Install the one dependency
-        run: npm install --no-save --no-audit --no-fund js-yaml@4.1.1
+      # The gate's only dependency is js-yaml, but naming it on the command line
+      # buys nothing: npm still reads the repo's package.json and installs the
+      # whole tree (measured: 599 packages, 23s). So do the reproducible thing
+      # and honour the lockfile -- js-yaml is a declared devDependency.
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
 
       - name: Verify workflows
         run: node .agent/scripts/verify-workflows.mjs
