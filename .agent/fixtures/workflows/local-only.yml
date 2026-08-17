@@ -1,0 +1,20 @@
+# The shape this repo is allowed to ship: run: steps, plus a ./-local action.
+# verify-workflows.mjs MUST accept this file.
+name: local only
+on:
+  push:
+    branches:
+      - main
+jobs:
+  deploy:
+    runs-on: [self-hosted, sfo3-02]
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Do a local thing
+        run: |
+          echo "uses: actions/github-script@v7 is mentioned here, inside a run"
+          echo "block, and must NOT be read as a step reference"
+      - name: A local composite action is fine
+        uses: ./.github/actions/example

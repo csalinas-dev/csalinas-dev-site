@@ -71,67 +71,89 @@ jobs:
       # Neither alert step gets `continue-on-error`: a Substack outage is allowed
       # to pass quietly, but a BROKEN ALARM is worth a red run, and by this point
       # the site is already up.
+      #
+      # These two steps are `run:` + curl/jq rather than `actions/github-script`
+      # because this repository's Actions policy is `allowed_actions: local_only`
+      # — an action from another repository is refused at workflow LOAD time, so
+      # the whole run ends in `startup_failure` with no job, no step and no
+      # annotation (#174). Nothing may be added here with a `uses:` that is not
+      # `./`-local. `curl` and `jq` are both on the sfo3-02 runner; `gh` and a
+      # host-level `node` are not, so neither may be reached for.
       - name: Open or update the sync alert issue
         if: ${{ steps.sync.outcome == 'failure' }}
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const fs = require("fs");
-            const TITLE = "Substack sync is failing";
-            const run = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          title="Substack sync is failing"
+          run_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
 
-            let report = "";
-            try {
-              report = fs.readFileSync(`${process.env.RUNNER_TEMP}/substack-sync.md`, "utf8").trim();
-            } catch {}
-            // A fatal before the sync produces no markdown at all. Say so rather
-            // than filing an empty issue that reads like a formatting bug.
-            if (!report) report = "_The sync produced no summary — it failed before it could run. See the run log._";
+          report="$(cat "$RUNNER_TEMP/substack-sync.md" 2>/dev/null || true)"
+          # A fatal before the sync produces no markdown at all. Say so rather
+          # than filing an empty issue that reads like a formatting bug.
+          if [ -z "$(printf '%s' "$report" | tr -d '[:space:]')" ]; then
+            report="_The sync produced no summary — it failed before it could run. See the run log._"
+          fi
 
-            const { data: open } = await github.rest.issues.listForRepo({
-              ...context.repo, state: "open", labels: "ops", per_page: 100,
-            });
-            const existing = open.find((issue) => issue.title === TITLE);
+          number="$(curl -sS --fail \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/issues?state=open&labels=ops&per_page=100" \
+            | jq -r --arg t "$title" 'map(select(.title == $t)) | .[0].number // empty')"
 
-            if (existing) {
-              // Comment rather than file a second one: a sync that has been
-              // broken for a week should be one issue, not seven.
-              await github.rest.issues.createComment({
-                ...context.repo, issue_number: existing.number,
-                body: `Still failing — ${run}\n\n${report}`,
-              });
-              return;
-            }
+          if [ -n "$number" ]; then
+            # Comment rather than file a second one: a sync that has been
+            # broken for a week should be one issue, not seven.
+            body="$(printf 'Still failing — %s\n\n%s' "$run_url" "$report")"
+            jq -n --arg body "$body" '{body: $body}' \
+              | curl -sS --fail -X POST \
+                  -H "Authorization: Bearer $GH_TOKEN" \
+                  -H "Accept: application/vnd.github+json" \
+                  --data-binary @- \
+                  "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/issues/$number/comments" > /dev/null
+            exit 0
+          fi
 
-            // No 🤖 label: the conductor triages this like any other new issue.
-            await github.rest.issues.create({
-              ...context.repo, title: TITLE, labels: ["bug", "ops"],
-              body: `The blog sync failed during a deploy. The blog is still serving the posts already stored; what has stopped is new posts arriving.\n\nRun: ${run}\n\n${report}`,
-            });
+          # No 🤖 label: the conductor triages this like any other new issue.
+          body="$(printf 'The blog sync failed during a deploy. The blog is still serving the posts already stored; what has stopped is new posts arriving.\n\nRun: %s\n\n%s' "$run_url" "$report")"
+          jq -n --arg title "$title" --arg body "$body" \
+            '{title: $title, labels: ["bug", "ops"], body: $body}' \
+            | curl -sS --fail -X POST \
+                -H "Authorization: Bearer $GH_TOKEN" \
+                -H "Accept: application/vnd.github+json" \
+                --data-binary @- \
+                "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/issues" > /dev/null
 
       - name: Close the sync alert issue
         if: ${{ steps.sync.outcome == 'success' }}
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const TITLE = "Substack sync is failing";
-            const run = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          title="Substack sync is failing"
+          run_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
 
-            const { data: open } = await github.rest.issues.listForRepo({
-              ...context.repo, state: "open", labels: "ops", per_page: 100,
-            });
-            const existing = open.find((issue) => issue.title === TITLE);
+          number="$(curl -sS --fail \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/issues?state=open&labels=ops&per_page=100" \
+            | jq -r --arg t "$title" 'map(select(.title == $t)) | .[0].number // empty')"
 
-            // Nothing open means nothing to recover from. Silence is correct.
-            if (!existing) return;
+          # Nothing open means nothing to recover from. Silence is correct.
+          [ -n "$number" ] || exit 0
 
-            await github.rest.issues.createComment({
-              ...context.repo, issue_number: existing.number,
-              body: `Sync recovered — ${run}`,
-            });
-            await github.rest.issues.update({
-              ...context.repo, issue_number: existing.number, state: "closed",
-            });
+          jq -n --arg body "Sync recovered — $run_url" '{body: $body}' \
+            | curl -sS --fail -X POST \
+                -H "Authorization: Bearer $GH_TOKEN" \
+                -H "Accept: application/vnd.github+json" \
+                --data-binary @- \
+                "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/issues/$number/comments" > /dev/null
+
+          curl -sS --fail -X PATCH \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            -d '{"state":"closed"}' \
+            "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/issues/$number" > /dev/null
 
       - name: Prune dangling images
         run: docker image prune -f
