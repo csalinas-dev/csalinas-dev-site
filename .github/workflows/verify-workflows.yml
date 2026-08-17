@@ -1,0 +1,58 @@
+# The check #174 was missing. Three deploys in a row ended in `startup_failure`
+# and nothing in the repo would have said so before the push -- a careful review
+# of #154 could not catch it, because the defect was not in the step bodies and
+# not in the YAML. See .agent/scripts/verify-workflows.mjs for the full story.
+#
+# THIS WORKFLOW USES NO ACTIONS, ON PURPOSE. `allowed_actions: local_only` means
+# even `actions/checkout` is refused at load time -- a gate that startup_failure'd
+# for the very fault it exists to catch would be worse than no gate. Hence the
+# tarball fetch below, and hence `npm i js-yaml` rather than a setup-node action.
+name: Verify workflows
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/**"
+      - ".agent/scripts/verify-workflows.mjs"
+      - ".agent/fixtures/workflows/**"
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/**"
+      - ".agent/scripts/verify-workflows.mjs"
+      - ".agent/fixtures/workflows/**"
+
+jobs:
+  verify:
+    # GitHub-hosted, not sfo3-02: this is a lint, it must not queue behind a
+    # deploy, and it must still run when the self-hosted box is down.
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      # Stands in for actions/checkout, which local_only forbids.
+      - name: Fetch the tree
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          curl -sSL --fail \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/tarball/$GITHUB_SHA" \
+            | tar xz --strip-components=1
+          # Anchor: a tarball that unpacked nothing would let every check below
+          # pass by having nothing to look at.
+          test -d .github/workflows
+          test -f .agent/scripts/verify-workflows.mjs
+
+      # Only js-yaml, pinned, rather than `npm ci` of the whole Next.js tree:
+      # the gate has exactly one dependency and this job should stay seconds.
+      - name: Install the one dependency
+        run: npm install --no-save --no-audit --no-fund js-yaml@4.1.1
+
+      - name: Verify workflows
+        run: node .agent/scripts/verify-workflows.mjs

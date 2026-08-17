@@ -1,0 +1,24 @@
+# The real #174 defect, reduced. Valid YAML, accepted by actionlint AND by
+# GitHub's own @actions/workflow-parser -- and still startup_failure, because
+# actions/github-script lives in another repository and this repo is local_only.
+# verify-workflows.mjs MUST reject this file.
+name: external action
+on:
+  push:
+    branches:
+      - main
+jobs:
+  deploy:
+    runs-on: [self-hosted, sfo3-02]
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Do a local thing
+        run: echo hello
+      - name: Open or update the sync alert issue
+        if: ${{ steps.sync.outcome == 'failure' }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            core.info("this never runs -- the workflow never loads");
