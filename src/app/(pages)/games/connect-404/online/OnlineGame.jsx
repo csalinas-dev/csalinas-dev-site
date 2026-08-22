@@ -6,6 +6,9 @@ import { readPieceInitials } from "@/lib/pieceInitials";
 import { absenceOf } from "@/lib/realtime/absence";
 import { useRoom } from "@/lib/realtime/useRoom";
 
+import { GameSwitcher } from "../../_components/switch/GameSwitcher";
+import { useGameSwitch } from "../../_components/switch/useGameSwitch";
+
 import Game from "../Game";
 import {
   Button,
@@ -41,7 +44,18 @@ export const OnlineGame = ({ code, onLeave }) => {
     spectating,
     state: game,
     status,
+    switchTo,
   } = useRoom({ code, game: C404_GAME_ID });
+
+  // The room may become a different game entirely. `interstitial` is the screen
+  // that explains it and the route change that follows; `switcher` is the
+  // control that starts one, and is null unless this browser may.
+  const { interstitial, switcher } = useGameSwitch({
+    code,
+    currentGame: C404_GAME_ID,
+    room,
+    switchTo,
+  });
 
   const [notice, setNotice] = useState(null);
 
@@ -161,6 +175,9 @@ export const OnlineGame = ({ code, onLeave }) => {
         // `Game` reads exactly this off `online`, and closes the board when it
         // is not the seat on the clock.
         youSlot,
+        // Null unless this player may change the game and something qualifies,
+        // which is what keeps the control out of the DOM the rest of the time.
+        switcher,
       },
     }),
     [
@@ -173,6 +190,7 @@ export const OnlineGame = ({ code, onLeave }) => {
       opponent,
       showInitials,
       spectating,
+      switcher,
       youSlot,
     ],
   );
@@ -215,6 +233,10 @@ export const OnlineGame = ({ code, onLeave }) => {
     );
   }
 
+  // The room is no longer this game. Before every other branch, so a switched
+  // room never flashes the old lobby on its way out.
+  if (interstitial) return interstitial;
+
   if (status === "lobby") {
     return (
       <Panel>
@@ -224,6 +246,7 @@ export const OnlineGame = ({ code, onLeave }) => {
           somebody joins.
         </PanelText>
         <RoomCode code={code} />
+        {switcher && <GameSwitcher {...switcher} connected={connected} />}
         <PanelActions>
           <Button onClick={quit} type="button">
             Cancel

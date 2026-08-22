@@ -5,6 +5,8 @@ import styled from "@emotion/styled";
 
 import { absenceOf, absenceTag } from "@/lib/realtime/absence";
 
+import { GameSwitcher } from "../../_components/switch/GameSwitcher";
+
 import { GRID_SIZES, MAX_PLAYERS, MIN_PLAYERS } from "../_lib";
 import {
   Button,
@@ -338,6 +340,7 @@ export const RoomLobby = ({
   refresh,
   send,
   size,
+  switcher,
 }) => {
   // Seeded once, then owned by the input. Re-seeding it from the snapshot on
   // every stream update would fight the cursor of whoever is typing.
@@ -499,6 +502,27 @@ export const RoomLobby = ({
           ))}
         </Roster>
       </Card>
+
+      {/* Its own card, directly above the host's board setup — the same kind of
+          decision, in the same place. `switcher` is already null for a non-host
+          (`switchRefusal` answers "not-host" in a lobby) and null when nothing
+          qualifies, so there is no second permission check here and no empty
+          card headed "Switch game" at a four-player table. */}
+      {switcher && (
+        <Card>
+          <div>
+            <Label as="span" id="edge-case-switch">
+              Switch game
+            </Label>
+            <GameSwitcher
+              {...switcher}
+              connected={connected}
+              framed={false}
+              labelId="edge-case-switch"
+            />
+          </div>
+        </Card>
+      )}
 
       {host ? (
         <Card>

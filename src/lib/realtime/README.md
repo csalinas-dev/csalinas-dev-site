@@ -62,6 +62,26 @@ passes every local hotseat test and only scrambles ordering in online games.
 
 That is the entire seam. Nothing else in `src/lib/realtime` changes.
 
+**A room may change its game.** `POST /api/rooms/[code]/switch` rewrites
+`GameRoom.game` in place and rebuilds `state` with the destination's own
+`createState`, so yours will be called with a roster that has already played
+something else — seats with names, colours and a join order, and possibly only
+one of them. Two consequences for a definition:
+
+- `createState` is handed `{ options: undefined, players }`. The source room's
+  options mean nothing to you, so default them exactly as a freshly created room
+  would.
+- Whether the room lands on a board or in a lobby is entirely your `status`. A
+  roster short of `minPlayers` is normal and is the waiting screen, not an error
+  — the offer rule in [`switching.js`](./switching.js) deliberately does not
+  consult `minPlayers`.
+
+Seats flagged `left` are dropped by the switch and the survivors are renumbered
+`0..n-1` in join order, so `HOST_SLOT` always exists and belongs to the
+earliest-joined person still present. Only `slot` and `color` change; `token`,
+`name` and `connectedAt` are carried over untouched, the last because
+[`identity.js`](./identity.js) recognises a seat by it.
+
 ### Reducer contract
 
 `(state, action, player) => { state } | { error }`
@@ -85,6 +105,7 @@ Every response body is `{ room }` on success and
 | `POST` | `/api/rooms` | `{ game, token?, name?, color?, options? }` | -> `201 { code, slot, token, room }` |
 | `POST` | `/api/rooms/[code]/join` | `{ token, game?, name?, color? }` | join **and** rejoin |
 | `POST` | `/api/rooms/[code]/action` | `{ token, revision, action }` | the only way `state` changes |
+| `POST` | `/api/rooms/[code]/switch` | `{ token, revision, to }` | change which game the room plays, keeping its code and its seats |
 | `GET` | `/api/rooms/[code]` | — | snapshot; also the polling fallback. Token in an `X-Player-Token` header |
 | `POST` | `/api/rooms/[code]/ticket` | `{ token }` | -> `{ ticket }`, single use, ~30s |
 | `GET` | `/api/rooms/[code]/stream?ticket=` | — | SSE: `sync`, `gone`, `:` heartbeats. A ticket that is present and does not redeem is **403 `bad-ticket`**; an absent one is the spectator path |
@@ -114,6 +135,7 @@ therefore all self-heal. Only an **absent** ticket means spectator.
 | Code | `error` | Means |
 | --- | --- | --- |
 | 400 | `bad-request`, `bad-token`, `wrong-game`, `unknown-game` | malformed request |
+| 400 | `same-game`, `in-progress`, `not-host` | a switch that is a no-op, mid-board, or not yours to make |
 | 403 | `not-a-player` | that token holds no seat here |
 | 403 | `bad-ticket` | stream ticket replayed, expired, or lost — **reconnect for a new one** |
 | 403 | `room-full`, `room-in-progress` | no seat available — **spectate instead** |
@@ -219,7 +241,7 @@ most once every 5 minutes on whatever request happens to trigger it. No cron.
 const {
   state, players, me, status, revision,
   connected, error, spectating, transport,
-  send, refresh,
+  send, refresh, leave, switchTo,
 } = useRoom({ code, game, name, color, spectate });
 
 await send({ type: "PLACE", cell: 4 }, { optimistic: true });
@@ -235,6 +257,13 @@ await send({ type: "PLACE", cell: 4 }, { optimistic: true });
 - `spectate: true` watches without taking a seat. A join that comes back
   `room-full` or `room-in-progress` degrades to spectating automatically and
   sets `spectating`.
+- `leave(slot?)` gives up this browser's seat, or — as host, in the lobby —
+  removes another player's.
+- `switchTo(id)` changes which game the room is playing. Deliberately not
+  optimistic: the destination's own `createState` decides what the room becomes,
+  so there is nothing to preview. It applies the room from ANY response that
+  carries one, so a 409 or a 422 resyncs rather than leaving a picker offering a
+  game the server has already refused.
 - `createRoom({ game, name, color })` (exported from `useRoom.js`) is the
   companion for a "create game" button.
 
