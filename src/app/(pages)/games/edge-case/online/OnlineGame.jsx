@@ -5,6 +5,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { absenceOf } from "@/lib/realtime/absence";
 import { useRoom } from "@/lib/realtime/useRoom";
 
+import { useGameSwitch } from "../../_components/switch/useGameSwitch";
+
 import Game from "../Game";
 import {
   Button,
@@ -52,7 +54,18 @@ export const OnlineGame = ({ code, name, onLeave, spectate = false }) => {
     spectating,
     state,
     status,
+    switchTo,
   } = useRoom({ code, game: EDGE_CASE_GAME_ID, name, spectate });
+
+  // The room may become a different game entirely. `interstitial` is the screen
+  // that explains it and the route change that follows; `switcher` is the
+  // control that starts one, and is null unless this browser may.
+  const { interstitial, switcher } = useGameSwitch({
+    code,
+    currentGame: EDGE_CASE_GAME_ID,
+    room,
+    switchTo,
+  });
 
   const [notice, setNotice] = useState(null);
 
@@ -186,9 +199,12 @@ export const OnlineGame = ({ code, name, onLeave, spectate = false }) => {
         youSlot: me?.slot ?? null,
         you,
         seated: Boolean(me),
+        // Null unless this player may change the game and something qualifies,
+        // which is what keeps the control out of the DOM the rest of the time.
+        switcher,
       },
     };
-  }, [cast, code, connected, dispatch, game, me, notice, state]);
+  }, [cast, code, connected, dispatch, game, me, notice, state, switcher]);
 
   // 410 is terminal, and it reads differently depending on whether we ever got
   // in: a room we were playing in has died, a room we never reached never was.
@@ -228,6 +244,10 @@ export const OnlineGame = ({ code, name, onLeave, spectate = false }) => {
     );
   }
 
+  // The room is no longer this game. Before every other branch, so a switched
+  // room never flashes the old lobby on its way out.
+  if (interstitial) return interstitial;
+
   // The seat we had is gone, and we did not stand up. Only the host can do
   // that, and only in the lobby — so say so, rather than quietly demoting
   // somebody to the television view and letting them work it out.
@@ -265,6 +285,7 @@ export const OnlineGame = ({ code, name, onLeave, spectate = false }) => {
         refresh={refresh}
         send={send}
         size={state.size}
+        switcher={switcher}
       />
     );
   }

@@ -1,8 +1,9 @@
-import { useContext } from "react";
+import { useCallback, useContext, useRef, useState } from "react";
 import styled from "@emotion/styled";
 
 import { AWAY, LEFT, absenceSentence } from "@/lib/realtime/absence";
 
+import { GameSwitcher } from "../../_components/switch/GameSwitcher";
 import { Button } from "../components";
 import { Context } from "../context";
 import { playerFor } from "../players";
@@ -104,8 +105,26 @@ const Ending = styled(Button)`
 
 export const OnlineBar = ({ onLeave }) => {
   const { online, state } = useContext(Context);
-  const { absence, code, connected, notice, opponent, spectating, youSlot } =
-    online;
+  const {
+    absence,
+    code,
+    connected,
+    notice,
+    opponent,
+    spectating,
+    switcher,
+    youSlot,
+  } = online;
+
+  const [open, setOpen] = useState(false);
+  const switchButton = useRef(null);
+
+  // Escape, or a second press, hands the keyboard back to the control that
+  // opened the picker — otherwise focus is left on a button that has gone.
+  const closeSwitcher = useCallback(() => {
+    setOpen(false);
+    switchButton.current?.focus();
+  }, []);
 
   // The same descriptor the board draws your discs from, so the strip and the
   // board cannot end up disagreeing about what colour you are.
@@ -127,6 +146,21 @@ export const OnlineBar = ({ onLeave }) => {
           </>
         ) : (
           <Item>Watching — this room is full</Item>
+        )}
+        {switcher && (
+          <Item>
+            {/* Styled as `Leave`, and beside it, because switching is a room
+                control like leaving is — not a second kind of action bolted
+                onto a strip that only had one. */}
+            <Leave
+              aria-expanded={open}
+              onClick={() => setOpen((was) => !was)}
+              ref={switchButton}
+              type="button"
+            >
+              Switch game
+            </Leave>
+          </Item>
         )}
         <Item>
           <Leave onClick={onLeave} type="button">
@@ -152,6 +186,17 @@ export const OnlineBar = ({ onLeave }) => {
       )}
       {!connected && <Warning role="status">Reconnecting…</Warning>}
       {notice !== null && <Warning role="alert">{notice}</Warning>}
+      {/* Last child of the strip: below the row, below any absence sentence,
+          below "Reconnecting…", and directly above the board, which it pushes
+          down. Nothing is covered — no modal, no overlay, no focus trap. */}
+      {open && switcher && (
+        <GameSwitcher
+          {...switcher}
+          autoFocus
+          connected={connected}
+          onClose={closeSwitcher}
+        />
+      )}
     </Container>
   );
 };
