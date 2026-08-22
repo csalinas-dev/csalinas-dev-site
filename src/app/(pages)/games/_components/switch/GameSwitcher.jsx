@@ -176,6 +176,7 @@ const Notice = styled.p`
  * @param {boolean} [props.framed]     draw the card, or let the caller own it
  * @param {string}  [props.labelId]    an existing group label, when unframed
  * @param {boolean} [props.connected]  false disables every tile
+ * @param {string}  [props.id]         so a toggle can `aria-controls` it
  * @param {boolean} [props.autoFocus]  put the keyboard on the first tile
  * @param {() => void} [props.onClose] present when the picker is dismissible
  */
@@ -183,6 +184,7 @@ export const GameSwitcher = ({
   autoFocus = false,
   connected = true,
   framed = true,
+  id,
   labelId,
   onClose,
   onSwitch,
@@ -237,6 +239,7 @@ export const GameSwitcher = ({
 
   return (
     <Frame
+      id={id}
       onKeyDown={
         onClose
           ? (event) => {

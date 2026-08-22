@@ -441,10 +441,30 @@ export async function switchGame(rawCode, { token, revision, to } = {}) {
   // surviving slot reference has to be renumbered against it. That is exactly
   // why `leaveRoom` refuses to delete a seat mid-game, and why that refusal
   // does not apply here.
+  //
+  // DO NOT sort `surviving` by `slot` before compacting. It looks like the
+  // obvious one-line fix for a case that reads as a bug, and it would break the
+  // rule this compaction exists to keep. `nextSlot` recycles the LOWEST free
+  // seat, so once a lobby seat has been vacated and re-taken, array order (join
+  // order) and slot number disagree: Ada creates (slot 0), Bo joins (slot 1),
+  // Ada leaves in the lobby so her seat is deleted, Cy joins and `nextSlot`
+  // gives him slot 0 -- leaving the array `[Bo(slot 1), Cy(slot 0)]`. Cy presses
+  // switch and comes out at seat 1 while Bo takes seat 0 and the host tag.
+  //
+  // That is correct. Seat 0 belongs to the earliest-joined person still here,
+  // not to whoever pressed the button, and Bo joined first -- the switch is
+  // normalising a pre-existing `nextSlot` recycling artifact, not creating one.
+  // Sorting by `slot` would hand seat 0 back to Cy and contradict that rule.
   const surviving = toArray(row.players).filter((p) => p.left !== true);
   if (surviving.length > def.maxPlayers) {
+    // Rendered verbatim in the picker's notice slot, so it may not name
+    // `def.id`: the player pressed a tile that said "Tic-Tac-Overflow", and
+    // "tto takes at most 2 players." is a sentence about a registry key. The
+    // display names live in the games' presentation catalog, and no presentation
+    // data belongs under `src/lib/realtime/`, so this is written to need no name
+    // at all -- the tile they pressed is still on screen saying which game it is.
     throw rejected(
-      `${def.id} takes at most ${def.maxPlayers} players.`,
+      `There are too many of you for that game now — it seats at most ${def.maxPlayers}.`,
       roomPayload(row, playerToken),
     );
   }

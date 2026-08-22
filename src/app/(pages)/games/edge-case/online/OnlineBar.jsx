@@ -1,4 +1,4 @@
-import { useCallback, useContext, useRef, useState } from "react";
+import { useCallback, useContext, useId, useRef, useState } from "react";
 import styled from "@emotion/styled";
 
 import { LEFT, absenceSentence } from "@/lib/realtime/absence";
@@ -99,6 +99,7 @@ export const OnlineBar = ({ onLeave }) => {
 
   const [open, setOpen] = useState(false);
   const switchButton = useRef(null);
+  const switcherId = useId();
 
   // Escape, or a second press, hands the keyboard back to the control that
   // opened the picker — otherwise focus is left on a button that has gone.
@@ -133,8 +134,23 @@ export const OnlineBar = ({ onLeave }) => {
                 control like leaving is — not a second kind of action bolted
                 onto a strip that only had one. */}
             <Leave
+              // Only while it is open: the picker is not in the DOM otherwise,
+              // and a reference to an id that is not there is one an assistive
+              // technology cannot resolve. `aria-expanded` already says
+              // "collapsed" on its own.
+              aria-controls={open ? switcherId : undefined}
               aria-expanded={open}
               onClick={() => setOpen((was) => !was)}
+              // The picker frame carries the same handler, but it only sees
+              // Escape once focus is inside it. Opening moves focus to the
+              // first tile, so the designed path is covered -- this is the one
+              // where the player opened the picker and left the keyboard here.
+              onKeyDown={(event) => {
+                if (open && event.key === "Escape") {
+                  event.stopPropagation();
+                  closeSwitcher();
+                }
+              }}
               ref={switchButton}
               type="button"
             >
@@ -170,6 +186,7 @@ export const OnlineBar = ({ onLeave }) => {
           {...switcher}
           autoFocus
           connected={connected}
+          id={switcherId}
           onClose={closeSwitcher}
         />
       )}

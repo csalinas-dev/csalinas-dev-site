@@ -3,13 +3,20 @@
 //   node .agent/scripts/verify-game-switch.mjs                       # pure half only
 //   node .agent/scripts/verify-game-switch.mjs --base http://127.0.0.1:3176
 //
-// Two halves, and neither covers the other:
+// Four passes, and none of them covers the others:
 //
 //   PURE  src/lib/realtime/switching.js — the offer rule (`activeCount <=
 //         maxPlayers`, `minPlayers` DELIBERATELY not consulted) and the
 //         permission verdict (`switchRefusal`). This is the module both the
 //         server and the picker import, so a drift here is a button that offers
 //         a game the server refuses.
+//   ROOM  the real `switchGame` from src/lib/realtime/rooms.js, run over an
+//         in-memory `gameRoom` — far enough to read the sentence a refused
+//         player is shown. It may never contain a registry id: they pressed
+//         a tile that said "Tic-Tac-Overflow", not one that said "tto".
+//   READ  the four OnlineBar toggles, checked as source. This repo has no DOM
+//         test runner, so the alternative to checking that wiring statically
+//         is not checking it at all.
 //   LIVE  POST /api/rooms/[code]/switch — the compare-and-set write, the
 //         refusals, and the seat compaction. Compaction is the dangerous half:
 //         `HOST_SLOT` is the literal integer 0, so a room that loses seat 0
@@ -51,6 +58,7 @@
 // filter in `switchGame`) and check for a non-zero exit before trusting green.
 import { register } from "node:module";
 import { spawnSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 import { randomUUID } from "node:crypto";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { dirname, join } from "node:path";
@@ -70,12 +78,17 @@ if (!process.execArgv.includes(SILENCE)) {
   process.exit(status ?? 1);
 }
 
-// All three hooks: `switching.js` reaches the registry, the registry imports the
-// four game definitions through the repo's `@/` alias, and Tic-Tac-Overflow's
-// board helpers take a named import off lodash's CommonJS build.
+// Four hooks: `switching.js` reaches the registry, the registry imports the four
+// game definitions through the repo's `@/` alias, Tic-Tac-Overflow's board
+// helpers take a named import off lodash's CommonJS build, and the last one
+// points `@/lib/prisma` at an in-memory `gameRoom` so the REAL `rooms.js` can
+// run here without a MySQL. It is registered last on purpose: Node runs the
+// most recently registered resolve hook first, so it has to beat the alias hook
+// to `@/lib/prisma` — which would otherwise hand back a live PrismaClient.
 register("./lib/esm-resolver.mjs", import.meta.url);
 register("./lib/alias-resolver.mjs", import.meta.url);
 register("./lib/lodash-resolver.mjs", import.meta.url);
+register("./lib/prisma-stub-resolver.mjs", import.meta.url);
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = join(HERE, "..", "..");
@@ -88,6 +101,9 @@ const { activeSeats, canSwitch, fitsGame, switchRefusal, switchTargets } =
   await import(src("src/lib/realtime/switching.js"));
 const { lookupGame, listGames } = await import(src("src/lib/realtime/registry.js"));
 const { HOST_SLOT } = await import(src("src/lib/realtime/constants.js"));
+// The real server-side write, over the stubbed delegate.
+const { switchGame } = await import(src("src/lib/realtime/rooms.js"));
+const { readRoom, resetRooms, seedRoom } = await import("./lib/prisma-stub.mjs");
 
 const baseFlag = process.argv.indexOf("--base");
 const BASE =
@@ -333,6 +349,209 @@ await check("canSwitch needs a seat, a permission AND something to switch to", (
   );
 
   return "all six verdicts";
+});
+
+// ── rooms.js: the sentence a refused player actually reads ─────────────────
+section("rooms.js — the 422 shows no registry id");
+
+// The real `switchGame`, over the in-memory `gameRoom` the fourth resolve hook
+// installed. Only the capacity refusal is exercised here — the rest of the
+// write is the live half's job, and this is not a second copy of it.
+// CODE_ALPHABET has no `1` and no `0` — they read as I and O off a screen —
+// so a code containing either is 410 Gone before any of this is reached.
+const ROOM_422 = "ZQ76";
+
+const capacityRow = (game, seatCount) => ({
+  code: ROOM_422,
+  game,
+  status: "over",
+  revision: 7,
+  state: {},
+  players: Array.from({ length: seatCount }, (_, i) => ({
+    // TOKEN_PATTERN wants 8-64 characters; `token-0` is seven and is
+    // refused as malformed long before the capacity rule is reached.
+    token: `player-token-${i}`,
+    slot: i,
+    name: `P${i}`,
+    color: null,
+    connectedAt: `2026-01-01T00:00:0${i}.000Z`,
+    left: false,
+  })),
+  updatedAt: new Date().toISOString(),
+});
+
+/** @returns the thrown RoomError, or null when the switch was accepted. */
+const attemptSwitch = async (seatCount, to) => {
+  resetRooms();
+  seedRoom(capacityRow("edge-case", seatCount));
+  try {
+    await switchGame(ROOM_422, { token: "player-token-0", revision: 7, to });
+    return null;
+  } catch (error) {
+    return error;
+  }
+};
+
+// ANCHOR. Two seats fit a 2-player game, so the same call must be ACCEPTED —
+// which is what makes the 422 below evidence about the capacity rule rather
+// than about anything else `switchGame` could have thrown on the way past it.
+await check("anchor: the same call with 2 seats is accepted", async () => {
+  const error = await attemptSwitch(2, "tto");
+  assertEq(error, null, `a 2-seat room was refused: ${error?.message}`);
+  assertEq(readRoom(ROOM_422).game, "tto", "the accepted switch never landed");
+  assertEq(readRoom(ROOM_422).revision, 8, "revision must move by exactly 1");
+
+  return "2 seats -> tto, revision 7 -> 8";
+});
+
+await check("3 seats into a 2-player game is refused 422, room attached", async () => {
+  const error = await attemptSwitch(3, "tto");
+
+  assert(error, "a 3-seat room was allowed into a 2-player game");
+  assertEq(error.status, 422, `wrong status — ${error.message}`);
+  assertEq(error.code, "rejected", "wrong error code");
+  assert(error.room, "a 422 must carry the authoritative room to re-render from");
+  assertEq(readRoom(ROOM_422).game, "edge-case", "a refused switch must not write");
+
+  return `422 — "${error.message}"`;
+});
+
+await check("that message names no registry id", async () => {
+  const error = await attemptSwitch(3, "tto");
+  // Re-asserted here rather than leaned on from the check above: without it
+  // ANY unrelated failure (a bad token, an expired code) would sail through
+  // this check, because those messages name no registry id either.
+  assertEq(error?.status, 422, `not the capacity refusal — ${error?.message}`);
+  const { message } = error;
+  assert(typeof message === "string" && message.length > 0, "empty message");
+
+  // The picker renders this verbatim in its notice slot, and the player got
+  // there by pressing a tile that said "Tic-Tac-Overflow" — "tto takes at most
+  // 2 players." is a sentence about a database column. Every id is checked, not
+  // just the destination's: naming the game the room is LEAVING would be the
+  // same bug. The display names live in the games' presentation catalog and
+  // cannot be imported here, because no presentation data belongs under
+  // src/lib/realtime, so the sentence has to work without a name at all.
+  for (const id of listGames()) {
+    assert(
+      !message.toLowerCase().includes(id.toLowerCase()),
+      `the 422 shows the registry id "${id}" to a player: "${message}"`
+    );
+  }
+
+  return `"${message}"`;
+});
+
+resetRooms();
+
+// ── the picker's toggle: Escape, and what aria-expanded points at ──────────
+section("OnlineBar — the toggle closes on Escape and names the picker");
+
+// Static, and honestly so: this repo has no DOM test runner, so what is checked
+// here is the wiring rather than a synthesised keypress. It is still the right
+// regression guard, because the finding it closes was precisely a missing
+// attribute and a handler mounted on the wrong element.
+const BARS = [
+  "connect-404",
+  "edge-case",
+  "race-condition",
+  "tic-tac-overflow",
+].map((game) => [game, `src/app/(pages)/games/${game}/online/OnlineBar.jsx`]);
+
+const barSource = (rel) => readFileSync(join(REPO, rel), "utf8");
+
+/** The toggle element only: its opening tag through to its label text. */
+const toggleOf = (source) => {
+  const marker = source.indexOf("aria-expanded={open}");
+  if (marker === -1) return null;
+  // Backwards to the opening tag, because attributes are alphabetical and
+  // `aria-controls` therefore sits ABOVE the marker.
+  const start = source.lastIndexOf("<Leave", marker);
+  const end = source.indexOf("Switch game", marker);
+  return start === -1 || end === -1 ? null : source.slice(start, end);
+};
+
+// ANCHOR. Four bars, each with a disclosure toggle and a picker. Without this,
+// a rename would empty the list and every assertion below would pass on zero.
+await check("anchor: all four bars render a Switch game toggle and the picker", () => {
+  assertEq(BARS.length, 4, "the bar list itself");
+
+  for (const [game, rel] of BARS) {
+    const source = barSource(rel);
+    assert(toggleOf(source), `${game}: no disclosure toggle found`);
+    assert(source.includes("<GameSwitcher"), `${game}: no picker`);
+  }
+
+  return "4 bars";
+});
+
+await check("aria-expanded is accompanied by aria-controls", () => {
+  for (const [game, rel] of BARS) {
+    const toggle = toggleOf(barSource(rel));
+    assert(
+      toggle.includes("aria-controls={open ? switcherId : undefined}"),
+      `${game}: aria-expanded with nothing saying WHAT is expanded`
+    );
+  }
+
+  return "4 toggles";
+});
+
+await check("the id it announces is the one the picker is given", () => {
+  for (const [game, rel] of BARS) {
+    const source = barSource(rel);
+    assert(
+      source.includes("const switcherId = useId();"),
+      `${game}: no id is minted`
+    );
+    assert(
+      /<GameSwitcher[\s\S]*?id=\{switcherId\}/.test(source),
+      `${game}: aria-controls points at an id the picker never receives`
+    );
+  }
+
+  const picker = barSource(
+    "src/app/(pages)/games/_components/switch/GameSwitcher.jsx"
+  );
+  assert(/^\s+id,$/m.test(picker), "GameSwitcher does not accept an `id` prop");
+  assert(
+    /<Frame\b[\s\S]{0,40}\n\s+id=\{id\}/.test(picker),
+    "the `id` prop never reaches the element GameSwitcher renders"
+  );
+
+  return "aria-controls resolves to a real element";
+});
+
+await check("Escape closes it from the toggle, not only from inside", () => {
+  for (const [game, rel] of BARS) {
+    const toggle = toggleOf(barSource(rel));
+
+    // The picker's frame carries the same handler, but it only ever sees
+    // Escape once focus is INSIDE the picker. Opening moves focus to the first
+    // tile so that path works; this is the one where the player opened the
+    // picker and left the keyboard on the toggle.
+    assert(toggle.includes("onKeyDown"), `${game}: the toggle has no keydown handler`);
+    assert(
+      toggle.includes('event.key === "Escape"'),
+      `${game}: the toggle's handler does not test for Escape`
+    );
+    assert(
+      toggle.includes("closeSwitcher()"),
+      `${game}: Escape on the toggle does not close the picker`
+    );
+  }
+
+  // And the frame's handler is still there — this ADDS a path, it does not
+  // move one, so Escape from a focused tile must keep working.
+  const picker = barSource(
+    "src/app/(pages)/games/_components/switch/GameSwitcher.jsx"
+  );
+  assert(
+    /<Frame[\s\S]*?onKeyDown=[\s\S]*?event\.key === "Escape"/.test(picker),
+    "the picker frame lost its own Escape handler"
+  );
+
+  return "4 toggles + the frame";
 });
 
 // ── live: POST /api/rooms/[code]/switch ────────────────────────────────────
