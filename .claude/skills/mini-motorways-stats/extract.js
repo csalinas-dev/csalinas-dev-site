@@ -26,7 +26,7 @@ const os = require("os");
 const path = require("path");
 
 const OUT = path.join(__dirname, "..", "..", "..", "src", "data", "mini-motorways.json");
-const SCHEMA = 1;
+const SCHEMA = 2;
 
 /** Game order, not alphabetical — this is the order the site should render. */
 const MODE_ORDER = ["Normal", "Expert", "Endless"];
@@ -170,21 +170,30 @@ const build = ({ profile, extended, savedAt }) => {
     },
     cities,
     challenges: {
-      // Per-city challenge bests. `mode` is the game's raw enum; every observed
-      // row is 0, so it is passed through rather than mapped to a guessed name.
-      cities: extended.AllCityChallengeScores.filter((c) => c.BestScore > 0)
-        .map((c) => ({
-          city: c.CityId,
-          mode: c.Mode,
-          index: c.ChallengeIndex,
-          best: c.BestScore,
-        }))
-        .sort((a, b) => a.city.localeCompare(b.city) || a.index - b.index),
-      // The daily/weekly currently in flight. `-1` means not yet attempted, and
-      // `expiry` is a unix second at which the slot resets.
+      // Per-city challenge bests. Every row the game has written is kept, so
+      // this row set *is* the roster of challenges the installed version knows
+      // about — filtering to the beaten ones would make the site show only the
+      // wins. `best: null` means unattempted; the save stores that as `0`, and
+      // `0` is also a legal score, so the ambiguity is resolved here rather
+      // than left for every consumer to get wrong. `mode` is the game's raw
+      // enum; every observed row is 0, so it is passed through rather than
+      // mapped to a guessed name.
+      cities: extended.AllCityChallengeScores.map((c) => ({
+        city: c.CityId,
+        mode: c.Mode,
+        index: c.ChallengeIndex,
+        best: c.BestScore > 0 ? c.BestScore : null,
+      })).sort((a, b) => a.city.localeCompare(b.city) || a.index - b.index),
+      // The daily/weekly currently in flight. `null` means not yet attempted —
+      // the game's own sentinel here is `-1`, normalised so the whole file
+      // carries one representation of "no score". `expiry` is a unix second at
+      // which the slot resets.
       current: Object.fromEntries(
         Object.entries(extended.AllChallengeScores)
-          .map(([name, c]) => [name.toLowerCase(), { score: c.Score, expiry: c._expiry }])
+          .map(([name, c]) => [
+            name.toLowerCase(),
+            { score: c.Score < 0 ? null : c.Score, expiry: c._expiry },
+          ])
           .sort(([a], [b]) => a.localeCompare(b))
       ),
     },

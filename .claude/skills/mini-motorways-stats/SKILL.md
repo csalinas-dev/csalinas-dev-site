@@ -48,16 +48,17 @@ before changing a field name.
 
 ```jsonc
 {
-  "schema": 1,
+  "schema": 2,
   "savedAt": "2026-09-07T19:17:34.674Z",
   "totals": { "totalScore": 279173, "bestScore": 79130, "playTime": 295382, ... },
   "achievements": { "complete": 187, "total": 187, "incomplete": [] },
   "cities": [ { "city": "Beijing", "mode": "Normal", "best": 3575,
                 "totalTrips": 5440, "playTime": 4708, ... } ],
   "challenges": {
-    "cities":  [ { "city": "Beijing", "mode": 0, "index": 1, "best": 724 } ],
+    "cities":  [ { "city": "Beijing", "mode": 0, "index": 0, "best": null },
+                 { "city": "Beijing", "mode": 0, "index": 1, "best": 724 } ],
     "current": { "daily": { "score": 4514, "expiry": 1788825600 },
-                 "weekly": { "score": -1, "expiry": 1789344000 } }
+                 "weekly": { "score": null, "expiry": 1789344000 } }
   }
 }
 ```
@@ -65,8 +66,21 @@ before changing a field name.
 - All durations (`playTime`) are **seconds**; `expiry` is a **unix second**.
 - `cities` has one row per city *and mode*, sorted by city then Normal → Expert →
   Endless. 26 cities, 60 rows.
-- A challenge `score` of `-1` means not yet attempted — render it as blank, not
-  as a score.
+- **Unattempted is `null`**, in both `challenges.cities[].best` and
+  `challenges.current[].score`. `0` is a real score and is never a sentinel —
+  that is exactly why the raw save's `0` (per-city bests) and `-1`
+  (daily/weekly) are both normalised to `null` here.
+- `challenges.cities` holds **one row per challenge the installed game knows
+  about**, beaten or not — 44 rows over 26 cities today (9 cities × 1 challenge,
+  16 × 2, 1 × 3), 29 of them with a score. The roster is only as complete as the
+  installed game version has written: a challenge added by a future update
+  appears once the game writes its row.
+- `totals` are **whole-game** counters and include Endless, daily and weekly.
+  `totals.bestScore` is 79,130 — Manila *Endless*, over ten times the best
+  Classic score. The site deliberately renders none of it.
+- `TotalPlayTime === TotalDuration` on all 60 rows in the save, so the "seconds"
+  unit on `playTime` is an inference rather than a fact, and the site renders no
+  play-time figure at all. `cities[].bestAverage` is `0` on all 60 rows.
 
 ## Where the data comes from
 
