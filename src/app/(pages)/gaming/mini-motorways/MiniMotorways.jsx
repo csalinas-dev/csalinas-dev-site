@@ -54,9 +54,11 @@ export const MiniMotorways = ({ savedAtDay, summary, cities }) => (
   <>
     <Legend>
       <Comment>
-        every city&apos;s classic run, expert run and own challenges. bars are
-        relative to my best in that mode. the save stores challenges by index,
-        not by name.
+        every city&apos;s classic run, expert run and own challenges. a score is
+        trips completed — one car out to a destination and home again. cities
+        run best-first, and a bar is that score against my best in the same
+        mode, so the longest bar is my strongest map. the save stores challenges
+        by index, not by name.
       </Comment>
     </Legend>
 
@@ -103,7 +105,6 @@ export const MiniMotorways = ({ savedAtDay, summary, cities }) => (
             <Card key={city.id}>
               <CityName>{city.name}</CityName>
               <Modes className="mode-grid">
-                <span className="caption days">Days</span>
                 <span className="caption best">Best</span>
                 {city.modes.map((mode) => (
                   <Fragment key={mode.label}>
@@ -119,7 +120,6 @@ export const MiniMotorways = ({ savedAtDay, summary, cities }) => (
                         />
                       </BarTrack>
                     </div>
-                    <span className="days">{mode.days}</span>
                     <Best value={mode.best} />
                   </Fragment>
                 ))}

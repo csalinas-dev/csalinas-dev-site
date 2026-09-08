@@ -85,10 +85,11 @@ export const buildStats = (data) => {
         return {
           label,
           best: row ? NUMBER.format(row.best) : null,
-          days: row ? NUMBER.format(row.bestDays) : null,
           barPct: row && maxes[label] ? (row.best / maxes[label]) * 100 : 0,
         };
       }),
+      // Kept unformatted for the sort below; the view never sees it.
+      rank: rows.find((r) => r.city === id && r.label === CLASSIC)?.best ?? 0,
       challenges: data.challenges.cities
         .filter((c) => c.city === id)
         .sort((a, b) => a.index - b.index)
@@ -96,7 +97,14 @@ export const buildStats = (data) => {
         // a real score and stays a `0`.
         .map((c) => ({ index: c.index, best: c.best === null ? null : NUMBER.format(c.best) })),
     }))
-    .sort((a, b) => a.name.localeCompare(b.name));
+    // Descending by Classic score. The cities render as one vertical column so
+    // every bar shares a scale and an origin, which only reads as a ranking if
+    // the rows are in rank order. Ties fall back to the name so the order is
+    // total and the output stays deterministic.
+    .sort((a, b) => b.rank - a.rank || a.name.localeCompare(b.name))
+    // Dropped once it has done its job, so the view cannot render a raw score
+    // that has been through none of the formatting every other figure gets.
+    .map(({ rank, ...city }) => city);
 
   return {
     // Sliced off the ISO string rather than parsed: `Date.parse` plus local

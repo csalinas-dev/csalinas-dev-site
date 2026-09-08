@@ -49,14 +49,14 @@ export const Tile = styled.div`
 
 /* The city cards --------------------------------------------------------- */
 
-/* `auto-fill`, not `auto-fit`: with one city the card sits in one 20rem track
-   instead of stretching across the viewport. The `min(100%, …)` is required —
-   a bare `minmax(20rem, 1fr)` overflows a 320px phone, where the track inside
-   Section's 2rem padding is 256px. */
+/* One column, deliberately. The bars are scaled against the best score in that
+   mode across every city, so they are only readable as a ranking if they also
+   share an origin and a track width — which two cards side by side destroys.
+   The cities are sorted best-first for the same reason. */
 export const Grid = styled.div`
   display: grid;
   gap: 1rem;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
+  grid-template-columns: minmax(0, 1fr);
 `;
 
 /* Cards get a max width; layouts do not. `justify-self: center` stops a lone
@@ -71,7 +71,7 @@ export const Card = styled.article`
   flex-flow: column nowrap;
   gap: 0.75rem;
   justify-self: center;
-  max-width: 32rem;
+  max-width: 44rem;
   padding: 1.25rem;
   width: 100%;
 `;
@@ -101,7 +101,7 @@ const figures = `
   column-gap: 0.6rem;
   display: grid;
   font-size: 0.92rem;
-  grid-template-columns: max-content minmax(0, 1fr) 5ch 8ch;
+  grid-template-columns: max-content minmax(0, 1fr) 8ch;
 
   .label {
     grid-column: 1;
@@ -111,34 +111,11 @@ const figures = `
     grid-column: 2;
   }
 
-  /* Days is context; the score is the headline. */
-  .days {
-    color: var(--muted);
-    font-variant-numeric: tabular-nums;
-    grid-column: 3;
-    text-align: right;
-  }
-
   .best {
     color: var(--foreground);
     font-variant-numeric: tabular-nums;
-    grid-column: 4;
+    grid-column: 3;
     text-align: right;
-  }
-
-  /* A 320px phone reaches this. The secondary figure goes before the identity
-     does — the bar is the Mini Motorways cue, and 57px still reads as a
-     proportion. */
-  @container (max-width: 17rem) {
-    grid-template-columns: max-content minmax(0, 1fr) 8ch;
-
-    .days {
-      display: none;
-    }
-
-    .best {
-      grid-column: 3;
-    }
   }
 `;
 
@@ -157,12 +134,7 @@ export const Modes = styled.div`
 
 export const Challenges = styled.div`
   ${figures}
-  align-content: center;
   border-top: 1px solid rgba(255, 255, 255, 0.13);
-  /* Cards in a grid row stretch to the tallest and cities have one to three
-     challenges; centring spreads that slack above and below the rows instead of
-     dumping it at the card's bottom edge. */
-  flex: 1 1 auto;
   padding-top: 0.75rem;
   row-gap: 0.35rem;
 
