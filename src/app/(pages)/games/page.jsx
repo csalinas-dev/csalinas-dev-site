@@ -9,9 +9,6 @@ import { Module, Section, Title } from "@/components";
 import wordleverse from "@/assets/wordleverse.jpg";
 import hashtag from "@/assets/hashtag.jpg";
 
-// Mini Motorways is hidden for now — the page itself still lives at
-// /games/mini-motorways, it just isn't linked from here or the nav.
-
 const Container = styled.div`
   display: grid;
   gap: 1rem;
@@ -369,7 +366,7 @@ const Connect404Artwork = () => {
 export default function Page() {
   return (
     <Section>
-      <Title>Games</Title>
+      <Title>Play</Title>
       <Container>
         <Card className="wordle" href="/games/wordleverse">
           <CardImage

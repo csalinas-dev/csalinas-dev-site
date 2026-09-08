@@ -1,5 +1,5 @@
 {
-  "schema": 1,
+  "schema": 2,
   "savedAt": "2026-09-07T19:17:34.674Z",
   "totals": {
     "dailyChallengesPlayed": 15,
@@ -691,6 +691,12 @@
       {
         "city": "Beijing",
         "mode": 0,
+        "index": 0,
+        "best": null
+      },
+      {
+        "city": "Beijing",
+        "mode": 0,
         "index": 1,
         "best": 724
       },
@@ -699,6 +705,12 @@
         "mode": 0,
         "index": 0,
         "best": 1575
+      },
+      {
+        "city": "Busan",
+        "mode": 0,
+        "index": 1,
+        "best": null
       },
       {
         "city": "Cairns",
@@ -719,6 +731,12 @@
         "best": 2142
       },
       {
+        "city": "ChiangMai",
+        "mode": 0,
+        "index": 1,
+        "best": null
+      },
+      {
         "city": "Copenhagen",
         "mode": 0,
         "index": 0,
@@ -733,8 +751,20 @@
       {
         "city": "Dubai",
         "mode": 0,
+        "index": 0,
+        "best": null
+      },
+      {
+        "city": "Dubai",
+        "mode": 0,
         "index": 1,
         "best": 4056
+      },
+      {
+        "city": "HongKong",
+        "mode": 0,
+        "index": 0,
+        "best": null
       },
       {
         "city": "HongKong",
@@ -769,8 +799,26 @@
       {
         "city": "LosAngeles",
         "mode": 0,
+        "index": 0,
+        "best": null
+      },
+      {
+        "city": "LosAngeles",
+        "mode": 0,
         "index": 1,
         "best": 3854
+      },
+      {
+        "city": "LosAngeles",
+        "mode": 0,
+        "index": 2,
+        "best": null
+      },
+      {
+        "city": "Manila",
+        "mode": 0,
+        "index": 0,
+        "best": null
       },
       {
         "city": "Manila",
@@ -811,6 +859,12 @@
       {
         "city": "Munich",
         "mode": 0,
+        "index": 0,
+        "best": null
+      },
+      {
+        "city": "Munich",
+        "mode": 0,
         "index": 1,
         "best": 785
       },
@@ -819,6 +873,12 @@
         "mode": 0,
         "index": 0,
         "best": 7203
+      },
+      {
+        "city": "Reykjavik",
+        "mode": 0,
+        "index": 0,
+        "best": null
       },
       {
         "city": "Reykjavik",
@@ -833,10 +893,22 @@
         "best": 2840
       },
       {
+        "city": "RioDeJaneiro",
+        "mode": 0,
+        "index": 1,
+        "best": null
+      },
+      {
         "city": "Tokyo",
         "mode": 0,
         "index": 0,
         "best": 2901
+      },
+      {
+        "city": "Tokyo",
+        "mode": 0,
+        "index": 1,
+        "best": null
       },
       {
         "city": "Vancouver",
@@ -845,16 +917,34 @@
         "best": 1486
       },
       {
+        "city": "Vancouver",
+        "mode": 0,
+        "index": 1,
+        "best": null
+      },
+      {
         "city": "Warsaw",
         "mode": 0,
         "index": 0,
         "best": 3275
       },
       {
+        "city": "Warsaw",
+        "mode": 0,
+        "index": 1,
+        "best": null
+      },
+      {
         "city": "Wellington",
         "mode": 0,
         "index": 0,
         "best": 664
+      },
+      {
+        "city": "Zurich",
+        "mode": 0,
+        "index": 0,
+        "best": null
       },
       {
         "city": "Zurich",
@@ -869,7 +959,7 @@
         "expiry": 1788825600
       },
       "weekly": {
-        "score": -1,
+        "score": null,
         "expiry": 1789344000
       }
     }

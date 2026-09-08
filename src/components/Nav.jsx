@@ -32,7 +32,7 @@ const NavLink = styled(Link)`
   flex-flow: row nowrap;
   font-size: 0.7rem;
   justify-content: flex-start;
-  padding: 0.25rem 0.5rem;
+  padding: 0.25rem 0.35rem;
   white-space: nowrap;
 
   @media (min-width: 400px) {
@@ -127,16 +127,20 @@ export const Nav = () => {
       <NavLink href="/github">GitHub</NavLink>
       <NavLink href="/projects">Projects</NavLink>
       <Dropdown>
-        <NavLink href="/games">Games</NavLink>
+        <NavLink href="/games">Play</NavLink>
         <Menu className="menu">
-          <SubTitle>Play</SubTitle>
           <NavLink href="/games/wordleverse">Wordleverse</NavLink>
           <NavLink href="/games/hashtag">Hashtag</NavLink>
           <NavLink href="/games/tic-tac-overflow">Tic-Tac-Overflow</NavLink>
           <NavLink href="/games/edge-case">Edge Case</NavLink>
           <NavLink href="/games/connect-404">Connect 404</NavLink>
-          {/* Mini Motorways is unlinked for now. The page is still served at
-              /games/mini-motorways — this only hides the way in. */}
+        </Menu>
+      </Dropdown>
+      <Dropdown>
+        <NavLink href="/gaming">Gaming</NavLink>
+        <Menu className="menu">
+          <SubTitle>Stats</SubTitle>
+          <NavLink href="/gaming/mini-motorways">Mini Motorways</NavLink>
         </Menu>
       </Dropdown>
       <div style={{ flexGrow: 1 }} />
