@@ -1,0 +1,967 @@
+{
+  "schema": 2,
+  "savedAt": "2026-09-07T19:17:34.674Z",
+  "totals": {
+    "dailyChallengesPlayed": 15,
+    "weeklyChallengesPlayed": 10,
+    "treesBulldozed": 391,
+    "totalScore": 279173,
+    "concretePlaced": 32884,
+    "bridges": 652,
+    "tunnels": 180,
+    "motorways": 560,
+    "trafficLights": 129,
+    "roundabouts": 272,
+    "concreteDeleted": 53422,
+    "endlessMilestones": 122,
+    "playTime": 295382,
+    "bestScore": 79130,
+    "citiesPlayed": 26,
+    "cityModesPlayed": 60
+  },
+  "achievements": {
+    "complete": 187,
+    "total": 187,
+    "incomplete": []
+  },
+  "cities": [
+    {
+      "city": "Beijing",
+      "mode": "Normal",
+      "best": 3575,
+      "bestDays": 2188,
+      "bestAverage": 0,
+      "totalTrips": 5440,
+      "longestDays": 2188,
+      "totalDays": 4708,
+      "playTime": 4708
+    },
+    {
+      "city": "Beijing",
+      "mode": "Expert",
+      "best": 2838,
+      "bestDays": 2071,
+      "bestAverage": 0,
+      "totalTrips": 2838,
+      "longestDays": 2071,
+      "totalDays": 2071,
+      "playTime": 2071
+    },
+    {
+      "city": "Busan",
+      "mode": "Normal",
+      "best": 3399,
+      "bestDays": 2318,
+      "bestAverage": 0,
+      "totalTrips": 4974,
+      "longestDays": 2318,
+      "totalDays": 3949,
+      "playTime": 3949
+    },
+    {
+      "city": "Busan",
+      "mode": "Expert",
+      "best": 900,
+      "bestDays": 1287,
+      "bestAverage": 0,
+      "totalTrips": 900,
+      "longestDays": 1287,
+      "totalDays": 1287,
+      "playTime": 1287
+    },
+    {
+      "city": "Cairns",
+      "mode": "Normal",
+      "best": 2485,
+      "bestDays": 2024,
+      "bestAverage": 0,
+      "totalTrips": 5592,
+      "longestDays": 2024,
+      "totalDays": 5978,
+      "playTime": 5978
+    },
+    {
+      "city": "Cairns",
+      "mode": "Expert",
+      "best": 751,
+      "bestDays": 1203,
+      "bestAverage": 0,
+      "totalTrips": 751,
+      "longestDays": 1203,
+      "totalDays": 1203,
+      "playTime": 1203
+    },
+    {
+      "city": "CapeTown",
+      "mode": "Normal",
+      "best": 2187,
+      "bestDays": 1851,
+      "bestAverage": 0,
+      "totalTrips": 7608,
+      "longestDays": 1851,
+      "totalDays": 7085,
+      "playTime": 7085
+    },
+    {
+      "city": "CapeTown",
+      "mode": "Expert",
+      "best": 1739,
+      "bestDays": 1741,
+      "bestAverage": 0,
+      "totalTrips": 1739,
+      "longestDays": 1741,
+      "totalDays": 1741,
+      "playTime": 1741
+    },
+    {
+      "city": "ChiangMai",
+      "mode": "Normal",
+      "best": 3163,
+      "bestDays": 1960,
+      "bestAverage": 0,
+      "totalTrips": 13084,
+      "longestDays": 1960,
+      "totalDays": 9232,
+      "playTime": 9232
+    },
+    {
+      "city": "ChiangMai",
+      "mode": "Expert",
+      "best": 1418,
+      "bestDays": 1486,
+      "bestAverage": 0,
+      "totalTrips": 1418,
+      "longestDays": 1486,
+      "totalDays": 1486,
+      "playTime": 1486
+    },
+    {
+      "city": "Copenhagen",
+      "mode": "Normal",
+      "best": 2726,
+      "bestDays": 2120,
+      "bestAverage": 0,
+      "totalTrips": 6848,
+      "longestDays": 2120,
+      "totalDays": 5987,
+      "playTime": 5987
+    },
+    {
+      "city": "Copenhagen",
+      "mode": "Expert",
+      "best": 1632,
+      "bestDays": 1775,
+      "bestAverage": 0,
+      "totalTrips": 1632,
+      "longestDays": 1775,
+      "totalDays": 1775,
+      "playTime": 1775
+    },
+    {
+      "city": "DarEsSalaam",
+      "mode": "Normal",
+      "best": 3373,
+      "bestDays": 2059,
+      "bestAverage": 0,
+      "totalTrips": 5139,
+      "longestDays": 2059,
+      "totalDays": 4549,
+      "playTime": 4549
+    },
+    {
+      "city": "DarEsSalaam",
+      "mode": "Expert",
+      "best": 1557,
+      "bestDays": 1590,
+      "bestAverage": 0,
+      "totalTrips": 1557,
+      "longestDays": 1590,
+      "totalDays": 1590,
+      "playTime": 1590
+    },
+    {
+      "city": "Dubai",
+      "mode": "Normal",
+      "best": 6062,
+      "bestDays": 2569,
+      "bestAverage": 0,
+      "totalTrips": 13583,
+      "longestDays": 2569,
+      "totalDays": 9985,
+      "playTime": 9985
+    },
+    {
+      "city": "Dubai",
+      "mode": "Expert",
+      "best": 2686,
+      "bestDays": 1887,
+      "bestAverage": 0,
+      "totalTrips": 2686,
+      "longestDays": 1887,
+      "totalDays": 1887,
+      "playTime": 1887
+    },
+    {
+      "city": "HongKong",
+      "mode": "Normal",
+      "best": 2420,
+      "bestDays": 2098,
+      "bestAverage": 0,
+      "totalTrips": 3359,
+      "longestDays": 2098,
+      "totalDays": 3521,
+      "playTime": 3521
+    },
+    {
+      "city": "HongKong",
+      "mode": "Expert",
+      "best": 1577,
+      "bestDays": 1781,
+      "bestAverage": 0,
+      "totalTrips": 1577,
+      "longestDays": 1781,
+      "totalDays": 1781,
+      "playTime": 1781
+    },
+    {
+      "city": "Istanbul",
+      "mode": "Normal",
+      "best": 3927,
+      "bestDays": 2358,
+      "bestAverage": 0,
+      "totalTrips": 9325,
+      "longestDays": 2358,
+      "totalDays": 7557,
+      "playTime": 7557
+    },
+    {
+      "city": "Istanbul",
+      "mode": "Expert",
+      "best": 1723,
+      "bestDays": 1814,
+      "bestAverage": 0,
+      "totalTrips": 1723,
+      "longestDays": 1814,
+      "totalDays": 1814,
+      "playTime": 1814
+    },
+    {
+      "city": "Lisbon",
+      "mode": "Normal",
+      "best": 3171,
+      "bestDays": 2199,
+      "bestAverage": 0,
+      "totalTrips": 4659,
+      "longestDays": 2199,
+      "totalDays": 4618,
+      "playTime": 4618
+    },
+    {
+      "city": "Lisbon",
+      "mode": "Expert",
+      "best": 1655,
+      "bestDays": 1694,
+      "bestAverage": 0,
+      "totalTrips": 1655,
+      "longestDays": 1694,
+      "totalDays": 1694,
+      "playTime": 1694
+    },
+    {
+      "city": "Lisbon",
+      "mode": "Endless",
+      "best": 19300,
+      "bestDays": 5704,
+      "bestAverage": 0,
+      "totalTrips": 24652,
+      "longestDays": 5704,
+      "totalDays": 7915,
+      "playTime": 7915
+    },
+    {
+      "city": "London",
+      "mode": "Normal",
+      "best": 4311,
+      "bestDays": 2637,
+      "bestAverage": 0,
+      "totalTrips": 13568,
+      "longestDays": 2637,
+      "totalDays": 9796,
+      "playTime": 9796
+    },
+    {
+      "city": "London",
+      "mode": "Expert",
+      "best": 1943,
+      "bestDays": 2026,
+      "bestAverage": 0,
+      "totalTrips": 1943,
+      "longestDays": 2026,
+      "totalDays": 2026,
+      "playTime": 2026
+    },
+    {
+      "city": "London",
+      "mode": "Endless",
+      "best": 15463,
+      "bestDays": 4533,
+      "bestAverage": 0,
+      "totalTrips": 10906,
+      "longestDays": 4533,
+      "totalDays": 1829,
+      "playTime": 1829
+    },
+    {
+      "city": "LosAngeles",
+      "mode": "Normal",
+      "best": 3075,
+      "bestDays": 2226,
+      "bestAverage": 0,
+      "totalTrips": 18125,
+      "longestDays": 2226,
+      "totalDays": 21070,
+      "playTime": 21070
+    },
+    {
+      "city": "LosAngeles",
+      "mode": "Expert",
+      "best": 1180,
+      "bestDays": 1546,
+      "bestAverage": 0,
+      "totalTrips": 2611,
+      "longestDays": 1546,
+      "totalDays": 2975,
+      "playTime": 2975
+    },
+    {
+      "city": "Manila",
+      "mode": "Normal",
+      "best": 2491,
+      "bestDays": 1918,
+      "bestAverage": 0,
+      "totalTrips": 6274,
+      "longestDays": 1918,
+      "totalDays": 6236,
+      "playTime": 6236
+    },
+    {
+      "city": "Manila",
+      "mode": "Expert",
+      "best": 971,
+      "bestDays": 1369,
+      "bestAverage": 0,
+      "totalTrips": 971,
+      "longestDays": 1369,
+      "totalDays": 1369,
+      "playTime": 1369
+    },
+    {
+      "city": "Manila",
+      "mode": "Endless",
+      "best": 79130,
+      "bestDays": 14316,
+      "bestAverage": 0,
+      "totalTrips": 76639,
+      "longestDays": 14316,
+      "totalDays": 12398,
+      "playTime": 12398
+    },
+    {
+      "city": "MexicoCity",
+      "mode": "Normal",
+      "best": 2541,
+      "bestDays": 1754,
+      "bestAverage": 0,
+      "totalTrips": 7469,
+      "longestDays": 1754,
+      "totalDays": 5203,
+      "playTime": 5203
+    },
+    {
+      "city": "MexicoCity",
+      "mode": "Expert",
+      "best": 1603,
+      "bestDays": 1490,
+      "bestAverage": 0,
+      "totalTrips": 1603,
+      "longestDays": 1490,
+      "totalDays": 1490,
+      "playTime": 1490
+    },
+    {
+      "city": "Moscow",
+      "mode": "Normal",
+      "best": 3232,
+      "bestDays": 2123,
+      "bestAverage": 0,
+      "totalTrips": 5506,
+      "longestDays": 2123,
+      "totalDays": 5641,
+      "playTime": 5641
+    },
+    {
+      "city": "Moscow",
+      "mode": "Expert",
+      "best": 1241,
+      "bestDays": 1475,
+      "bestAverage": 0,
+      "totalTrips": 1241,
+      "longestDays": 1475,
+      "totalDays": 1475,
+      "playTime": 1475
+    },
+    {
+      "city": "Mumbai",
+      "mode": "Normal",
+      "best": 2071,
+      "bestDays": 2042,
+      "bestAverage": 0,
+      "totalTrips": 5466,
+      "longestDays": 2042,
+      "totalDays": 8125,
+      "playTime": 8125
+    },
+    {
+      "city": "Mumbai",
+      "mode": "Expert",
+      "best": 1114,
+      "bestDays": 1620,
+      "bestAverage": 0,
+      "totalTrips": 1114,
+      "longestDays": 1620,
+      "totalDays": 1620,
+      "playTime": 1620
+    },
+    {
+      "city": "Munich",
+      "mode": "Normal",
+      "best": 2881,
+      "bestDays": 1954,
+      "bestAverage": 0,
+      "totalTrips": 8839,
+      "longestDays": 1954,
+      "totalDays": 9135,
+      "playTime": 9135
+    },
+    {
+      "city": "Munich",
+      "mode": "Expert",
+      "best": 1562,
+      "bestDays": 1591,
+      "bestAverage": 0,
+      "totalTrips": 1562,
+      "longestDays": 1591,
+      "totalDays": 1591,
+      "playTime": 1591
+    },
+    {
+      "city": "Munich",
+      "mode": "Endless",
+      "best": 9400,
+      "bestDays": 3616,
+      "bestAverage": 0,
+      "totalTrips": 8240,
+      "longestDays": 3616,
+      "totalDays": 2183,
+      "playTime": 2183
+    },
+    {
+      "city": "NewYorkCity",
+      "mode": "Normal",
+      "best": 3992,
+      "bestDays": 2777,
+      "bestAverage": 0,
+      "totalTrips": 14311,
+      "longestDays": 2777,
+      "totalDays": 12173,
+      "playTime": 12173
+    },
+    {
+      "city": "NewYorkCity",
+      "mode": "Expert",
+      "best": 2113,
+      "bestDays": 2242,
+      "bestAverage": 0,
+      "totalTrips": 2113,
+      "longestDays": 2242,
+      "totalDays": 2242,
+      "playTime": 2242
+    },
+    {
+      "city": "Reykjavik",
+      "mode": "Normal",
+      "best": 2342,
+      "bestDays": 1994,
+      "bestAverage": 0,
+      "totalTrips": 5755,
+      "longestDays": 1994,
+      "totalDays": 4288,
+      "playTime": 4288
+    },
+    {
+      "city": "Reykjavik",
+      "mode": "Expert",
+      "best": 2203,
+      "bestDays": 1957,
+      "bestAverage": 0,
+      "totalTrips": 2203,
+      "longestDays": 1957,
+      "totalDays": 1957,
+      "playTime": 1957
+    },
+    {
+      "city": "RioDeJaneiro",
+      "mode": "Normal",
+      "best": 3315,
+      "bestDays": 2160,
+      "bestAverage": 0,
+      "totalTrips": 7591,
+      "longestDays": 2160,
+      "totalDays": 5813,
+      "playTime": 5813
+    },
+    {
+      "city": "RioDeJaneiro",
+      "mode": "Expert",
+      "best": 1774,
+      "bestDays": 1733,
+      "bestAverage": 0,
+      "totalTrips": 1774,
+      "longestDays": 1733,
+      "totalDays": 1733,
+      "playTime": 1733
+    },
+    {
+      "city": "Tokyo",
+      "mode": "Normal",
+      "best": 4830,
+      "bestDays": 2540,
+      "bestAverage": 0,
+      "totalTrips": 12368,
+      "longestDays": 2540,
+      "totalDays": 11479,
+      "playTime": 11479
+    },
+    {
+      "city": "Tokyo",
+      "mode": "Expert",
+      "best": 2690,
+      "bestDays": 2034,
+      "bestAverage": 0,
+      "totalTrips": 4260,
+      "longestDays": 2034,
+      "totalDays": 3605,
+      "playTime": 3605
+    },
+    {
+      "city": "Vancouver",
+      "mode": "Normal",
+      "best": 2137,
+      "bestDays": 1975,
+      "bestAverage": 0,
+      "totalTrips": 7068,
+      "longestDays": 1975,
+      "totalDays": 6916,
+      "playTime": 6916
+    },
+    {
+      "city": "Vancouver",
+      "mode": "Expert",
+      "best": 1138,
+      "bestDays": 1519,
+      "bestAverage": 0,
+      "totalTrips": 1138,
+      "longestDays": 1519,
+      "totalDays": 1519,
+      "playTime": 1519
+    },
+    {
+      "city": "Vancouver",
+      "mode": "Endless",
+      "best": 7305,
+      "bestDays": 3413,
+      "bestAverage": 0,
+      "totalTrips": 5639,
+      "longestDays": 3413,
+      "totalDays": 1629,
+      "playTime": 1629
+    },
+    {
+      "city": "Warsaw",
+      "mode": "Normal",
+      "best": 4085,
+      "bestDays": 2753,
+      "bestAverage": 0,
+      "totalTrips": 11593,
+      "longestDays": 2753,
+      "totalDays": 9030,
+      "playTime": 9030
+    },
+    {
+      "city": "Warsaw",
+      "mode": "Expert",
+      "best": 1768,
+      "bestDays": 1865,
+      "bestAverage": 0,
+      "totalTrips": 1768,
+      "longestDays": 1865,
+      "totalDays": 1865,
+      "playTime": 1865
+    },
+    {
+      "city": "Warsaw",
+      "mode": "Endless",
+      "best": 19957,
+      "bestDays": 5741,
+      "bestAverage": 0,
+      "totalTrips": 15872,
+      "longestDays": 5741,
+      "totalDays": 2988,
+      "playTime": 2988
+    },
+    {
+      "city": "Wellington",
+      "mode": "Normal",
+      "best": 2073,
+      "bestDays": 1703,
+      "bestAverage": 0,
+      "totalTrips": 18093,
+      "longestDays": 1703,
+      "totalDays": 17535,
+      "playTime": 17535
+    },
+    {
+      "city": "Wellington",
+      "mode": "Expert",
+      "best": 1969,
+      "bestDays": 1674,
+      "bestAverage": 0,
+      "totalTrips": 1969,
+      "longestDays": 1674,
+      "totalDays": 1674,
+      "playTime": 1674
+    },
+    {
+      "city": "Wellington",
+      "mode": "Endless",
+      "best": 18749,
+      "bestDays": 5066,
+      "bestAverage": 0,
+      "totalTrips": 39662,
+      "longestDays": 5268,
+      "totalDays": 8750,
+      "playTime": 8750
+    },
+    {
+      "city": "Zurich",
+      "mode": "Normal",
+      "best": 3159,
+      "bestDays": 2092,
+      "bestAverage": 0,
+      "totalTrips": 11348,
+      "longestDays": 2092,
+      "totalDays": 10217,
+      "playTime": 10217
+    },
+    {
+      "city": "Zurich",
+      "mode": "Expert",
+      "best": 1442,
+      "bestDays": 1598,
+      "bestAverage": 0,
+      "totalTrips": 1442,
+      "longestDays": 1598,
+      "totalDays": 1598,
+      "playTime": 1598
+    },
+    {
+      "city": "Zurich",
+      "mode": "Endless",
+      "best": 6322,
+      "bestDays": 2666,
+      "bestAverage": 0,
+      "totalTrips": 3930,
+      "longestDays": 2666,
+      "totalDays": 796,
+      "playTime": 796
+    }
+  ],
+  "challenges": {
+    "cities": [
+      {
+        "city": "Beijing",
+        "mode": 0,
+        "index": 0,
+        "best": null
+      },
+      {
+        "city": "Beijing",
+        "mode": 0,
+        "index": 1,
+        "best": 724
+      },
+      {
+        "city": "Busan",
+        "mode": 0,
+        "index": 0,
+        "best": 1575
+      },
+      {
+        "city": "Busan",
+        "mode": 0,
+        "index": 1,
+        "best": null
+      },
+      {
+        "city": "Cairns",
+        "mode": 0,
+        "index": 0,
+        "best": 1562
+      },
+      {
+        "city": "CapeTown",
+        "mode": 0,
+        "index": 0,
+        "best": 1731
+      },
+      {
+        "city": "ChiangMai",
+        "mode": 0,
+        "index": 0,
+        "best": 2142
+      },
+      {
+        "city": "ChiangMai",
+        "mode": 0,
+        "index": 1,
+        "best": null
+      },
+      {
+        "city": "Copenhagen",
+        "mode": 0,
+        "index": 0,
+        "best": 1945
+      },
+      {
+        "city": "DarEsSalaam",
+        "mode": 0,
+        "index": 0,
+        "best": 1215
+      },
+      {
+        "city": "Dubai",
+        "mode": 0,
+        "index": 0,
+        "best": null
+      },
+      {
+        "city": "Dubai",
+        "mode": 0,
+        "index": 1,
+        "best": 4056
+      },
+      {
+        "city": "HongKong",
+        "mode": 0,
+        "index": 0,
+        "best": null
+      },
+      {
+        "city": "HongKong",
+        "mode": 0,
+        "index": 1,
+        "best": 939
+      },
+      {
+        "city": "Istanbul",
+        "mode": 0,
+        "index": 0,
+        "best": 1670
+      },
+      {
+        "city": "Istanbul",
+        "mode": 0,
+        "index": 1,
+        "best": 1795
+      },
+      {
+        "city": "Lisbon",
+        "mode": 0,
+        "index": 0,
+        "best": 1097
+      },
+      {
+        "city": "London",
+        "mode": 0,
+        "index": 0,
+        "best": 4557
+      },
+      {
+        "city": "LosAngeles",
+        "mode": 0,
+        "index": 0,
+        "best": null
+      },
+      {
+        "city": "LosAngeles",
+        "mode": 0,
+        "index": 1,
+        "best": 3854
+      },
+      {
+        "city": "LosAngeles",
+        "mode": 0,
+        "index": 2,
+        "best": null
+      },
+      {
+        "city": "Manila",
+        "mode": 0,
+        "index": 0,
+        "best": null
+      },
+      {
+        "city": "Manila",
+        "mode": 0,
+        "index": 1,
+        "best": 1556
+      },
+      {
+        "city": "MexicoCity",
+        "mode": 0,
+        "index": 0,
+        "best": 1693
+      },
+      {
+        "city": "Moscow",
+        "mode": 0,
+        "index": 0,
+        "best": 1006
+      },
+      {
+        "city": "Moscow",
+        "mode": 0,
+        "index": 1,
+        "best": 956
+      },
+      {
+        "city": "Mumbai",
+        "mode": 0,
+        "index": 0,
+        "best": 972
+      },
+      {
+        "city": "Mumbai",
+        "mode": 0,
+        "index": 1,
+        "best": 875
+      },
+      {
+        "city": "Munich",
+        "mode": 0,
+        "index": 0,
+        "best": null
+      },
+      {
+        "city": "Munich",
+        "mode": 0,
+        "index": 1,
+        "best": 785
+      },
+      {
+        "city": "NewYorkCity",
+        "mode": 0,
+        "index": 0,
+        "best": 7203
+      },
+      {
+        "city": "Reykjavik",
+        "mode": 0,
+        "index": 0,
+        "best": null
+      },
+      {
+        "city": "Reykjavik",
+        "mode": 0,
+        "index": 1,
+        "best": 3413
+      },
+      {
+        "city": "RioDeJaneiro",
+        "mode": 0,
+        "index": 0,
+        "best": 2840
+      },
+      {
+        "city": "RioDeJaneiro",
+        "mode": 0,
+        "index": 1,
+        "best": null
+      },
+      {
+        "city": "Tokyo",
+        "mode": 0,
+        "index": 0,
+        "best": 2901
+      },
+      {
+        "city": "Tokyo",
+        "mode": 0,
+        "index": 1,
+        "best": null
+      },
+      {
+        "city": "Vancouver",
+        "mode": 0,
+        "index": 0,
+        "best": 1486
+      },
+      {
+        "city": "Vancouver",
+        "mode": 0,
+        "index": 1,
+        "best": null
+      },
+      {
+        "city": "Warsaw",
+        "mode": 0,
+        "index": 0,
+        "best": 3275
+      },
+      {
+        "city": "Warsaw",
+        "mode": 0,
+        "index": 1,
+        "best": null
+      },
+      {
+        "city": "Wellington",
+        "mode": 0,
+        "index": 0,
+        "best": 664
+      },
+      {
+        "city": "Zurich",
+        "mode": 0,
+        "index": 0,
+        "best": null
+      },
+      {
+        "city": "Zurich",
+        "mode": 0,
+        "index": 1,
+        "best": 3777
+      }
+    ],
+    "current": {
+      "daily": {
+        "score": 4514,
+        "expiry": 1788825600
+      },
+      "weekly": {
+        "score": null,
+        "expiry": 1789344000
+      }
+    }
+  }
+}

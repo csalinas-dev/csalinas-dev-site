@@ -36,3 +36,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .vscode/settings.json
+
+# agent worktrees (the .claude/skills/ dir is tracked)
+.claude/worktrees/

@@ -1,0 +1,223 @@
+"use client";
+
+import styled from "@emotion/styled";
+
+/* Summary tiles ---------------------------------------------------------- */
+
+/* `auto-fit` with a `min(50% - 0.5rem, …)` floor: five across when there is
+   room, and never fewer than two across on a phone, so five full-width tiles
+   don't push the first city below the fold. */
+export const Tiles = styled.div`
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(50% - 0.5rem, 11rem), 1fr));
+  margin-bottom: 1.5rem;
+`;
+
+export const Tile = styled.div`
+  background: var(--selectionBackground);
+  border-radius: 1rem;
+  container-type: inline-size;
+  padding: 1rem;
+
+  .label {
+    color: var(--muted);
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .figure {
+    color: var(--foreground);
+    font-size: 1.9rem;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.2;
+  }
+
+  .caption {
+    color: var(--muted);
+    font-size: 0.8rem;
+  }
+
+  /* A 120px tile still has to hold "6,062". */
+  @container (max-width: 10rem) {
+    .figure {
+      font-size: 1.4rem;
+    }
+  }
+`;
+
+/* The city cards --------------------------------------------------------- */
+
+/* `auto-fill`, not `auto-fit`: with one city the card sits in one 20rem track
+   instead of stretching across the viewport. The `min(100%, …)` is required —
+   a bare `minmax(20rem, 1fr)` overflows a 320px phone, where the track inside
+   Section's 2rem padding is 256px. */
+export const Grid = styled.div`
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
+`;
+
+/* Cards get a max width; layouts do not. `justify-self: center` stops a lone
+   capped card floating left in a wider track. */
+export const Card = styled.article`
+  background: var(--selectionBackground);
+  border-radius: 1.25rem;
+  box-shadow: 0 8px 10px 1px rgba(0, 0, 0, 0.14),
+    0 3px 14px 2px rgba(0, 0, 0, 0.12), 0 5px 5px -3px rgba(0, 0, 0, 0.2);
+  container-type: inline-size;
+  display: flex;
+  flex-flow: column nowrap;
+  gap: 0.75rem;
+  justify-self: center;
+  max-width: 32rem;
+  padding: 1.25rem;
+  width: 100%;
+`;
+
+export const CityName = styled.h2`
+  color: var(--function);
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin: 0;
+  overflow-wrap: anywhere;
+`;
+
+/* Both grids share one template so every figure on the page — modes and
+   challenges, and across every card in a row — lands in the same column.
+   Columns are pinned explicitly rather than left to auto-placement.
+
+   `font-size: 0.92rem` on the container is NOT optional: `ch` resolves against
+   the grid container's own font-size, and Section forces `1.5rem !important`.
+   Left inherited, `8ch` becomes 118.8px instead of 72.9px, starving the bar and
+   overflowing the mode grid — visible as the `best` column landing at two
+   different x positions inside one card.
+
+   `minmax(0, 1fr)` rather than `1fr` for the bar track removes that class of
+   bug outright: `1fr` carries an automatic min-content floor. */
+const figures = `
+  align-items: center;
+  column-gap: 0.6rem;
+  display: grid;
+  font-size: 0.92rem;
+  grid-template-columns: max-content minmax(0, 1fr) 5ch 8ch;
+
+  .label {
+    grid-column: 1;
+  }
+
+  .bar {
+    grid-column: 2;
+  }
+
+  /* Days is context; the score is the headline. */
+  .days {
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+    grid-column: 3;
+    text-align: right;
+  }
+
+  .best {
+    color: var(--foreground);
+    font-variant-numeric: tabular-nums;
+    grid-column: 4;
+    text-align: right;
+  }
+
+  /* A 320px phone reaches this. The secondary figure goes before the identity
+     does — the bar is the Mini Motorways cue, and 57px still reads as a
+     proportion. */
+  @container (max-width: 17rem) {
+    grid-template-columns: max-content minmax(0, 1fr) 8ch;
+
+    .days {
+      display: none;
+    }
+
+    .best {
+      grid-column: 3;
+    }
+  }
+`;
+
+export const Modes = styled.div`
+  ${figures}
+  row-gap: 0.5rem;
+
+  .caption {
+    color: var(--muted);
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    text-align: right;
+    text-transform: uppercase;
+  }
+`;
+
+export const Challenges = styled.div`
+  ${figures}
+  align-content: center;
+  border-top: 1px solid rgba(255, 255, 255, 0.13);
+  /* Cards in a grid row stretch to the tallest and cities have one to three
+     challenges; centring spreads that slack above and below the rows instead of
+     dumping it at the card's bottom edge. */
+  flex: 1 1 auto;
+  padding-top: 0.75rem;
+  row-gap: 0.35rem;
+
+  .label {
+    grid-column: 1 / 3;
+  }
+
+  .unbeaten {
+    color: var(--muted);
+  }
+`;
+
+/* A Mini Motorways road stroke, and a data mark rather than ornament. Zero
+   based, scaled against the best score in that mode across every city. */
+export const BarTrack = styled.div`
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 999px;
+  height: 9px;
+  width: 100%;
+`;
+
+/* Colour is never alone — the mode's name is on every row. */
+export const BarFill = styled.div`
+  background: var(--string);
+  border-radius: 999px;
+  height: 100%;
+  min-width: 9px;
+
+  &.expert {
+    background: var(--type);
+  }
+`;
+
+/* `Comment` prepends its `// ` with `:first-of-type`, so the legend and the
+   staleness line must not be siblings or only the first gets slashes. They also
+   set their own size: Section forces `1.5rem !important` on itself and these
+   inherit it, which would render an annotation at headline size. 0.92rem is the
+   card grid's size, so every small figure on the page agrees. */
+export const Legend = styled.p`
+  font-size: 0.92rem;
+  margin: 0 0 1.5rem;
+`;
+
+export const Foot = styled.p`
+  font-size: 0.92rem;
+  margin: 1.5rem 0 0;
+`;
+
+export const Empty = styled.p`
+  font-size: 0.92rem;
+  margin: 0;
+  text-align: center;
+`;
+
+/* `color.js` has no muted export, and `challenge` needs one. */
+export const Muted = styled.span`
+  color: var(--muted);
+`;

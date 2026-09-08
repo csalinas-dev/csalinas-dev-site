@@ -20,7 +20,9 @@ const nextConfig = {
   images: {
     remotePatterns: [
       {
-        // Still used by /games/mini-motorways, which reads from Hygraph.
+        // Currently unused: /games/mini-motorways was the only consumer and
+        // it now redirects to a static page. Kept in case Hygraph imagery
+        // returns; safe to drop with src/lib/hygraph.js.
         protocol: "https",
         hostname: "media.graphassets.com",
       },
@@ -45,6 +47,14 @@ const nextConfig = {
     {
       source: "/projects/:slug",
       destination: "/blog/:slug",
+      permanent: true,
+    },
+    // The Hygraph-backed /games/mini-motorways was replaced by the static
+    // /gaming/mini-motorways page. The old URL is kept alive because it was
+    // linked from the nav for years.
+    {
+      source: "/games/mini-motorways",
+      destination: "/gaming/mini-motorways",
       permanent: true,
     },
   ],

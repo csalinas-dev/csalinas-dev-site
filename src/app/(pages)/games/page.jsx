@@ -7,7 +7,7 @@ import { GAMES } from "./games";
 export default function Page() {
   return (
     <GamesSection>
-      <Title>Games</Title>
+      <Title>Play</Title>
       <GameGrid>
         {GAMES.map(({ slug, title, href, Artwork }) => (
           <GameCard href={href} key={slug} title={title}>
