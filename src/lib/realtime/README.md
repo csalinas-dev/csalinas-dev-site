@@ -62,6 +62,26 @@ passes every local hotseat test and only scrambles ordering in online games.
 
 That is the entire seam. Nothing else in `src/lib/realtime` changes.
 
+**A room may change its game.** `POST /api/rooms/[code]/switch` rewrites
+`GameRoom.game` in place and rebuilds `state` with the destination's own
+`createState`, so yours will be called with a roster that has already played
+something else — seats with names, colours and a join order, and possibly only
+one of them. Two consequences for a definition:
+
+- `createState` is handed `{ options: undefined, players }`. The source room's
+  options mean nothing to you, so default them exactly as a freshly created room
+  would.
+- Whether the room lands on a board or in a lobby is entirely your `status`. A
+  roster short of `minPlayers` is normal and is the waiting screen, not an error
+  — the offer rule in [`switching.js`](./switching.js) deliberately does not
+  consult `minPlayers`.
+
+Seats flagged `left` are dropped by the switch and the survivors are renumbered
+`0..n-1` in join order, so `HOST_SLOT` always exists and belongs to the
+earliest-joined person still present. Only `slot` and `color` change; `token`,
+`name` and `connectedAt` are carried over untouched, the last because
+[`identity.js`](./identity.js) recognises a seat by it.
+
 ### Reducer contract
 
 `(state, action, player) => { state } | { error }`
@@ -85,9 +105,10 @@ Every response body is `{ room }` on success and
 | `POST` | `/api/rooms` | `{ game, token?, name?, color?, options? }` | -> `201 { code, slot, token, room }` |
 | `POST` | `/api/rooms/[code]/join` | `{ token, game?, name?, color? }` | join **and** rejoin |
 | `POST` | `/api/rooms/[code]/action` | `{ token, revision, action }` | the only way `state` changes |
+| `POST` | `/api/rooms/[code]/switch` | `{ token, revision, to }` | change which game the room plays, keeping its code and its seats |
 | `GET` | `/api/rooms/[code]` | — | snapshot; also the polling fallback. Token in an `X-Player-Token` header |
 | `POST` | `/api/rooms/[code]/ticket` | `{ token }` | -> `{ ticket }`, single use, ~30s |
-| `GET` | `/api/rooms/[code]/stream?ticket=` | — | SSE: `sync`, `gone`, `:` heartbeats |
+| `GET` | `/api/rooms/[code]/stream?ticket=` | — | SSE: `sync`, `gone`, `:` heartbeats. A ticket that is present and does not redeem is **403 `bad-ticket`**; an absent one is the spectator path |
 
 **The player token never travels in a URL.** It authorizes moves, and URLs end up
 in reverse-proxy access logs, browser history and error reports. Everywhere that
@@ -97,12 +118,26 @@ minted by a POST and dead on first use or within 30 seconds. A ticket recovered
 from a log is worthless. Spectators have no token, so they need no ticket and
 open the stream bare.
 
+**A ticket that is offered and cannot be redeemed fails the connection** — 403
+`bad-ticket`, no stream. Serving it anonymously instead looks like the spectator
+path and is its opposite: every payload then reports `me: null` to a player who
+is genuinely seated, the board goes dead, and because the stream opened with a
+200 the client never notices (`onerror` does not fire, so the polling fallback
+never engages). It also makes `markPresent` a no-op, so everyone else counts
+that player out. The refusal is cheap: `useRoom` treats it as a connection
+failure, retries with a **freshly minted** ticket after ~1s, and after three
+failures falls back to polling with the `X-Player-Token` header — which restores
+the seat and the player's presence. Expiry, replay, a restart and a dev recompile
+therefore all self-heal. Only an **absent** ticket means spectator.
+
 ### Status codes
 
 | Code | `error` | Means |
 | --- | --- | --- |
 | 400 | `bad-request`, `bad-token`, `wrong-game`, `unknown-game` | malformed request |
+| 400 | `same-game`, `in-progress`, `not-host` | a switch that is a no-op, mid-board, or not yours to make |
 | 403 | `not-a-player` | that token holds no seat here |
+| 403 | `bad-ticket` | stream ticket replayed, expired, or lost — **reconnect for a new one** |
 | 403 | `room-full`, `room-in-progress` | no seat available — **spectate instead** |
 | 409 | `stale-revision` | board moved on; `room` is attached, re-render and retry |
 | 410 | `gone` | expired, deleted, or never existed — **terminal** |
@@ -143,6 +178,32 @@ in any request body, so there is nothing to forge.
 Rejoin falls out of this for free — same token, same seat, board resumes. A
 refresh, a locked phone, or a redeploy costs one round trip.
 
+### Identity in a payload
+
+`me` is resolved per payload from whatever token *that payload* was fetched
+with, so a payload fetched without one reports `me: null` for a player who is
+still sitting in the room. **A payload that does not know who you are may only
+take your seat away if your seat is also gone from its own `players`.** The
+roster cannot lie the way `me` can: a seat that is really gone — the host
+removed them, or they stood up in the lobby — is gone from `players` too.
+
+**A slot number does not identify a seat.** `nextSlot` hands out the lowest free
+seat, so a lobby seat that is vacated and re-taken puts a newcomer on the same
+number; matching on the number alone would render the departed player *as* the
+newcomer, and it would stick, because every following payload repeats the
+repair. The seat is recognised by `connectedAt` — stamped once when the seat is
+created and never rewritten (`lastSeenAt` is the field that moves), and present
+on every seat of every payload via `publicPlayer`. When either side carries no
+`connectedAt` there is nothing to compare and it degrades to the slot alone.
+
+That rule lives in exactly one place, [`identity.js`](./identity.js)'s
+`keepSeat`, the way `absence.js` is the one place absence is worded. `useRoom`
+applies it inside `applyRoom`, the single funnel every payload passes through
+(SSE `sync`, a polling tick, an action's 409/422 body, join, leave, refresh), so
+every game gets it and no game should re-implement it. Only `me` is repaired —
+the rest of such a payload is still authoritative and the board must keep
+moving.
+
 ## Concurrency
 
 Actions carry the revision the client last rendered. The write is a single
@@ -180,7 +241,7 @@ most once every 5 minutes on whatever request happens to trigger it. No cron.
 const {
   state, players, me, status, revision,
   connected, error, spectating, transport,
-  send, refresh,
+  send, refresh, leave, switchTo,
 } = useRoom({ code, game, name, color, spectate });
 
 await send({ type: "PLACE", cell: 4 }, { optimistic: true });
@@ -196,12 +257,21 @@ await send({ type: "PLACE", cell: 4 }, { optimistic: true });
 - `spectate: true` watches without taking a seat. A join that comes back
   `room-full` or `room-in-progress` degrades to spectating automatically and
   sets `spectating`.
+- `leave(slot?)` gives up this browser's seat, or — as host, in the lobby —
+  removes another player's.
+- `switchTo(id)` changes which game the room is playing. Deliberately not
+  optimistic: the destination's own `createState` decides what the room becomes,
+  so there is nothing to preview. It applies the room from ANY response that
+  carries one, so a 409 or a 422 resyncs rather than leaving a picker offering a
+  game the server has already refused.
 - `createRoom({ game, name, color })` (exported from `useRoom.js`) is the
   companion for a "create game" button.
 
 ## Local development
 
 There is no MySQL in the repo's dev setup by default; `docker compose up db`
-provides one. Apply the schema with `npx prisma db push`. In production the
-deploy workflow runs `prisma db push --skip-generate` against the freshly built
-image *before* the app serves traffic.
+provides one. Apply the schema with `npx prisma db push` — run `npm ci` first in a
+fresh checkout, or `npx` fetches a Prisma major this schema does not support and fails
+with a `P1012` that looks like a connection error (`CLAUDE.md` → Development). In
+production the deploy workflow runs `prisma db push --skip-generate` against the
+freshly built image *before* the app serves traffic.

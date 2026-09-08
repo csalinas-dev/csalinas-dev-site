@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  A valid feed with ZERO <item> elements — which is exactly what
+  https://csalinasdev.substack.com/feed returns today. A sync against it must
+  succeed with ok: true and write nothing, not fail and not throw.
+-->
+<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title><![CDATA[Christopher Salinas Jr.]]></title>
+    <description><![CDATA[A publication with nothing published yet.]]></description>
+    <link>https://csalinasdev.substack.com</link>
+  </channel>
+</rss>

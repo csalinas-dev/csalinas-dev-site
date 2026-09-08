@@ -1,8 +1,9 @@
-import { useContext } from "react";
+import { useCallback, useContext, useId, useRef, useState } from "react";
 import styled from "@emotion/styled";
 
 import { LEFT, absenceSentence } from "@/lib/realtime/absence";
 
+import { GameSwitcher } from "../../_components/switch/GameSwitcher";
 import { Context } from "../context";
 
 // The per-player strip above the board: which room this is, which colour is
@@ -94,7 +95,18 @@ const Absence = styled.div`
 
 export const OnlineBar = ({ onLeave }) => {
   const { online, state } = useContext(Context);
-  const { code, connected, notice, you, youSlot } = online;
+  const { code, connected, notice, switcher, you, youSlot } = online;
+
+  const [open, setOpen] = useState(false);
+  const switchButton = useRef(null);
+  const switcherId = useId();
+
+  // Escape, or a second press, hands the keyboard back to the control that
+  // opened the picker — otherwise focus is left on a button that has gone.
+  const closeSwitcher = useCallback(() => {
+    setOpen(false);
+    switchButton.current?.focus();
+  }, []);
 
   // Everybody but you who is not here. The turn banner says why the board has
   // stopped when it is the mover; this is for the rest — the third player who
@@ -116,6 +128,36 @@ export const OnlineBar = ({ onLeave }) => {
             {you.name}
           </You>
         </Item>
+        {switcher && (
+          <Item>
+            {/* Styled as `Leave`, and beside it, because switching is a room
+                control like leaving is — not a second kind of action bolted
+                onto a strip that only had one. */}
+            <Leave
+              // Only while it is open: the picker is not in the DOM otherwise,
+              // and a reference to an id that is not there is one an assistive
+              // technology cannot resolve. `aria-expanded` already says
+              // "collapsed" on its own.
+              aria-controls={open ? switcherId : undefined}
+              aria-expanded={open}
+              onClick={() => setOpen((was) => !was)}
+              // The picker frame carries the same handler, but it only sees
+              // Escape once focus is inside it. Opening moves focus to the
+              // first tile, so the designed path is covered -- this is the one
+              // where the player opened the picker and left the keyboard here.
+              onKeyDown={(event) => {
+                if (open && event.key === "Escape") {
+                  event.stopPropagation();
+                  closeSwitcher();
+                }
+              }}
+              ref={switchButton}
+              type="button"
+            >
+              Switch game
+            </Leave>
+          </Item>
+        )}
         <Item>
           <Leave onClick={onLeave} type="button">
             Leave
@@ -136,6 +178,18 @@ export const OnlineBar = ({ onLeave }) => {
       ))}
       {!connected && <Warning role="status">Reconnecting…</Warning>}
       {notice !== null && <Warning role="alert">{notice}</Warning>}
+      {/* Last child of the strip: below the row, below any absence sentence,
+          below "Reconnecting…", and directly above the board, which it pushes
+          down. Nothing is covered — no modal, no overlay, no focus trap. */}
+      {open && switcher && (
+        <GameSwitcher
+          {...switcher}
+          autoFocus
+          connected={connected}
+          id={switcherId}
+          onClose={closeSwitcher}
+        />
+      )}
     </Container>
   );
 };

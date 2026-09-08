@@ -17,11 +17,17 @@ const Title = styled.h1`
   margin-bottom: 0.5rem;
 `;
 
-const BackLink = styled(Link)`
+const Links = styled.div`
   align-self: flex-start;
+  display: flex;
+  flex-flow: row wrap;
+  gap: 1rem;
+  margin-bottom: 1rem;
+`;
+
+const NavLink = styled(Link)`
   color: #818384;
   text-decoration: none;
-  margin-bottom: 1rem;
 
   &:hover {
     color: white;
@@ -47,7 +53,10 @@ const Layout = ({ children }) => {
       }}
     >
       <Header>
-        <BackLink href="/games/wordleverse">← Back to Game</BackLink>
+        <Links>
+          <NavLink href="/games/wordleverse">← Back to Game</NavLink>
+          <NavLink href="/games/wordleverse/leaderboard">Leaderboard</NavLink>
+        </Links>
         <Title>Wordleverse History</Title>
       </Header>
       {children}

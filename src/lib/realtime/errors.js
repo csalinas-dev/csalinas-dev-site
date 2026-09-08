@@ -32,6 +32,27 @@ export const notAPlayer = () =>
     403,
   );
 
+/**
+ * A stream ticket that was presented but could not be redeemed — replayed,
+ * expired, or lost when the process holding the Map restarted.
+ *
+ * This refuses the connection rather than downgrading it to an anonymous one.
+ * Serving the stream without a token looks harmless (it is exactly the
+ * spectator path) but it is the opposite: every payload then reports
+ * `me: null` to a player who is genuinely seated, the board goes dead, and
+ * because the stream opened with a 200 nothing on the client ever notices —
+ * `onerror` does not fire, so the polling fallback that would have fixed it
+ * never engages. `subscribeRoom` with no token also makes `markPresent` a
+ * no-op, so everyone else watches that player go away. A loud 403 costs one
+ * retry with a fresh ticket; the quiet 200 costs the seat.
+ */
+export const badTicket = () =>
+  new RoomError(
+    "bad-ticket",
+    "This stream link is no longer valid — reconnect to get a new one.",
+    403,
+  );
+
 export const roomFull = () =>
   new RoomError("room-full", "This room is full.", 403);
 

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  EXACTLY ONE <item>. This is the most important fixture in the directory.
+
+  fast-xml-parser returns channel.item as an ARRAY only when there is more than
+  one item; with a single item it returns a bare object. The publication this
+  site syncs has zero posts today, so the very first real sync will run against a
+  one-item feed — a pipeline that only handles the array shape works perfectly on
+  every three-item fixture and breaks on its first genuine use.
+
+  Do not add a second item to this file.
+-->
+<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title><![CDATA[Christopher Salinas Jr.]]></title>
+    <description><![CDATA[A publication with exactly one post.]]></description>
+    <link>https://csalinasdev.substack.com</link>
+    <item>
+      <title><![CDATA[The Only Post]]></title>
+      <description><![CDATA[The first thing published here.]]></description>
+      <link>https://csalinasdev.substack.com/p/the-only-post</link>
+      <guid isPermaLink="false">https://csalinasdev.substack.com/p/the-only-post</guid>
+      <dc:creator><![CDATA[Christopher Salinas Jr.]]></dc:creator>
+      <pubDate>Sat, 15 Aug 2026 12:00:00 GMT</pubDate>
+      <enclosure url="https://substackcdn.com/image/fetch/only-cover.jpg" length="0" type="image/jpeg"/>
+      <content:encoded><![CDATA[<p>Hello, and welcome.</p>]]></content:encoded>
+    </item>
+  </channel>
+</rss>

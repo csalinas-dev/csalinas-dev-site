@@ -9,6 +9,11 @@ jobs:
   deploy:
     runs-on: [self-hosted, sfo3-02]
 
+    # `issues: write` is for the sync alert steps below; without it they 403.
+    permissions:
+      contents: read
+      issues: write
+
     defaults:
       run:
         working-directory: /srv/sites/csalinas.dev/_/app
@@ -33,6 +38,122 @@ jobs:
 
       - name: (Re)start containers
         run: docker compose up -d app
+
+      # After `up -d`, not before: the site being back up matters more than the
+      # newsletter being fresh, and the schema push has to have run first.
+      # `continue-on-error` because a Substack outage must not redden a deploy
+      # that otherwise succeeded — the alert steps below are how it surfaces.
+      #
+      # $GITHUB_STEP_SUMMARY is a path on the RUNNER HOST, not inside the
+      # container, so the step writes it rather than the script. And `docker
+      # compose`'s own progress chatter goes to stderr, which is why only stdout
+      # may reach the summary.
+      - name: Sync blog from Substack
+        id: sync
+        continue-on-error: true
+        run: |
+          set +e
+          docker compose run --rm app node scripts/sync-substack.mjs \
+            > "$RUNNER_TEMP/substack-sync.md" 2> "$RUNNER_TEMP/substack-sync.err"
+          code=$?
+          set -e
+          cat "$RUNNER_TEMP/substack-sync.md" >> "$GITHUB_STEP_SUMMARY"
+          cat "$RUNNER_TEMP/substack-sync.md"
+          cat "$RUNNER_TEMP/substack-sync.err" >&2
+          if [ "$code" = "2" ]; then echo "::warning::Substack sync skipped at least one item — see the job summary."; fi
+          if [ "$code" != "0" ] && [ "$code" != "2" ]; then exit "$code"; fi
+
+      # KEYED ON `steps.sync.outcome`, NOT `failure()`. `continue-on-error: true`
+      # means the job never fails, so `failure()` would never fire and this alarm
+      # would be silently dead. `outcome` is the step's result BEFORE the flag is
+      # applied, and it is the only thing here that still carries the truth.
+      #
+      # Neither alert step gets `continue-on-error`: a Substack outage is allowed
+      # to pass quietly, but a BROKEN ALARM is worth a red run, and by this point
+      # the site is already up.
+      #
+      # These two steps are `run:` + curl/jq rather than `actions/github-script`
+      # because this repository's Actions policy is `allowed_actions: local_only`
+      # — an action from another repository is refused at workflow LOAD time, so
+      # the whole run ends in `startup_failure` with no job, no step and no
+      # annotation (#174). Nothing may be added here with a `uses:` that is not
+      # `./`-local. `curl` and `jq` are both on the sfo3-02 runner; `gh` and a
+      # host-level `node` are not, so neither may be reached for.
+      - name: Open or update the sync alert issue
+        if: ${{ steps.sync.outcome == 'failure' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          title="Substack sync is failing"
+          run_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+
+          report="$(cat "$RUNNER_TEMP/substack-sync.md" 2>/dev/null || true)"
+          # A fatal before the sync produces no markdown at all. Say so rather
+          # than filing an empty issue that reads like a formatting bug.
+          if [ -z "$(printf '%s' "$report" | tr -d '[:space:]')" ]; then
+            report="_The sync produced no summary — it failed before it could run. See the run log._"
+          fi
+
+          number="$(curl -sS --fail \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/issues?state=open&labels=ops&per_page=100" \
+            | jq -r --arg t "$title" 'map(select(.title == $t)) | .[0].number // empty')"
+
+          if [ -n "$number" ]; then
+            # Comment rather than file a second one: a sync that has been
+            # broken for a week should be one issue, not seven.
+            body="$(printf 'Still failing — %s\n\n%s' "$run_url" "$report")"
+            jq -n --arg body "$body" '{body: $body}' \
+              | curl -sS --fail -X POST \
+                  -H "Authorization: Bearer $GH_TOKEN" \
+                  -H "Accept: application/vnd.github+json" \
+                  --data-binary @- \
+                  "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/issues/$number/comments" > /dev/null
+            exit 0
+          fi
+
+          # No 🤖 label: the conductor triages this like any other new issue.
+          body="$(printf 'The blog sync failed during a deploy. The blog is still serving the posts already stored; what has stopped is new posts arriving.\n\nRun: %s\n\n%s' "$run_url" "$report")"
+          jq -n --arg title "$title" --arg body "$body" \
+            '{title: $title, labels: ["bug", "ops"], body: $body}' \
+            | curl -sS --fail -X POST \
+                -H "Authorization: Bearer $GH_TOKEN" \
+                -H "Accept: application/vnd.github+json" \
+                --data-binary @- \
+                "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/issues" > /dev/null
+
+      - name: Close the sync alert issue
+        if: ${{ steps.sync.outcome == 'success' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          title="Substack sync is failing"
+          run_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+
+          number="$(curl -sS --fail \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/issues?state=open&labels=ops&per_page=100" \
+            | jq -r --arg t "$title" 'map(select(.title == $t)) | .[0].number // empty')"
+
+          # Nothing open means nothing to recover from. Silence is correct.
+          [ -n "$number" ] || exit 0
+
+          jq -n --arg body "Sync recovered — $run_url" '{body: $body}' \
+            | curl -sS --fail -X POST \
+                -H "Authorization: Bearer $GH_TOKEN" \
+                -H "Accept: application/vnd.github+json" \
+                --data-binary @- \
+                "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/issues/$number/comments" > /dev/null
+
+          curl -sS --fail -X PATCH \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            -d '{"state":"closed"}' \
+            "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/issues/$number" > /dev/null
 
       - name: Prune dangling images
         run: docker image prune -f

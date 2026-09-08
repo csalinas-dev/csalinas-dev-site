@@ -119,6 +119,9 @@ const Panel = styled.div`
  * @param {?(String|Number)} [props.youSlot] - The slot this device plays, if any
  * @param {Boolean} props.interactive - Whether this device may move right now
  * @param {Function} props.onDrop - `(col) => void`
+ * @param {Boolean} props.showInitials - Stamp each piece with its player's
+ *   initial. A per-browser display preference (`src/lib/pieceInitials.js`) that
+ *   reaches the chute piece as well as the pieces in the columns.
  * @param {React.ReactNode} [props.overlay] - Rendered over the panel, sized to
  *   it. A "waiting for the other player" curtain (#114) belongs here. The
  *   endgame deliberately does not: the four winning pieces are the point of
@@ -130,6 +133,7 @@ export const Board = ({
   onDrop,
   overlay,
   players,
+  showInitials,
   youSlot,
 }) => {
   // Hover (mouse) and focus (keyboard) are the same idea — "the column I am
@@ -205,7 +209,7 @@ export const Board = ({
               style={{ "--col": previewColumn }}
             >
               <Loaded key={played}>
-                <Piece player={you} />
+                <Piece player={you} showInitials={showInitials} />
               </Loaded>
             </Rail>
           )}
@@ -233,6 +237,7 @@ export const Board = ({
               players={players}
               refusedNonce={refused?.col === col ? refused.id : null}
               register={register(col)}
+              showInitials={showInitials}
               tabIndex={tabColumn === col ? 0 : -1}
               you={you}
             />

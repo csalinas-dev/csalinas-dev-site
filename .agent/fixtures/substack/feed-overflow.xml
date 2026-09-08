@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  The LAYOUT battery. Every body in here is valid, ordinary newsletter content
+  that survives sanitize.js completely intact — that is the point. None of it is
+  a sanitizer problem and none of it can be fixed there.
+
+  What it attacks is the prose theme: an unbreakable run of characters, a table
+  with more columns than the column it lands in, and a list nested deeper than
+  any author would type. Each one sets a min-content width larger than the
+  article's track, which (without the rules added in #153's revision) inflates
+  the <article> element itself and puts a horizontal scrollbar on <body> — the
+  site's scroll container. The symptom is not "one line overflows": EVERY
+  paragraph of the post is then laid out wider than the phone.
+
+  It also attacks the page SHAPES a post can have, not just the payloads it can
+  carry, because a shape the fixture does not contain is a shape the gate cannot
+  measure. `toc-overflow` is the whole reason that sentence is here: it is the
+  only body long enough to earn a table of contents (PostBody wants two
+  viewports and an h2), and until it existed every page in this file was
+  measured with an empty left rail — so the one surface rendering third-party
+  text into a 150px track was never once laid out during three verification
+  passes. `toc-tall` is the same rail with the OTHER author choice turned up:
+  fourteen sections, which is an unremarkable number for a longform newsletter
+  and more rail than a viewport holds. Adding a payload to an existing item is
+  cheap; ask first whether the page shape is already here.
+
+  Measured by .agent/scripts/verify-blog-overflow.mjs at 1200px and 430px. The
+  ordinary paragraph wrapped around each payload is the control: it is what the
+  script asserts is still no wider than the viewport.
+
+  Seed it with:
+    DATABASE_URL="mysql://root:<pw>@127.0.0.1:<port>/csalinas" \
+      node .agent/scripts/seed-substack-fixture.mjs .agent/fixtures/substack/feed-overflow.xml
+
+  Full throwaway-database recipe is in that script's header.
+-->
+<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title><![CDATA[Overflow Fixture]]></title>
+    <link>https://overflow.substack.com</link>
+    <item>
+      <title><![CDATA[A Token Nobody Can Break]]></title>
+      <description><![CDATA[A pasted credential in the middle of a paragraph.]]></description>
+      <link>https://overflow.substack.com/p/unbreakable-token</link>
+      <guid isPermaLink="false">https://overflow.substack.com/p/unbreakable-token</guid>
+      <dc:creator><![CDATA[Overflow Author]]></dc:creator>
+      <pubDate>Sat, 15 Aug 2026 09:00:00 GMT</pubDate>
+      <content:encoded><![CDATA[<p>An ordinary paragraph, here so the measurement can tell an overflowing line apart from an article box that has been inflated to the width of its widest unbreakable thing. If the article inflates, this paragraph is laid out wider than the viewport too, and the reader has to pan sideways to finish every line of it.</p><p>The session came back as eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9eyJzdWIiOiIxMjM0NTY3ODkwIn0 and that was the whole of it.</p><p>An ordinary paragraph, here so the measurement can tell an overflowing line apart from an article box that has been inflated to the width of its widest unbreakable thing. If the article inflates, this paragraph is laid out wider than the viewport too, and the reader has to pan sideways to finish every line of it.</p>]]></content:encoded>
+    </item>
+    <item>
+      <title><![CDATA[Hashes, Wallets And A URL With No Hyphens]]></title>
+      <description><![CDATA[The identifiers an ordinary newsletter pastes without thinking.]]></description>
+      <link>https://overflow.substack.com/p/long-identifiers</link>
+      <guid isPermaLink="false">https://overflow.substack.com/p/long-identifiers</guid>
+      <dc:creator><![CDATA[Overflow Author]]></dc:creator>
+      <pubDate>Sat, 15 Aug 2026 10:00:00 GMT</pubDate>
+      <content:encoded><![CDATA[<p>An ordinary paragraph, here so the measurement can tell an overflowing line apart from an article box that has been inflated to the width of its widest unbreakable thing. If the article inflates, this paragraph is laid out wider than the viewport too, and the reader has to pan sideways to finish every line of it.</p><p>The transaction is 0x3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b290.</p><p>Downloaded as quarterly_engineering_headcount_and_attrition_summary_final_v3_reviewed.xlsx.</p><p><a href="https://example.com/verylongpathsegmentwithnohyphensoranythingelsetobreakonatallhere">https://example.com/verylongpathsegmentwithnohyphensoranythingelsetobreakonatallhere</a></p><p>An ordinary paragraph, here so the measurement can tell an overflowing line apart from an article box that has been inflated to the width of its widest unbreakable thing. If the article inflates, this paragraph is laid out wider than the viewport too, and the reader has to pan sideways to finish every line of it.</p>]]></content:encoded>
+    </item>
+    <item>
+      <title><![CDATA[Twelve Columns Of Metrics]]></title>
+      <description><![CDATA[A table wider than the column it lands in.]]></description>
+      <link>https://overflow.substack.com/p/wide-table</link>
+      <guid isPermaLink="false">https://overflow.substack.com/p/wide-table</guid>
+      <dc:creator><![CDATA[Overflow Author]]></dc:creator>
+      <pubDate>Sat, 15 Aug 2026 11:00:00 GMT</pubDate>
+      <content:encoded><![CDATA[<p>An ordinary paragraph, here so the measurement can tell an overflowing line apart from an article box that has been inflated to the width of its widest unbreakable thing. If the article inflates, this paragraph is laid out wider than the viewport too, and the reader has to pan sideways to finish every line of it.</p><table><tr><th>Metric 0</th><th>Metric 1</th><th>Metric 2</th><th>Metric 3</th><th>Metric 4</th><th>Metric 5</th><th>Metric 6</th><th>Metric 7</th><th>Metric 8</th><th>Metric 9</th><th>Metric 10</th><th>Metric 11</th></tr><tr><td>1644</td><td>1781</td><td>1918</td><td>2055</td><td>2192</td><td>2329</td><td>2466</td><td>2603</td><td>2740</td><td>2877</td><td>3014</td><td>3151</td></tr><tr><td>3288</td><td>3425</td><td>3562</td><td>3699</td><td>3836</td><td>3973</td><td>4110</td><td>4247</td><td>4384</td><td>4521</td><td>4658</td><td>4795</td></tr><tr><td>4932</td><td>5069</td><td>5206</td><td>5343</td><td>5480</td><td>5617</td><td>5754</td><td>5891</td><td>6028</td><td>6165</td><td>6302</td><td>6439</td></tr></table><p>An ordinary paragraph, here so the measurement can tell an overflowing line apart from an article box that has been inflated to the width of its widest unbreakable thing. If the article inflates, this paragraph is laid out wider than the viewport too, and the reader has to pan sideways to finish every line of it.</p>]]></content:encoded>
+    </item>
+    <item>
+      <title><![CDATA[Forty Levels Of List]]></title>
+      <description><![CDATA[Nesting no author would type and a feed will happily deliver.]]></description>
+      <link>https://overflow.substack.com/p/deep-nesting</link>
+      <guid isPermaLink="false">https://overflow.substack.com/p/deep-nesting</guid>
+      <dc:creator><![CDATA[Overflow Author]]></dc:creator>
+      <pubDate>Sat, 15 Aug 2026 12:00:00 GMT</pubDate>
+      <content:encoded><![CDATA[<p>An ordinary paragraph, here so the measurement can tell an overflowing line apart from an article box that has been inflated to the width of its widest unbreakable thing. If the article inflates, this paragraph is laid out wider than the viewport too, and the reader has to pan sideways to finish every line of it.</p><ul><li>level 1<ul><li>level 2<ul><li>level 3<ul><li>level 4<ul><li>level 5<ul><li>level 6<ul><li>level 7<ul><li>level 8<ul><li>level 9<ul><li>level 10<ul><li>level 11<ul><li>level 12<ul><li>level 13<ul><li>level 14<ul><li>level 15<ul><li>level 16<ul><li>level 17<ul><li>level 18<ul><li>level 19<ul><li>level 20<ul><li>level 21<ul><li>level 22<ul><li>level 23<ul><li>level 24<ul><li>level 25<ul><li>level 26<ul><li>level 27<ul><li>level 28<ul><li>level 29<ul><li>level 30<ul><li>level 31<ul><li>level 32<ul><li>level 33<ul><li>level 34<ul><li>level 35<ul><li>level 36<ul><li>level 37<ul><li>level 38<ul><li>level 39<ul><li>level 40</li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul><p>An ordinary paragraph, here so the measurement can tell an overflowing line apart from an article box that has been inflated to the width of its widest unbreakable thing. If the article inflates, this paragraph is laid out wider than the viewport too, and the reader has to pan sideways to finish every line of it.</p>]]></content:encoded>
+    </item>
+    <item>
+      <title><![CDATA[Token eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9eyJzdWIiOiIxMjM0NTY3ODkwIn0 In A Title]]></title>
+      <description><![CDATA[And in a subtitle: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9eyJzdWIiOiIxMjM0NTY3ODkwIn0]]></description>
+      <link>https://overflow.substack.com/p/unbreakable-title</link>
+      <guid isPermaLink="false">https://overflow.substack.com/p/unbreakable-title</guid>
+      <dc:creator><![CDATA[Overflow Author]]></dc:creator>
+      <pubDate>Sat, 15 Aug 2026 13:00:00 GMT</pubDate>
+      <content:encoded><![CDATA[<p>An ordinary paragraph, here so the measurement can tell an overflowing line apart from an article box that has been inflated to the width of its widest unbreakable thing. If the article inflates, this paragraph is laid out wider than the viewport too, and the reader has to pan sideways to finish every line of it.</p>]]></content:encoded>
+    </item>
+    <item>
+      <title><![CDATA[Long Enough To Earn A Table Of Contents]]></title>
+      <description><![CDATA[Headings are third-party text as well, and the rail they land in is 150px wide.]]></description>
+      <link>https://overflow.substack.com/p/toc-overflow</link>
+      <guid isPermaLink="false">https://overflow.substack.com/p/toc-overflow</guid>
+      <dc:creator><![CDATA[Overflow Author]]></dc:creator>
+      <pubDate>Sat, 15 Aug 2026 14:00:00 GMT</pubDate>
+      <content:encoded><![CDATA[<p>An ordinary paragraph, here so the measurement can tell an overflowing line apart from an article box that has been inflated to the width of its widest unbreakable thing. If the article inflates, this paragraph is laid out wider than the viewport too, and the reader has to pan sideways to finish every line of it.</p><p>This post exists to be TALL. PostBody only builds a table of contents for an article at least two viewports high with at least one h2 in it, so every other body in this fixture is measured with the left rail empty — which is exactly how a heading rendered outside the article went unmeasured. The paragraphs below are filler with one job: get past that threshold at 1200px, where the two-column grid is live and the rail is a fixed 150px track.</p><p>An ordinary paragraph, here so the measurement can tell an overflowing line apart from an article box that has been inflated to the width of its widest unbreakable thing. If the article inflates, this paragraph is laid out wider than the viewport too, and the reader has to pan sideways to finish every line of it.</p><h2>Why dangerouslySetInnerHTML is fine here</h2><p>The first heading is ordinary newsletter prose with one long word in it — no pasted secret, nothing anybody would call hostile. A word that does not fit a 150px rail is enough on its own: the entry lays out at its own min-content width and paints over the opening paragraphs of the article beside it.</p><p>An ordinary paragraph, here so the measurement can tell an overflowing line apart from an article box that has been inflated to the width of its widest unbreakable thing. If the article inflates, this paragraph is laid out wider than the viewport too, and the reader has to pan sideways to finish every line of it.</p><p>An ordinary paragraph, here so the measurement can tell an overflowing line apart from an article box that has been inflated to the width of its widest unbreakable thing. If the article inflates, this paragraph is laid out wider than the viewport too, and the reader has to pan sideways to finish every line of it.</p><h2>Deploying eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9eyJzdWIiOiIxMjM0NTY3ODkwIn0 to production</h2><p>The same 63-character token the rest of this fixture pastes into a paragraph and into a title, pasted into a heading instead. In the article it wraps; in the rail, before the fix, it was laid out 589px wide starting at x=64 and printed straight across the article's text.</p><p>An ordinary paragraph, here so the measurement can tell an overflowing line apart from an article box that has been inflated to the width of its widest unbreakable thing. If the article inflates, this paragraph is laid out wider than the viewport too, and the reader has to pan sideways to finish every line of it.</p><p>An ordinary paragraph, here so the measurement can tell an overflowing line apart from an article box that has been inflated to the width of its widest unbreakable thing. If the article inflates, this paragraph is laid out wider than the viewport too, and the reader has to pan sideways to finish every line of it.</p><h2>Release 3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d43a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d43a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d43a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d43a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4 notes</h2><p>A 200-character run: past roughly 145 unbreakable characters the rail entry reaches the right-hand edge of a 1200px viewport and body.scrollWidth passes clientWidth, which is the assertion verify-blog-overflow.mjs makes on every page. This is the shape that fixture had no post of.</p><p>An ordinary paragraph, here so the measurement can tell an overflowing line apart from an article box that has been inflated to the width of its widest unbreakable thing. If the article inflates, this paragraph is laid out wider than the viewport too, and the reader has to pan sideways to finish every line of it.</p><p>An ordinary paragraph, here so the measurement can tell an overflowing line apart from an article box that has been inflated to the width of its widest unbreakable thing. If the article inflates, this paragraph is laid out wider than the viewport too, and the reader has to pan sideways to finish every line of it.</p><h2>The internationalization problem</h2><p>A heading that is merely long rather than unbreakable, so the wrapped case is measured too: with overflow-wrap the entry is 150px wide and four lines tall, and the rule beside it has to sit on the first line rather than float in the middle of the block.</p><p>An ordinary paragraph, here so the measurement can tell an overflowing line apart from an article box that has been inflated to the width of its widest unbreakable thing. If the article inflates, this paragraph is laid out wider than the viewport too, and the reader has to pan sideways to finish every line of it.</p><p>An ordinary paragraph, here so the measurement can tell an overflowing line apart from an article box that has been inflated to the width of its widest unbreakable thing. If the article inflates, this paragraph is laid out wider than the viewport too, and the reader has to pan sideways to finish every line of it.</p><p>An ordinary paragraph, here so the measurement can tell an overflowing line apart from an article box that has been inflated to the width of its widest unbreakable thing. If the article inflates, this paragraph is laid out wider than the viewport too, and the reader has to pan sideways to finish every line of it.</p>]]></content:encoded>
+    </item>
+    <item>
+      <title><![CDATA[Fourteen Headings And A Rail That Has To Hold Them]]></title>
+      <description><![CDATA[How many sections a post has is the author's choice, and the rail is a fixed box.]]></description>
+      <link>https://overflow.substack.com/p/toc-tall</link>
+      <guid isPermaLink="false">https://overflow.substack.com/p/toc-tall</guid>
+      <dc:creator><![CDATA[Overflow Author]]></dc:creator>
+      <pubDate>Sat, 15 Aug 2026 15:00:00 GMT</pubDate>
+      <content:encoded><![CDATA[<p>A paragraph of ordinary prose under the heading, long enough that the article clears the two-viewport threshold PostBody needs before it will build a table of contents at all.</p><p>A paragraph of ordinary prose under the heading, long enough that the article clears the two-viewport threshold PostBody needs before it will build a table of contents at all.</p><h2>The internationalization problem, in three acts</h2><p>A paragraph of ordinary prose under the heading, long enough that the article clears the two-viewport threshold PostBody needs before it will build a table of contents at all.</p><h2>What we got wrong about server components</h2><p>A paragraph of ordinary prose under the heading, long enough that the article clears the two-viewport threshold PostBody needs before it will build a table of contents at all.</p><h2>Migrating getServerSideProps without downtime</h2><p>A paragraph of ordinary prose under the heading, long enough that the article clears the two-viewport threshold PostBody needs before it will build a table of contents at all.</p><h2>A cache invalidation story nobody asked for</h2><p>A paragraph of ordinary prose under the heading, long enough that the article clears the two-viewport threshold PostBody needs before it will build a table of contents at all.</p><h2>Why the build got slower before it got faster</h2><p>A paragraph of ordinary prose under the heading, long enough that the article clears the two-viewport threshold PostBody needs before it will build a table of contents at all.</p><h2>Reading the flame graph one more time</h2><p>A paragraph of ordinary prose under the heading, long enough that the article clears the two-viewport threshold PostBody needs before it will build a table of contents at all.</p><h2>The part where we deleted forty thousand lines</h2><p>A paragraph of ordinary prose under the heading, long enough that the article clears the two-viewport threshold PostBody needs before it will build a table of contents at all.</p><h2>Observability is not the same as dashboards</h2><p>A paragraph of ordinary prose under the heading, long enough that the article clears the two-viewport threshold PostBody needs before it will build a table of contents at all.</p><h2>Rolling back is a feature, not an admission</h2><p>A paragraph of ordinary prose under the heading, long enough that the article clears the two-viewport threshold PostBody needs before it will build a table of contents at all.</p><h2>What the on-call rotation actually taught us</h2><p>A paragraph of ordinary prose under the heading, long enough that the article clears the two-viewport threshold PostBody needs before it will build a table of contents at all.</p><h2>Budgets, headcount and the shape of the team</h2><p>A paragraph of ordinary prose under the heading, long enough that the article clears the two-viewport threshold PostBody needs before it will build a table of contents at all.</p><h2>Everything we would do differently next time</h2><p>A paragraph of ordinary prose under the heading, long enough that the article clears the two-viewport threshold PostBody needs before it will build a table of contents at all.</p><h2>A short digression about database migrations</h2><p>A paragraph of ordinary prose under the heading, long enough that the article clears the two-viewport threshold PostBody needs before it will build a table of contents at all.</p><h2>Closing notes, and where to find the code</h2><p>A paragraph of ordinary prose under the heading, long enough that the article clears the two-viewport threshold PostBody needs before it will build a table of contents at all.</p>]]></content:encoded>
+    </item>
+  </channel>
+</rss>

@@ -5,6 +5,9 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { absenceOf } from "@/lib/realtime/absence";
 import { useRoom } from "@/lib/realtime/useRoom";
 
+import { GameSwitcher } from "../../_components/switch/GameSwitcher";
+import { useGameSwitch } from "../../_components/switch/useGameSwitch";
+
 import Game from "../Game";
 import {
   Button,
@@ -38,7 +41,18 @@ export const OnlineGame = ({ code, onLeave }) => {
     spectating,
     state: board,
     status,
+    switchTo,
   } = useRoom({ code, game: TTO_GAME_ID });
+
+  // The room may become a different game entirely. `interstitial` is the screen
+  // that explains it and the route change that follows; `switcher` is the
+  // control that starts one, and is null unless this browser may.
+  const { interstitial, switcher } = useGameSwitch({
+    code,
+    currentGame: TTO_GAME_ID,
+    room,
+    switchTo,
+  });
 
   // The hint is a display preference and stays exactly that: local, per player,
   // in localStorage. It is deliberately NOT in the room's state — both players
@@ -135,6 +149,9 @@ export const OnlineGame = ({ code, onLeave }) => {
         notice,
         opponent: opponent?.name ?? "your opponent",
         spectating,
+        // Null unless this player may change the game and something qualifies,
+        // which is what keeps the control out of the DOM the rest of the time.
+        switcher,
       },
     };
   }, [
@@ -147,6 +164,7 @@ export const OnlineGame = ({ code, onLeave }) => {
     opponent,
     showExpiring,
     spectating,
+    switcher,
   ]);
 
   // 410 is terminal and reads differently depending on whether we ever got in:
@@ -185,6 +203,10 @@ export const OnlineGame = ({ code, onLeave }) => {
     );
   }
 
+  // The room is no longer this game. Before every other branch, so a switched
+  // room never flashes the old lobby on its way out.
+  if (interstitial) return interstitial;
+
   if (status === "lobby") {
     return (
       <Panel>
@@ -194,6 +216,7 @@ export const OnlineGame = ({ code, onLeave }) => {
           somebody joins.
         </PanelText>
         <RoomCode code={code} />
+        {switcher && <GameSwitcher {...switcher} connected={connected} />}
         <PanelActions>
           <Button onClick={quit} type="button">
             Cancel

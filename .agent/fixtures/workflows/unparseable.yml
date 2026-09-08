@@ -1,0 +1,10 @@
+# Not valid YAML: the second sequence item is indented past the first.
+# verify-workflows.mjs MUST reject this file.
+name: unparseable
+on: push
+jobs:
+  a:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo hi
+       - run: echo this line is the defect

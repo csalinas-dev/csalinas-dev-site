@@ -9,6 +9,7 @@ import {
   SSE_RETRY_BASE_MS,
   SSE_RETRY_MAX_MS,
 } from "./constants";
+import { keepSeat } from "./identity";
 import { lookupGame } from "./registry";
 
 // Client half of the room contract. One hook per screen; it owns the transport
@@ -143,6 +144,8 @@ export async function createRoom({ game, name, color, options } = {}) {
  *   spectating: boolean, transport: string|null, room: object|null,
  *   send: (action: object, opts?: { optimistic?: boolean }) => Promise<object>,
  *   refresh: () => Promise<void>,
+ *   leave: (slot?: number) => Promise<object>,
+ *   switchTo: (to: string) => Promise<object>,
  * }}
  */
 export function useRoom({ code, game, name, color, spectate = false } = {}) {
@@ -159,6 +162,12 @@ export function useRoom({ code, game, name, color, spectate = false } = {}) {
   const confirmedRef = useRef(null);
   const tokenRef = useRef(null);
 
+  // The seat this browser was last told it holds — the whole seat object, not
+  // its slot, because slots are recycled and `connectedAt` is what tells our
+  // seat apart from the next player to sit in it. A payload that does not know
+  // who we are must not be able to take it away — see identity.js.
+  const seatRef = useRef(null);
+
   // Join details can change (a player edits their name in the lobby) without
   // wanting to tear down and rebuild the connection.
   const joinOptions = useRef({ name, color });
@@ -172,9 +181,21 @@ export function useRoom({ code, game, name, color, spectate = false } = {}) {
     // backwards. Equal revisions are allowed through — that is how an
     // optimistic preview gets rolled back to the confirmed state.
     if (current && next.revision < current.revision) return;
-    roomRef.current = next;
-    confirmedRef.current = next;
-    setRoom(next);
+
+    // Every payload of every game funnels through here — SSE `sync`, a polling
+    // tick, an action's 409/422 body, join, leave, refresh — so repairing the
+    // identity once here covers all of them.
+    const merged = keepSeat(next, seatRef.current);
+
+    // Clearing the ref when the merged payload really has no seat is what lets
+    // a lobby "leave" and a host removal still land: the seat is gone from
+    // `players` (or a different seat now wears its number), so `keepSeat`
+    // declines to restore it and we stop holding on.
+    seatRef.current = merged.me ?? null;
+
+    roomRef.current = merged;
+    confirmedRef.current = merged;
+    setRoom(merged);
   }, []);
 
   // The token rides in a header, never the query string — this is also the
@@ -538,6 +559,51 @@ export function useRoom({ code, game, name, color, spectate = false } = {}) {
     [code, applyRoom],
   );
 
+  /**
+   * Change which game this room is playing, keeping the code and the seats.
+   *
+   * Deliberately NOT optimistic. There is no local contract to preview — the
+   * destination's own `createState` decides what the room becomes, and guessing
+   * would put a board on screen that the server may not build.
+   *
+   * The authoritative room is applied from ANY response that carries one, which
+   * is what makes a 409 or a 422 resync and re-filter the picker rather than
+   * leaving it offering a game that no longer fits.
+   */
+  const switchTo = useCallback(
+    async (to) => {
+      const current = roomRef.current;
+      const token = tokenRef.current;
+
+      if (!code || !current) return { ok: false, error: "not-connected" };
+      if (!token) return { ok: false, error: "not-connected" };
+
+      const res = await api(`/api/rooms/${encodeURIComponent(code)}/switch`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, revision: current.revision, to }),
+      });
+
+      if (res.status === 410) {
+        setError({
+          code: "gone",
+          message: "Connection lost — create a new game to play again.",
+        });
+        return { ok: false, error: "gone" };
+      }
+
+      if (res.body?.room) applyRoom(res.body.room);
+
+      return {
+        ok: res.ok,
+        error: res.ok ? undefined : res.body?.error || "request-failed",
+        message: res.body?.message,
+        room: res.body?.room ?? null,
+      };
+    },
+    [applyRoom, code],
+  );
+
   // Best effort when the tab goes away: `sendBeacon` survives unload where
   // fetch does not. If it fails, presence expiry covers it a little later —
   // this only makes the news arrive sooner.
@@ -577,6 +643,7 @@ export function useRoom({ code, game, name, color, spectate = false } = {}) {
     send,
     refresh,
     leave,
+    switchTo,
   };
 }
 

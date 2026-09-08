@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  The same three guids as feed-base.xml. Item 1 has a CHANGED TITLE and a
+  CHANGED BODY; items 2 and 3 are byte-identical to feed-base.xml. A fourth,
+  brand-new item is prepended, as a real feed would.
+
+  What this proves: updated: 1, created: 1, unchanged: 2 — and that the edited
+  post keeps the slug it was inserted with even though its title moved.
+-->
+<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title><![CDATA[Fixture Publication]]></title>
+    <description><![CDATA[Shapes taken from real Substack feeds.]]></description>
+    <link>https://fixture.substack.com</link>
+    <item>
+      <title><![CDATA[A Brand New Post]]></title>
+      <description><![CDATA[Published since the last sync.]]></description>
+      <link>https://fixture.substack.com/p/brand-new-post</link>
+      <guid isPermaLink="false">https://fixture.substack.com/p/brand-new-post</guid>
+      <dc:creator><![CDATA[Fixture Author]]></dc:creator>
+      <pubDate>Sat, 15 Aug 2026 08:30:00 GMT</pubDate>
+      <enclosure url="https://substackcdn.com/image/fetch/new-cover.jpg" length="0" type="image/jpeg"/>
+      <content:encoded><![CDATA[<p>The newest post in the feed.</p>]]></content:encoded>
+    </item>
+    <item>
+      <title><![CDATA[First Post & Friends, Revisited]]></title>
+      <description><![CDATA[A subtitle with an ampersand & a trailing space. ]]></description>
+      <link>https://fixture.substack.com/p/first-post</link>
+      <guid isPermaLink="false">https://fixture.substack.com/p/first-post</guid>
+      <dc:creator><![CDATA[Fixture Author]]></dc:creator>
+      <pubDate>Fri, 14 Aug 2026 22:21:13 GMT</pubDate>
+      <enclosure url="https://substackcdn.com/image/fetch/first-cover.jpg" length="0" type="image/jpeg"/>
+      <content:encoded><![CDATA[<p>The author rewrote the opening after publishing, which is the case a content hash exists to catch.</p><p>Write to me at <a href="mailto:hello@example.com">hello@example.com</a>.</p>]]></content:encoded>
+    </item>
+    <item>
+      <title><![CDATA[2026]]></title>
+      <description><![CDATA[A post whose title is a bare number.]]></description>
+      <link>https://fixture.substack.com/p/2026</link>
+      <guid isPermaLink="false">https://fixture.substack.com/p/2026</guid>
+      <dc:creator><![CDATA[Fixture Author]]></dc:creator>
+      <pubDate>Thu, 13 Aug 2026 09:00:00 GMT</pubDate>
+      <enclosure url="https://substackcdn.com/image/fetch/second-cover.jpg" length="0" type="image/jpeg"/>
+      <content:encoded><![CDATA[<p>A year is a valid title and <code>parseTagValue: false</code> is what keeps it a string.</p><ul><li>One</li><li>Two</li></ul>]]></content:encoded>
+    </item>
+    <item>
+      <title><![CDATA[No Enclosure Here]]></title>
+      <description><![CDATA[This one has no cover enclosure, so the cover falls back to the first image.]]></description>
+      <link>https://fixture.substack.com/p/no-enclosure</link>
+      <guid isPermaLink="false">https://fixture.substack.com/p/no-enclosure</guid>
+      <dc:creator><![CDATA[Fixture Author]]></dc:creator>
+      <pubDate>Wed, 12 Aug 2026 17:45:00 GMT</pubDate>
+      <content:encoded><![CDATA[<p>Some words before the image.</p><figure><img src="https://substackcdn.com/image/fetch/third-inline.jpg" alt="Fallback cover" class="sizing-normal"></figure><h1>A heading the post should not own</h1><p>And some after.</p>]]></content:encoded>
+    </item>
+  </channel>
+</rss>

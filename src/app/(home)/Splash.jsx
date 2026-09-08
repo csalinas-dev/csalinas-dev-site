@@ -17,7 +17,7 @@ export const Splash = () => (
     direction="column"
     alignItems={{ xs: "center", md: "flex-start" }}
     justifyContent="center"
-    sx={{ py: 4, minHeight: "100vh" }}
+    sx={{ py: 4, minHeight: "100svh" }}
     spacing={4}
   >
     <Typography
@@ -41,8 +41,8 @@ export const Splash = () => (
       <NavLink href="/github">
         <i className="fa-brands fa-fw fa-github" /> GitHub
       </NavLink>
-      <NavLink href="/projects">
-        <i className="fa-solid fa-fw fa-code" /> Projects
+      <NavLink href="/blog">
+        <i className="fa-solid fa-fw fa-newspaper" /> Blog
       </NavLink>
       <NavLink href="/games">
         <i className="fa-solid fa-fw fa-gamepad" /> Play

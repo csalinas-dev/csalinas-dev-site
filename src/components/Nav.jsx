@@ -125,7 +125,7 @@ export const Nav = () => {
         </Box>
       </NavLink>
       <NavLink href="/github">GitHub</NavLink>
-      <NavLink href="/projects">Projects</NavLink>
+      <NavLink href="/blog">Blog</NavLink>
       <Dropdown>
         <NavLink href="/games">Play</NavLink>
         <Menu className="menu">
@@ -134,6 +134,7 @@ export const Nav = () => {
           <NavLink href="/games/tic-tac-overflow">Tic-Tac-Overflow</NavLink>
           <NavLink href="/games/edge-case">Edge Case</NavLink>
           <NavLink href="/games/connect-404">Connect 404</NavLink>
+          <NavLink href="/games/race-condition">Race Condition</NavLink>
         </Menu>
       </Dropdown>
       <Dropdown>

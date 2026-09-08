@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  A Substack post whose path slugifies to "hashtag" — a slug an MDX post in
+  src/content/posts/ already owns (src/content/posts/slugs.js reserves it).
+
+  What this proves: AN MDX POST ALWAYS OWNS ITS SLUG. The sync skips the
+  reserved name exactly as it skips a taken one and stores this post as
+  "hashtag-2", so /blog/hashtag keeps serving the MDX post. The second item is
+  here so the run is visibly not aborted by the first.
+-->
+<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title><![CDATA[Fixture Publication]]></title>
+    <link>https://fixture.substack.com</link>
+    <item>
+      <title><![CDATA[Hashtag]]></title>
+      <description><![CDATA[A Substack post that wants an MDX post's slug.]]></description>
+      <link>https://fixture.substack.com/p/hashtag</link>
+      <guid isPermaLink="false">https://fixture.substack.com/p/hashtag</guid>
+      <dc:creator><![CDATA[Fixture Author]]></dc:creator>
+      <pubDate>Fri, 14 Aug 2026 10:00:00 GMT</pubDate>
+      <content:encoded><![CDATA[<p>This one collides with a reserved slug.</p>]]></content:encoded>
+    </item>
+    <item>
+      <title><![CDATA[Unreserved]]></title>
+      <description><![CDATA[An ordinary post, to show the run continued.]]></description>
+      <link>https://fixture.substack.com/p/unreserved</link>
+      <guid isPermaLink="false">https://fixture.substack.com/p/unreserved</guid>
+      <dc:creator><![CDATA[Fixture Author]]></dc:creator>
+      <pubDate>Thu, 13 Aug 2026 10:00:00 GMT</pubDate>
+      <content:encoded><![CDATA[<p>Nothing reserves this one.</p>]]></content:encoded>
+    </item>
+  </channel>
+</rss>

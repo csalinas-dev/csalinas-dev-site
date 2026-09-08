@@ -1,5 +1,6 @@
 import { connect404 } from "@/app/(pages)/games/connect-404/multiplayer";
 import { edgeCase } from "@/app/(pages)/games/edge-case/multiplayer";
+import { raceCondition } from "@/app/(pages)/games/race-condition/multiplayer";
 import { ticTacOverflow } from "@/app/(pages)/games/tic-tac-overflow/multiplayer";
 
 import { lookupGame, registerGame } from "./games";
@@ -20,6 +21,7 @@ const GAMES = [
   ticTacOverflow, // "tto"       -> #88
   edgeCase, //       "edge-case" -> #89
   connect404, //     "connect-404" -> #111
+  raceCondition, //  "race-condition" -> #144
 ];
 
 for (const def of GAMES) registerGame(def);

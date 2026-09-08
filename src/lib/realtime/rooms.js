@@ -32,6 +32,7 @@ import {
 import { forgetRoom, markAbsent, markPresent, presentTokens } from "./presence";
 import { getGame } from "./registry";
 import { roomPayload } from "./serialize";
+import { switchRefusal } from "./switching";
 import { createRoomWatcher } from "./watch";
 
 // The server side of a room. Every public function here returns a *payload*
@@ -42,7 +43,9 @@ import { createRoomWatcher } from "./watch";
 // minted rather than a probe. `crypto.randomUUID()` is 36 characters.
 const TOKEN_PATTERN = /^[A-Za-z0-9._-]{8,64}$/;
 
-function assertToken(token) {
+/** Exported so a route that takes a token but writes nothing — the ticket
+ * exchange — validates it exactly the way the writes here do. */
+export function assertToken(token) {
   if (typeof token !== "string" || !TOKEN_PATTERN.test(token)) {
     throw badRequest("Missing or malformed player token.", "bad-token");
   }
@@ -368,6 +371,149 @@ export async function leaveRoom(rawCode, { token, slot } = {}) {
   }
 
   throw staleRevision(await getRoom(code, playerToken));
+}
+
+/**
+ * Change which game this room is playing, without changing its code.
+ *
+ * A room-level write with its own route, the way `leaveRoom` is — it cannot
+ * ride `/action`, because that path hands the body to `def.reducer` and every
+ * reducer in the codebase would answer "that is not a move". Nothing
+ * game-specific enters here either: the destination's own `createState` builds
+ * the new world and `resolveStatus` decides whether that world is a lobby or a
+ * board, which is why switching into Edge Case lands in Edge Case's lobby and
+ * switching into Connect 404 lands on a board.
+ *
+ * Modelled on `applyAction` rather than on `leaveRoom`: it carries the revision
+ * the client last saw and commits once, conditionally, so two people picking
+ * different games at the same instant cannot both win.
+ *
+ * `to` is the destination id. It is deliberately not called `game` — that name
+ * is already the "the room I think I am in" guard the other routes take, and a
+ * body carrying both meanings under one key is a bug waiting to be written.
+ */
+export async function switchGame(rawCode, { token, revision, to } = {}) {
+  const code = assertCode(rawCode);
+  const playerToken = assertToken(token);
+
+  if (!Number.isInteger(revision) || revision < 0) {
+    throw badRequest("`revision` must be a non-negative integer.");
+  }
+
+  const def = getGame(to);
+
+  const row = await loadLive(code);
+  const asking = findPlayer(row.players, playerToken);
+  // Spectators hold no seat, so they have no say in what the table plays.
+  if (!asking) throw notAPlayer();
+
+  markPresent(code, playerToken);
+
+  if (row.revision !== revision) {
+    throw staleRevision(roomPayload(row, playerToken));
+  }
+  if (row.game === def.id) {
+    throw badRequest(`Room ${code} is already playing that game.`, "same-game");
+  }
+
+  // The identical function the picker used to decide whether to draw the tile,
+  // handed a payload-shaped room so the two cannot answer differently.
+  const refusal = switchRefusal({ status: row.status }, publicPlayer(asking));
+  if (refusal === "not-a-player") throw notAPlayer();
+  if (refusal === "in-progress") {
+    throw badRequest(
+      "You cannot change games while one is being played.",
+      "in-progress",
+    );
+  }
+  if (refusal === "not-host") {
+    throw badRequest("Only the host can change the game.", "not-host");
+  }
+
+  // Seats flagged `left` are gone on purpose, and the next game must not deal
+  // them in. Dropping them means renumbering, and renumbering is REQUIRED, not
+  // cosmetic: `HOST_SLOT` is the literal integer 0, so a room that loses seat 0
+  // without compacting has no host for the rest of its life — and `nextSlot`
+  // would hand seat 0 to the next person through the door. Compacting in join
+  // order is what keeps the host tag on the earliest-joined person still here.
+  //
+  // It is only safe because the state is being thrown away and rebuilt, so no
+  // surviving slot reference has to be renumbered against it. That is exactly
+  // why `leaveRoom` refuses to delete a seat mid-game, and why that refusal
+  // does not apply here.
+  //
+  // DO NOT sort `surviving` by `slot` before compacting. It looks like the
+  // obvious one-line fix for a case that reads as a bug, and it would break the
+  // rule this compaction exists to keep. `nextSlot` recycles the LOWEST free
+  // seat, so once a lobby seat has been vacated and re-taken, array order (join
+  // order) and slot number disagree: Ada creates (slot 0), Bo joins (slot 1),
+  // Ada leaves in the lobby so her seat is deleted, Cy joins and `nextSlot`
+  // gives him slot 0 -- leaving the array `[Bo(slot 1), Cy(slot 0)]`. Cy presses
+  // switch and comes out at seat 1 while Bo takes seat 0 and the host tag.
+  //
+  // That is correct. Seat 0 belongs to the earliest-joined person still here,
+  // not to whoever pressed the button, and Bo joined first -- the switch is
+  // normalising a pre-existing `nextSlot` recycling artifact, not creating one.
+  // Sorting by `slot` would hand seat 0 back to Cy and contradict that rule.
+  const surviving = toArray(row.players).filter((p) => p.left !== true);
+  if (surviving.length > def.maxPlayers) {
+    // Rendered verbatim in the picker's notice slot, so it may not name
+    // `def.id`: the player pressed a tile that said "Tic-Tac-Overflow", and
+    // "tto takes at most 2 players." is a sentence about a registry key. The
+    // display names live in the games' presentation catalog, and no presentation
+    // data belongs under `src/lib/realtime/`, so this is written to need no name
+    // at all -- the tile they pressed is still on screen saying which game it is.
+    throw rejected(
+      `There are too many of you for that game now — it seats at most ${def.maxPlayers}.`,
+      roomPayload(row, playerToken),
+    );
+  }
+
+  const players = [];
+  for (const seat of surviving) {
+    players.push({
+      // Spread first: `token` is the seat's identity and its authorization, and
+      // `connectedAt` is how `identity.js` recognises a seat across a payload
+      // that has forgotten who you are. Rewrite either and a client that
+      // reconnects is a different person. Only `slot` and `color` may move.
+      ...seat,
+      slot: players.length,
+      left: false,
+      // Re-derived against the destination's palette rather than carried over:
+      // arriving into Edge Case from a game whose `colors` is `[]` means every
+      // seat holds `null` and needs one, and arriving into a 2-player game
+      // means every seat must lose the one it had.
+      color: assignColor(players, def.colors, seat.color),
+    });
+  }
+
+  const cast = publicPlayers(players);
+  let state = def.createState({ options: undefined, players: cast });
+  if (typeof def.onPlayersChanged === "function") {
+    state = def.onPlayersChanged(state, cast);
+  }
+  const status = resolveStatus(def, state, cast);
+
+  const ok = await commit(code, revision, {
+    game: def.id,
+    state,
+    players,
+    status,
+  });
+  if (!ok) throw staleRevision(await getRoom(code, playerToken));
+
+  return roomPayload(
+    {
+      ...row,
+      game: def.id,
+      state,
+      players,
+      status,
+      revision: revision + 1,
+      updatedAt: new Date(),
+    },
+    playerToken,
+  );
 }
 
 /**

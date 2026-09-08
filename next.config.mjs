@@ -1,8 +1,28 @@
+import createMDX from "@next/mdx";
+import remarkGfm from "remark-gfm";
+
+import { remarkCodeMeta, remarkReadingTime } from "./src/lib/mdx/remark.mjs";
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // "mdx" is here for the *aliasing*, not for routing. Next builds
+  // `aliasCodeConditionTest` as [codeCondition.test, pageExtensionsRegex], and
+  // codeCondition.test only covers js/jsx/ts/tsx/cjs/mjs — so without "mdx" a
+  // .mdx module in the React Server Components layer never picks up Next's
+  // vendored React aliases and resolves the *client* react/jsx-dev-runtime
+  // against the react-server build of react. That crashes every post in dev
+  // with "Cannot read properties of undefined (reading
+  // 'recentlyCreatedOwnerStacks')". No route is created by this: the blog's
+  // .mdx files live in src/content/, and only page/layout/route files are
+  // routed out of src/app/.
+  // (The rest of the list is Next's default, kept verbatim.)
+  pageExtensions: ["tsx", "ts", "jsx", "js", "mdx"],
   images: {
     remotePatterns: [
       {
+        // Currently unused: /games/mini-motorways was the only consumer and
+        // it now redirects to a static page. Kept in case Hygraph imagery
+        // returns; safe to drop with src/lib/hygraph.js.
         protocol: "https",
         hostname: "media.graphassets.com",
       },
@@ -19,8 +39,19 @@ const nextConfig = {
       destination: "/games/hashtag",
       permanent: true,
     },
-    // /games/mini-motorways was a Hygraph-backed page that no longer has a
-    // CMS to read from. The stats live under /gaming now.
+    {
+      source: "/projects",
+      destination: "/blog",
+      permanent: true,
+    },
+    {
+      source: "/projects/:slug",
+      destination: "/blog/:slug",
+      permanent: true,
+    },
+    // The Hygraph-backed /games/mini-motorways was replaced by the static
+    // /gaming/mini-motorways page. The old URL is kept alive because it was
+    // linked from the nav for years.
     {
       source: "/games/mini-motorways",
       destination: "/gaming/mini-motorways",
@@ -29,4 +60,13 @@ const nextConfig = {
   ],
 };
 
-export default nextConfig;
+// If --turbopack is ever added to the dev/build scripts, remarkPlugins must
+// become the string form (["remark-gfm"]) — Turbopack cannot serialize a JS
+// function across its config boundary. remarkReadingTime and remarkCodeMeta are
+// local functions and have the same problem: they would have to be published as
+// resolvable module specifiers before Turbopack could load them.
+const withMDX = createMDX({
+  options: { remarkPlugins: [remarkGfm, remarkReadingTime, remarkCodeMeta] },
+});
+
+export default withMDX(nextConfig);

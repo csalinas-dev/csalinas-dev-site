@@ -1,5 +1,5 @@
 import { STREAM_HEARTBEAT_MS } from "@/lib/realtime/constants";
-import { toResponse } from "@/lib/realtime/errors";
+import { badTicket, toResponse } from "@/lib/realtime/errors";
 import { clientIp, limitOr429 } from "@/lib/realtime/http";
 import { getRoom, subscribeRoom } from "@/lib/realtime/rooms";
 import { redeemTicket } from "@/lib/realtime/tickets";
@@ -22,8 +22,10 @@ const encoder = new TextEncoder();
  *   `:` comment lines are heartbeats, invisible to EventSource
  *
  * The ticket is optional — spectators have no token and so need no ticket, and
- * open the stream bare. When present it is redeemed for the player token, which
- * only decides who `me` is in each payload.
+ * open the stream bare. But a ticket that is *present* and does not redeem is a
+ * failure, not a downgrade: it is answered with 403 `bad-ticket` and no stream.
+ * Serving it anonymously instead would report `me: null` to a seated player and
+ * leave their board dead with a 200 that no client-side retry can see.
  *
  * It is a ticket rather than the token itself because EventSource cannot set
  * headers, so whatever identifies the stream ends up in the URL — and therefore
@@ -36,8 +38,16 @@ export async function GET(request, { params }) {
   const limited = limitOr429(`rooms-stream:${clientIp(request)}`, RATE_LIMIT);
   if (limited) return limited;
 
+  // No ticket at all is the spectator path and stays exactly as it was. A
+  // ticket that was offered and refused is not a spectator — it is a player
+  // whose credential did not survive, and they are owed an error they can act
+  // on rather than a stream that lies about who they are.
   const ticket = new URL(request.url).searchParams.get("ticket");
-  const token = redeemTicket(ticket, code) || undefined;
+  let token;
+  if (ticket) {
+    token = redeemTicket(ticket, code) || undefined;
+    if (!token) return toResponse(badTicket());
+  }
 
   // Resolve the first snapshot before opening the stream: a dead room should be
   // an honest 410 the client can act on, not a stream that opens and hangs up.

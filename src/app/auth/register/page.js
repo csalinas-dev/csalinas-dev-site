@@ -141,7 +141,7 @@ export default function RegisterPage() {
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        minHeight: "100vh",
+        minHeight: "100svh",
         padding: 2,
       }}
     >

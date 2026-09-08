@@ -94,8 +94,9 @@ const Container = styled.div`
  * @param {Number} props.drop - How many cells above its cell the piece starts
  * @param {Number} props.winIndex - Its place along the winning line, or -1
  * @param {Boolean} props.dimmed - The game is won and this is not part of it
+ * @param {Boolean} props.showInitials - Stamp the player's initial on the piece
  */
-export const Cell = ({ dimmed, drop, landing, player, winIndex }) => {
+export const Cell = ({ dimmed, drop, landing, player, showInitials, winIndex }) => {
   const winning = winIndex >= 0;
 
   const className = [
@@ -120,7 +121,7 @@ export const Cell = ({ dimmed, drop, landing, player, winIndex }) => {
       {player && (
         <div className="slot">
           <div className="disc">
-            <Piece player={player} />
+            <Piece player={player} showInitials={showInitials} />
           </div>
         </div>
       )}
