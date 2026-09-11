@@ -1,23 +1,23 @@
 {
   "schema": 2,
-  "savedAt": "2026-09-07T19:17:34.674Z",
+  "savedAt": "2026-09-11T05:37:51.633Z",
   "totals": {
     "dailyChallengesPlayed": 15,
     "weeklyChallengesPlayed": 10,
-    "treesBulldozed": 391,
-    "totalScore": 279173,
-    "concretePlaced": 32884,
-    "bridges": 652,
+    "treesBulldozed": 396,
+    "totalScore": 285887,
+    "concretePlaced": 33562,
+    "bridges": 664,
     "tunnels": 180,
-    "motorways": 560,
-    "trafficLights": 129,
-    "roundabouts": 272,
-    "concreteDeleted": 53422,
-    "endlessMilestones": 122,
-    "playTime": 295382,
+    "motorways": 581,
+    "trafficLights": 130,
+    "roundabouts": 276,
+    "concreteDeleted": 54722,
+    "endlessMilestones": 137,
+    "playTime": 302564,
     "bestScore": 79130,
     "citiesPlayed": 26,
-    "cityModesPlayed": 60
+    "cityModesPlayed": 61
   },
   "achievements": {
     "complete": 187,
@@ -31,10 +31,10 @@
       "best": 3575,
       "bestDays": 2188,
       "bestAverage": 0,
-      "totalTrips": 5440,
+      "totalTrips": 7822,
       "longestDays": 2188,
-      "totalDays": 4708,
-      "playTime": 4708
+      "totalDays": 6659,
+      "playTime": 6659
     },
     {
       "city": "Beijing",
@@ -46,6 +46,17 @@
       "longestDays": 2071,
       "totalDays": 2071,
       "playTime": 2071
+    },
+    {
+      "city": "Beijing",
+      "mode": "Endless",
+      "best": 10421,
+      "bestDays": 3668,
+      "bestAverage": 0,
+      "totalTrips": 8039,
+      "longestDays": 3668,
+      "totalDays": 1717,
+      "playTime": 1717
     },
     {
       "city": "Busan",
@@ -317,10 +328,10 @@
       "best": 3075,
       "bestDays": 2226,
       "bestAverage": 0,
-      "totalTrips": 18125,
+      "totalTrips": 22457,
       "longestDays": 2226,
-      "totalDays": 21070,
-      "playTime": 21070
+      "totalDays": 24584,
+      "playTime": 24584
     },
     {
       "city": "LosAngeles",
@@ -692,7 +703,7 @@
         "city": "Beijing",
         "mode": 0,
         "index": 0,
-        "best": null
+        "best": 2382
       },
       {
         "city": "Beijing",
@@ -800,7 +811,7 @@
         "city": "LosAngeles",
         "mode": 0,
         "index": 0,
-        "best": null
+        "best": 1435
       },
       {
         "city": "LosAngeles",
@@ -812,7 +823,7 @@
         "city": "LosAngeles",
         "mode": 0,
         "index": 2,
-        "best": null
+        "best": 2897
       },
       {
         "city": "Manila",
@@ -955,8 +966,8 @@
     ],
     "current": {
       "daily": {
-        "score": 4514,
-        "expiry": 1788825600
+        "score": null,
+        "expiry": 1789171200
       },
       "weekly": {
         "score": null,
