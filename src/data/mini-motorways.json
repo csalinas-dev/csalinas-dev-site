@@ -1,23 +1,23 @@
 {
   "schema": 2,
-  "savedAt": "2026-09-11T05:37:51.633Z",
+  "savedAt": "2026-09-16T05:04:03.490Z",
   "totals": {
     "dailyChallengesPlayed": 15,
     "weeklyChallengesPlayed": 10,
-    "treesBulldozed": 396,
-    "totalScore": 285887,
-    "concretePlaced": 33562,
-    "bridges": 664,
-    "tunnels": 180,
-    "motorways": 581,
-    "trafficLights": 130,
-    "roundabouts": 276,
-    "concreteDeleted": 54722,
-    "endlessMilestones": 137,
-    "playTime": 302564,
+    "treesBulldozed": 409,
+    "totalScore": 298335,
+    "concretePlaced": 34871,
+    "bridges": 691,
+    "tunnels": 187,
+    "motorways": 610,
+    "trafficLights": 134,
+    "roundabouts": 293,
+    "concreteDeleted": 56522,
+    "endlessMilestones": 170,
+    "playTime": 313521,
     "bestScore": 79130,
     "citiesPlayed": 26,
-    "cityModesPlayed": 61
+    "cityModesPlayed": 62
   },
   "achievements": {
     "complete": 187,
@@ -350,10 +350,10 @@
       "best": 2491,
       "bestDays": 1918,
       "bestAverage": 0,
-      "totalTrips": 6274,
+      "totalTrips": 9887,
       "longestDays": 1918,
-      "totalDays": 6236,
-      "playTime": 6236
+      "totalDays": 8180,
+      "playTime": 8180
     },
     {
       "city": "Manila",
@@ -372,10 +372,10 @@
       "best": 79130,
       "bestDays": 14316,
       "bestAverage": 0,
-      "totalTrips": 76639,
+      "totalTrips": 79251,
       "longestDays": 14316,
-      "totalDays": 12398,
-      "playTime": 12398
+      "totalDays": 13009,
+      "playTime": 13009
     },
     {
       "city": "MexicoCity",
@@ -449,10 +449,10 @@
       "best": 2881,
       "bestDays": 1954,
       "bestAverage": 0,
-      "totalTrips": 8839,
+      "totalTrips": 9644,
       "longestDays": 1954,
-      "totalDays": 9135,
-      "playTime": 9135
+      "totalDays": 10405,
+      "playTime": 10405
     },
     {
       "city": "Munich",
@@ -526,10 +526,10 @@
       "best": 3315,
       "bestDays": 2160,
       "bestAverage": 0,
-      "totalTrips": 7591,
+      "totalTrips": 9555,
       "longestDays": 2160,
-      "totalDays": 5813,
-      "playTime": 5813
+      "totalDays": 7606,
+      "playTime": 7606
     },
     {
       "city": "RioDeJaneiro",
@@ -543,15 +543,37 @@
       "playTime": 1733
     },
     {
+      "city": "RioDeJaneiro",
+      "mode": "Endless",
+      "best": 9735,
+      "bestDays": 3338,
+      "bestAverage": 0,
+      "totalTrips": 7771,
+      "longestDays": 3338,
+      "totalDays": 1545,
+      "playTime": 1545
+    },
+    {
+      "city": "Singapore",
+      "mode": "Normal",
+      "best": 0,
+      "bestDays": 0,
+      "bestAverage": 0,
+      "totalTrips": 0,
+      "longestDays": 0,
+      "totalDays": 0,
+      "playTime": 0
+    },
+    {
       "city": "Tokyo",
       "mode": "Normal",
       "best": 4830,
       "bestDays": 2540,
       "bestAverage": 0,
-      "totalTrips": 12368,
+      "totalTrips": 16411,
       "longestDays": 2540,
-      "totalDays": 11479,
-      "playTime": 11479
+      "totalDays": 13512,
+      "playTime": 13512
     },
     {
       "city": "Tokyo",
@@ -669,10 +691,10 @@
       "best": 3159,
       "bestDays": 2092,
       "bestAverage": 0,
-      "totalTrips": 11348,
+      "totalTrips": 13371,
       "longestDays": 2092,
-      "totalDays": 10217,
-      "playTime": 10217
+      "totalDays": 11978,
+      "playTime": 11978
     },
     {
       "city": "Zurich",
@@ -829,7 +851,7 @@
         "city": "Manila",
         "mode": 0,
         "index": 0,
-        "best": null
+        "best": 3613
       },
       {
         "city": "Manila",
@@ -871,7 +893,7 @@
         "city": "Munich",
         "mode": 0,
         "index": 0,
-        "best": null
+        "best": 805
       },
       {
         "city": "Munich",
@@ -907,7 +929,7 @@
         "city": "RioDeJaneiro",
         "mode": 0,
         "index": 1,
-        "best": null
+        "best": 1964
       },
       {
         "city": "Tokyo",
@@ -919,7 +941,7 @@
         "city": "Tokyo",
         "mode": 0,
         "index": 1,
-        "best": null
+        "best": 4043
       },
       {
         "city": "Vancouver",
@@ -955,7 +977,7 @@
         "city": "Zurich",
         "mode": 0,
         "index": 0,
-        "best": null
+        "best": 2023
       },
       {
         "city": "Zurich",
@@ -967,11 +989,11 @@
     "current": {
       "daily": {
         "score": null,
-        "expiry": 1789171200
+        "expiry": 1789603200
       },
       "weekly": {
         "score": null,
-        "expiry": 1789344000
+        "expiry": 1789948800
       }
     }
   }
